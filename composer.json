@@ -18,7 +18,7 @@
 		"ext-pdo" : "*",
 		"lib-curl" : "*",
 		"lib-openssl" : "*",
-		"flip/whoops" : "1.0.7",
+		"filp/whoops" : "1.0.7",
 		"swiftmailer/swiftmailer" : "5.0.*"
 	},
 	"require-dev" : {
