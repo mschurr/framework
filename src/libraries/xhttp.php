@@ -119,7 +119,7 @@ class xHTTPRequest
 		
 		// Extract Headers
 		preg_match_all('//', $headers, $matches);
-		print_r($matches);
+		//print_r($matches); TODO
 		
 		// Extract Body
 		$b = substr($res, $res_headers['header_size']);
