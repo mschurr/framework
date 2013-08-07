@@ -60,6 +60,7 @@ require(FRAMEWORK_ROOT.'/framework/app.php');
 
 if(client_ip() == '127.0.0.1' || client_ip() == '::1') {
 	App::displayErrors(true);
+	define('FORCE_DISPLAY_ERRORS', true);
 }
 
 require(FILE_ROOT.'/webapp.php');

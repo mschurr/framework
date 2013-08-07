@@ -2,48 +2,26 @@
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
 use Exception as BaseException;
-class Exception extends BaseException {}
 
+error_reporting(E_ALL & ~E_NOTICE);
+ini_set('error_log', FILE_ROOT.'/webapp.log');
+ini_set('log_errors', true);
 
-$run = new Run;
-$handler = new PrettyPageHandler;
-
-/*$handler->addDataTable('Ice-cream I like', array(
-    'Chocolate' => 'yes',
-    'Coffee & chocolate' => 'a lot',
-    'Strawberry & chocolate' => 'it\'s alright',
-    'Vanilla' => 'ew'
-));*/
-
-$run->pushHandler($handler);
-
-$run->pushHandler(function($exception, $inspector, $run) {
-
-    $inspector->getFrames()->map(function($frame) {
-
-        if($function = $frame->getFunction()) {
-            $frame->addComment("This frame is within function '$function'", 'cpt-obvious');
-        }
-
-        return $frame;
-    });
-
-});
-
-$run->register();
-
-function fooBar() {
-    throw new Exception("Something broke!");
+if(FORCE_DISPLAY_ERRORS == true || App::getErrorMode() === true) {
+	$run = new Run;
+	$handler = new PrettyPageHandler;
+	
+	$handler->addDataTable('Framework Data', array(
+		/*'version' => 'dev-master'*/
+	));
+	
+	$run->pushHandler($handler);
+	$run->register();
+}
+else {
+	set_error_handler("ErrorHandler::fire");
 }
 
-function bar()
-{
-    fooBar();
-}
-
-bar();
-
-/*
 class ErrorHandler
 {
 	public static function fire($level,$message,$file,$line,$context,$backtrace=true)
@@ -150,10 +128,3 @@ class ErrorHandler
 		}
 	}
 }
-
-
-error_reporting(E_ALL & ~E_NOTICE);
-ini_set('error_log', FILE_ROOT.'/webapp.log');
-ini_set('log_errors', true);
-set_error_handler("ErrorHandler::fire");
-*/
