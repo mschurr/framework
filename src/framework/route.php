@@ -151,7 +151,7 @@ class Route
 	public static function is($pattern, &$request)
 	{
 		// Check if the path matches the route.
-		if($request->getPath() == $pattern) {
+		if($request->path == $pattern) {
 			return array();
 		}
 		

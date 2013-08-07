@@ -12,10 +12,10 @@ if (version_compare(phpversion(), '5.3.0', '<') == true) {
 	die('You must install PHP >= 5.3.0 in order to use this framework.');
 }
 
-
 define('FILE_ROOT',str_replace("/index.php","",$_SERVER['SCRIPT_FILENAME']));
+define('FRAMEWORK_ROOT',FILE_ROOT.'/vendor/mschurr/framework/src');
 define('EOL', PHP_EOL);
-require(FILE_ROOT.'/framework/errors.php');
+require(FRAMEWORK_ROOT.'/framework/errors.php');
 
 ini_set('expose_php',false);
 ini_set('magic_quotes_gpc','Off');
@@ -34,29 +34,29 @@ ini_set('session.use_trans_sid','Off');
 ini_set('session.gc_maxlifetime','12000000');
 ini_set('allow_url_fopen','off');
 
-require(FILE_ROOT.'/framework/utility.php');
-require(FILE_ROOT.'/framework/registry.php');
-require(FILE_ROOT.'/framework/framework.php');
-require(FILE_ROOT.'/framework/filesystem.php');
-require(FILE_ROOT.'/framework/config.php');
-require(FILE_ROOT.'/framework/log.php');
-require(FILE_ROOT.'/framework/response.php');
-require(FILE_ROOT.'/framework/request.php');
-require(FILE_ROOT.'/framework/crypt.php');
-require(FILE_ROOT.'/framework/requesthandler.php');
-require(FILE_ROOT.'/framework/output.php');
-require(FILE_ROOT.'/framework/route.php');
-require(FILE_ROOT.'/framework/url.php');
-require(FILE_ROOT.'/framework/redirect.php');
-require(FILE_ROOT.'/framework/input.php');
-require(FILE_ROOT.'/framework/cookies.php');
-require(FILE_ROOT.'/framework/models.php');
-require(FILE_ROOT.'/framework/localization.php');
-require(FILE_ROOT.'/framework/document.php');
-require(FILE_ROOT.'/framework/views.php');
-require(FILE_ROOT.'/framework/blade.php');
-require(FILE_ROOT.'/framework/database.php');
-require(FILE_ROOT.'/framework/app.php');
+require(FRAMEWORK_ROOT.'/framework/utility.php');
+require(FRAMEWORK_ROOT.'/framework/registry.php');
+require(FRAMEWORK_ROOT.'/framework/framework.php');
+require(FRAMEWORK_ROOT.'/framework/filesystem.php');
+require(FRAMEWORK_ROOT.'/framework/config.php');
+require(FRAMEWORK_ROOT.'/framework/log.php');
+require(FRAMEWORK_ROOT.'/framework/response.php');
+require(FRAMEWORK_ROOT.'/framework/request.php');
+require(FRAMEWORK_ROOT.'/framework/crypt.php');
+require(FRAMEWORK_ROOT.'/framework/requesthandler.php');
+require(FRAMEWORK_ROOT.'/framework/output.php');
+require(FRAMEWORK_ROOT.'/framework/route.php');
+require(FRAMEWORK_ROOT.'/framework/url.php');
+require(FRAMEWORK_ROOT.'/framework/redirect.php');
+require(FRAMEWORK_ROOT.'/framework/input.php');
+require(FRAMEWORK_ROOT.'/framework/cookies.php');
+require(FRAMEWORK_ROOT.'/framework/models.php');
+require(FRAMEWORK_ROOT.'/framework/localization.php');
+require(FRAMEWORK_ROOT.'/framework/document.php');
+require(FRAMEWORK_ROOT.'/framework/views.php');
+require(FRAMEWORK_ROOT.'/framework/blade.php');
+require(FRAMEWORK_ROOT.'/framework/database.php');
+require(FRAMEWORK_ROOT.'/framework/app.php');
 
 if(client_ip() == '127.0.0.1' || client_ip() == '::1') {
 	App::displayErrors(true);
@@ -64,4 +64,3 @@ if(client_ip() == '127.0.0.1' || client_ip() == '::1') {
 
 require(FILE_ROOT.'/webapp.php');
 App::run();
-?>
