@@ -1,0 +1,38 @@
+{
+	"name" : "schurrso/framework",
+	"description" : "",
+	"keywords" : [],
+	"license" : "MIT",
+	"type" : "library",
+	"homepage" : "",
+	"authors" : [
+		{
+				"name" : "Matthew Schurr",
+				"email" : "mschurr@rice.edu"
+		}
+	],
+	"require" : {
+		"php" : ">=5.3.0",
+		"ext-gd" : "*",
+		"ext-mcrypt" : "*",
+		"ext-pdo" : "*",
+		"lib-curl" : "*",
+		"lib-openssl" : "*",
+		"flip/whoops" : "1.0.7",
+		"swiftmailer/swiftmailer" : "5.0.*"
+	},
+	"require-dev" : {
+	},
+	"autoload" : {
+		"classmap" : ["src/"],
+		"files" : ["src/initialize.php"],
+		"psr-0" : {}
+	},
+	"target-dir" : "framework",
+	"minimum-stability" : "dev",
+	"prefer-stable" : true,
+	"extra" : {
+		"branch-alias" : {
+		}
+	}
+}
