@@ -28,7 +28,6 @@
 		"files" : ["src/initialize.php"],
 		"psr-0" : {}
 	},
-	"target-dir" : "framework",
 	"minimum-stability" : "dev",
 	"prefer-stable" : true,
 	"extra" : {
