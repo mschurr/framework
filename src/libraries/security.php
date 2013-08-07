@@ -1,7 +1,4 @@
 <?php
-if(!function_exists('included'))
-	die();
-
 class Security
 {
 	public static function csrf_token()
@@ -16,4 +13,3 @@ class Security
 	{
 	}
 }
-?>

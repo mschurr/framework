@@ -1,5 +1,5 @@
 <?php
-class Mail {
+class MailMessage {
 	protected $to;
 	protected $from;
 	protected $sender;
@@ -403,4 +403,3 @@ class Mail {
 		}
 	}
 }
-?>

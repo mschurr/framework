@@ -1,6 +1,4 @@
 <?php
-if(!function_exists('included'))
-	die();
 
 class Session
 {
@@ -36,4 +34,3 @@ class Session
 	{
 	}
 }
-?>

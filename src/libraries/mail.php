@@ -1,6 +1,4 @@
 <?php
-if(!function_exists('included'))
-	die();
 
 class Mail
 {
@@ -56,4 +54,3 @@ class MailMessage
 	{
 	}
 }
-?>

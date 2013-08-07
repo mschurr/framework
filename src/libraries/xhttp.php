@@ -1,7 +1,4 @@
 <?php
-if(!function_exists('included'))
-	die();
-
 class xHTTPResponse
 {
 	public $status;
@@ -227,4 +224,3 @@ class xHTTPRequest
 		CURLOPT_CUSTOMREQUEST = "DELETE" "PUT"		
 	*/
 }
-?>

@@ -143,7 +143,7 @@ abstract class BladeParser
 		if(file_exists($this->blade_file_cache.'.dep')) {
 			$modified = false;
 			$deps = from_json(file_get_contents($this->blade_file_cache.'.dep'));
-			$deps[] = FILE_ROOT.'/framework/blade.php';
+			$deps[] = FRAMEWORK_ROOT.'/framework/blade.php';
 			$cache_time = filemtime($this->blade_file_cache);
 			
 			foreach($deps as $i => $file) {

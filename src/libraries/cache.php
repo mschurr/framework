@@ -1,7 +1,4 @@
 <?php
-if(!function_exists('included'))
-	die();
-
 class Cache
 {
 	protected static $driver;
@@ -36,4 +33,3 @@ class Cache
 abstract class CacheDriver
 {
 }
-?>

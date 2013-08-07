@@ -19,7 +19,8 @@
 		"lib-curl" : "*",
 		"lib-openssl" : "*",
 		"filp/whoops" : "1.0.7",
-		"swiftmailer/swiftmailer" : "5.0.*"
+		"swiftmailer/swiftmailer" : "5.0.*",
+		"monolog/monolog": "1.5.*"
 	},
 	"require-dev" : {
 	},

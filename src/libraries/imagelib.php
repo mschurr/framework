@@ -202,4 +202,3 @@ class Image {
 		return array($r, $g, $b);
 	}	
 }
-?>
