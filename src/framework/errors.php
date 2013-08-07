@@ -1,5 +1,49 @@
 <?php
+use Whoops\Run;
+use Whoops\Handler\PrettyPageHandler;
+use Exception as BaseException;
+class Exception extends BaseException {}
 
+
+$run = new Run;
+$handler = new PrettyPageHandler;
+
+/*$handler->addDataTable('Ice-cream I like', array(
+    'Chocolate' => 'yes',
+    'Coffee & chocolate' => 'a lot',
+    'Strawberry & chocolate' => 'it\'s alright',
+    'Vanilla' => 'ew'
+));*/
+
+$run->pushHandler($handler);
+
+$run->pushHandler(function($exception, $inspector, $run) {
+
+    $inspector->getFrames()->map(function($frame) {
+
+        if($function = $frame->getFunction()) {
+            $frame->addComment("This frame is within function '$function'", 'cpt-obvious');
+        }
+
+        return $frame;
+    });
+
+});
+
+$run->register();
+
+function fooBar() {
+    throw new Exception("Something broke!");
+}
+
+function bar()
+{
+    fooBar();
+}
+
+bar();
+
+/*
 class ErrorHandler
 {
 	public static function fire($level,$message,$file,$line,$context,$backtrace=true)
@@ -36,11 +80,6 @@ class ErrorHandler
 						debug_print_backtrace();
 						$report .= nl2br(ob_get_contents());				
 						ob_end_clean();
-					
-						/*if($backtrace)						
-							$report .= self::backtrace();
-						else
-							$report .= 'N/A';//*/
 					
 					$report .= '<br /><br /></td>
 				</tr>
@@ -117,5 +156,4 @@ error_reporting(E_ALL & ~E_NOTICE);
 ini_set('error_log', FILE_ROOT.'/webapp.log');
 ini_set('log_errors', true);
 set_error_handler("ErrorHandler::fire");
-
-?>
+*/
