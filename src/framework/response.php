@@ -27,10 +27,12 @@ class Response
 	
 	public function send()
 	{
-		header('HTTP/1.1 '.$this->status.' '.$this->status_text[$this->status], true);
-		
-		foreach($this->headers as $k => $v) {
-			header($k.':'. $v, true);
+		if(!headers_sent()) {
+			header('HTTP/1.1 '.$this->status.' '.$this->status_text[$this->status], true);
+			
+			foreach($this->headers as $k => $v) {
+				header($k.':'. $v, true);
+			}
 		}
 		
 		foreach($this->setCookies as $cookie) {

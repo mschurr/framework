@@ -1,50 +1,38 @@
 <?php
 class xHTTPResponse
 {
-	public $status;
-	public $status_text;
-	public $version = 'HTTP/1.1';
-	public $headers = array();
-	public $body;
-	public $size; // in bytes
-	public $mime;
+	protected $data = array(
+		'status' => '',
+		'status_text' => '',
+		'version' => 'HTTP/1.1',
+		'headers' => array(),
+		'body' => '',
+		'size' => '', // in bytes
+		'type' => '',
+		'json' => '',
+		'rss' => '',
+		'xml' => '',
+		'html' => '',
+		'file' => ''
+	);	
 	
-	public function __construct($s, $st, $v, $h, $b, $z, $m) {
-		// Provided Variables
-		$this->status = $s;
-		$this->status_text = $st;
-		$this->version = $v;
-		$this->headers = $h;
-		$this->body = $b;
-		$this->size = $z;
-		$this->mime = $m;
-		
-		// Calculate Variables
-		// $this->size
-		// $this->json
-		// $this->rss
-		// $this->xml
-		// $this->html
-		// $this->content_type
-		// $this->file, save contents to disk function?
-	}
-	
-	public function __invoke() {
-		$args = func_get_args();
+	public function __construct($data) {
+		$this->data = array_merge($this->data, $data);
 	}
 	
 	public function __get($name) {
+		if(isset($this->data[$name]))
+			return $this->data[$name];
+		return null;
+	}
+	
+	public function __isset($name) {
+		return isset($this->data[$name]);
 	}
 }
 
 class xHTTPClient
 {
-	// used for making multiple requests with persistent data
-}
-
-class xHTTPRequest
-{
-	protected $response = false;
 	protected $method = 'GET';
 	protected $url = '';
 	protected $headers = array();
@@ -52,15 +40,12 @@ class xHTTPRequest
 	protected $cookies = false;
 	protected $user_agent = 'Mozilla/5.0 CGI/WebDaemon';
 	protected $ch = false;
-	protected $debug = true;
+	protected $debug = false;
 	
-	public function __construct($method, $url, $headers=array(), $data=array(), $cookies=false, $user_agent=false)
+	public function __construct($cookies=false, $headers=array(), $user_agent=false)
 	{
 		// Merge Data
-		$this->method = strtolower($method);
-		$this->url = $url;
 		$this->headers = $headers;
-		$this->data = $data;
 		$this->cookies = $cookies;
 		
 		if($user_agent !== false)
@@ -68,8 +53,8 @@ class xHTTPRequest
 		
 		// Initialize
 		$this->ch = curl_init();
-		curl_setopt($this->ch, CURLOPT_HEADER, $this->debug);
-		curl_setopt($this->ch, CURLINFO_HEADER_OUT, $this->debug);
+		curl_setopt($this->ch, CURLOPT_HEADER, true);
+		curl_setopt($this->ch, CURLINFO_HEADER_OUT, true);
 		curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($this->ch, CURLOPT_TIMEOUT, 120);
@@ -93,44 +78,50 @@ class xHTTPRequest
 		
 		// Assign Headers
 		$this->setHeaders($this->headers);
-		
-		// Make Request (method, url, data) and Set Response
-		if(!is_callable(array($this, strtolower($this->method))))
-			return false;
-		
-		$this->response = $this->$method($this->url, $this->data);
 	}
 	
 	protected function run() {
 		$res = curl_exec($this->ch);
 		$res_headers = curl_getinfo($this->ch);
-		
+				
 		// Check For CURL Errors
 		if (curl_errno($this->ch) != 0) {
 			return false;
 		}
 		
-		$headers = substr($res, 0, $res_headers['header_size']);
+		$header = substr($res, 0, $res_headers['header_size']);
+		$body = substr($res, $res_headers['header_size']);
 		
-		// Extract Status Code
-		$s = $res_headers['http_code'];
+		$header_tmp = explode(PHP_EOL, $header);
+		$headers=array();
 		
-		// Extract Status Text, HTTP Version
+		foreach($header_tmp as $i => $value) {
+			if($i == 0) {
+				$h = explode(" ",$value,3);
+				$version = $h[0];
+				$text = $h[2];
+				$code = $h[1];
+			}
+			elseif(strpos($value, ":") !== false) {
+				$h = explode(":", $value, 2);
+				$headers[trim($h[0])] = trim($h[1]);
+			}
+		}
 		
-		// Extract Headers
-		preg_match_all('//', $headers, $matches);
-		//print_r($matches); TODO
+		$type = (str_contains($res_headers['content_type'],";") ? substr($res_headers['content_type'],0,strpos($res_headers['content_type'],';')) : $res_headers['content_type']);
 		
-		// Extract Body
-		$b = substr($res, $res_headers['header_size']);
+		$response = new xHTTPResponse(array(
+			'status' => $res_headers['http_code'],
+			'status_text' => $text,
+			'version' => $version,
+			'headers' => $headers,
+			'body' => $body,
+			'size' => ($res_headers['size_download'] - $res_headers['header_size']),
+			'type' => $type,
+			'json' => ($type == 'application/json' ? from_json($body) : null),
+			'file' => null
+		));
 		
-		// Extract Size in Bytes
-		$z = $res_headers['size_download'] - $res_headers['header_size'];
-		
-		// Extract Content Type
-		$m = (str_contains($res_headers['content_type'],";") ? substr($res_headers['content_type'],0,strpos($res_headers['content_type'],';')) : $res_headers['content_type']);
-		
-		$response = new xHTTPResponse($s, $st, $v, $h, $b, $z, $m);
 		return $response;
 	}
 	
@@ -165,12 +156,7 @@ class xHTTPRequest
 	
 	public function __toString()
 	{
-		return '<xHTTPRequest Object>';
-	}
-	
-	public function getResult()
-	{
-		return $this->response;
+		return '<xHTTPClient Object>';
 	}
 	
 	public function setHeaders($headers) {

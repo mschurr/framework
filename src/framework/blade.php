@@ -9,6 +9,8 @@
 	# This implementation is based loosely on Laravel Blade (http://www.laravel.com/).
 	##################################################################################################
 	
+	TODO: support @choice(lang, opts...)
+	
 	#####################################
 	# SHARED:
 	#####################################

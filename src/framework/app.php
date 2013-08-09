@@ -43,7 +43,6 @@
 		/security
 		/sessions
 		/useragents
-		/xhttp
 	}
 */
 

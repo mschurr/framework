@@ -75,11 +75,11 @@ class DB_Driver_mysql extends DB_Driver
 			$insertId = $this->link->lastInsertId();
 		}
 		catch (PDOException $e) {
-			return new DB_Result($this, 0, null, $query, array(), false, array(), 0, 0, $e->getMessage());
+			return new DB_Result($this, 0, null, $query, false, array(), 0, 0, $e->getMessage());
 		}
 		
 		if($result === false)
-			return new DB_Result($this, 0, null, $query, array(), false, array(), 0, 0, implode(' | ',$this->link->errorInfo()));
+			return new DB_Result($this, 0, null, $query, false, array(), 0, 0, implode(' | ',$this->link->errorInfo()));
 		
 		
 		$rows = $result->fetchAll(PDO::FETCH_ASSOC);
@@ -90,7 +90,6 @@ class DB_Driver_mysql extends DB_Driver
 			$result->rowCount(),
 			$insertId,
 			$query,
-			$row,
 			true,
 			$rows,
 			len($rows),
@@ -151,11 +150,11 @@ class DB_Driver_mysql extends DB_Driver
 			$insertId = $this->link->lastInsertId();
 		}
 		catch (PDOException $e) {
-			return new DB_Result($this, 0, null, $statement->statement, array(), false, array(), 0, 0, $e->getMessage(), $params);
+			return new DB_Result($this, 0, null, $statement->statement, false, array(), 0, 0, $e->getMessage(), $params);
 		}
 		
 		if($result === false) {
-			return new DB_Result($this, 0, null, $statement->statement, array(), false, array(), 0, 0, implode(' | ',$statement->wrapper->errorInfo()), $params);
+			return new DB_Result($this, 0, null, $statement->statement, false, array(), 0, 0, implode(' | ',$statement->wrapper->errorInfo()), $params);
 		}
 			
 		$rows = $statement->wrapper->fetchAll(PDO::FETCH_ASSOC);
@@ -166,7 +165,6 @@ class DB_Driver_mysql extends DB_Driver
 			$statement->wrapper->rowCount(),
 			$insertId,
 			$statement->statement,
-			$row,
 			true,
 			$rows,
 			len($rows),

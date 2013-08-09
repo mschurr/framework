@@ -201,7 +201,6 @@ class DB_Result implements Iterator, ArrayAccess
 	public $affected;
 	public $insertId;
 	public $text;
-	public $row;
 	public $success;
 	public $rows;
 	public $size;
@@ -209,12 +208,11 @@ class DB_Result implements Iterator, ArrayAccess
 	public $time;
 	public $error;
 	
-	public function __construct(&$driver, $affected, $insertId, $text, $row, $success, $rows, $size, $time, $error, $params=array()) {
+	public function __construct(&$driver, $affected, $insertId, $text, $success, $rows, $size, $time, $error, $params=array()) {
 		$this->driver =& $driver;
 		$this->affected = $affected;
 		$this->insertId = $insertId;
 		$this->text = $text;
-		$this->row = $row;
 		$this->success = $success;
 		$this->rows = $rows;
 		$this->size = $size;
@@ -229,7 +227,13 @@ class DB_Result implements Iterator, ArrayAccess
 	}
 	
 	public function __get($key)
-	{		
+	{	
+		if($key == 'row') {
+			if($this->size >= 1)
+				return $this->rows[0];
+			return array();
+		}
+	
 		if($this->size == 0)
 			return null;
 			
@@ -304,10 +308,16 @@ class DB_Result implements Iterator, ArrayAccess
 	}
 	
 	public function offsetExists($offset) {
+		if($offset == 0 || $offset == 1) // For backwards compatability.
+			return true;
 		return isset($this->row[$offset]);
 	}
 	
 	public function offsetGet($offset) {
+		if($offset == 0) // For backwards compatability.
+			return $this->size;
+		if($offset == 1) // For backwards compatability.
+			return $this->rows;
 		return isset($this->row[$offset]) ? $this->row[$offset] : null;
 	}
 	
