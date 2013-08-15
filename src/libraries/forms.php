@@ -247,7 +247,7 @@
 		 }
 */
 
-class FormExtended
+class FormExtended implements Iterator, ArrayAccess
 {
 	// Parameter Variable
 	protected $params = array();
@@ -994,4 +994,102 @@ class FormExtended
 	protected function db_nextKey()
 	{
 	}
+	
+	// Iterator and Access Methods
+	public function __len()
+	{
+		return sizeof($this->data);
+	}
+	
+	public function __value()
+	{
+		return $this->data;
+	}
+	
+	public function __get($key)
+	{		
+		if(isset($this->data[$key]))
+			return $this->data[$key];
+		return null;
+	}
+	
+	public function __toString()
+	{
+		return 'MagicClass{'.EOL.print_r($this->data, true).EOL.'}';
+	}
+	
+	public function __set($key, $value)
+	{
+		$this->data[$key] = $value;
+	}
+	
+	public function __isset($key)
+	{
+		return isset($this->data[$key]);
+	}
+	
+	public function __unset($key)
+	{
+		unset($this->data[$key]);
+	}
+	
+	// -- Iterator Methods
+	protected $__position = 0;
+	
+	public function rewind() {
+		$this->__position = 0;
+	}
+	
+	public function current() {
+		return $this->rows[$this->__position];
+	}
+	
+	public function key() {
+		return $this->__position;
+	}
+	
+	public function next() {
+		++$this->__position;
+	}
+	
+	public function valid() {
+		return isset($this->rows[$this->__position]);
+	}
+	
+	// -- ArrayAcess Methods
+	public function offsetSet($offset, $value) {
+		if(is_null($offset)) {
+			$this->data[] = $value;
+		}
+		else {
+			$this->data[$offset] = $value;
+		}
+	}
+	
+	public function offsetExists($offset) {
+		return isset($this->data[$offset]);
+	}
+	
+	public function offsetGet($offset) {
+		return isset($this->data[$offset]) ? $this->data[$offset] : null;
+	}
+	
+	public function offsetUnset($offset) {
+		unset($this->data[$offset]);
+	}
+	
+	
+	/*/ --
+	public function __invoke()
+	{
+		return null;
+	}
+	
+	public function __call($name, $args)
+	{
+	}
+	
+	__destruct
+
+	/*/
 }

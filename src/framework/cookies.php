@@ -171,7 +171,7 @@ class Cookies
 		return NULL;
 	}
 	
-	public static function getall()
+	public static function getAll()
 	/* Returns an array of all currently set cookies as array( (string) name => (Cookie) cookie, ..+). */
 	{
 		return self::$cookies;

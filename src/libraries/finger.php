@@ -44,25 +44,9 @@
 		)
 */
 			
-class FingerUtility
+class Finger
 {
-	public static function get($query, $host='rice.edu') {
-		/* Equivalent of the finger function but results are cached locally to prevent server overload. */
-		return self::finger($query, $host);
-		/*$q = Handler::getDatabase()->query("SELECT * FROM `core_finger_cache` WHERE `query` = '".Handler::getDatabase()->sterilize($query)."' AND `server` = '".Handler::getDatabase()->sterilize($host)."' AND `expires` > '".Handler::getDatabase()->sterilize(time())."' LIMIT 1;");
-		
-		if($q[0] == 1) {
-			return json_decode($q[1][0]['data'],true);
-		}
-		
-		$data = self::finger($query,$host);
-		
-		$q = Handler::getDatabase()->query("REPLACE INTO `core_finger_cache` (`query`,`server`,`data`,`expires`) VALUES ('".Handler::getDatabase()->sterilize($query)."','".Handler::getDatabase()->sterilize($host)."','".Handler::getDatabase()->sterilize(json_encode($data))."','".Handler::getDatabase()->sterilize(time() + 86400)."');");
-		
-		return $data;*/
-	}
-	
-	public static function finger($query, $host='rice.edu') {
+	public static function query($query, $host='rice.edu') {
 		/* Searches the FINGER server at $host (see http://tools.ietf.org/html/rfc1288) for information related to a search query. Returns an array of arrays. */
 		$h = fsockopen($host,79,$errno,$errstr,3);
 		

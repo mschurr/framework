@@ -2,20 +2,20 @@
 
 /*
 	/app
-	/blade
+	/blade		- language choice support
 	/config
 	/cookies
 	/crypt
 	/document
-	/input
-	/localization
 	/models
 	/output
 	/redirect
-	/request
 	/response
-	/reoute
+	/route
 	/url
+	/connection
+	/useragent
+	/filesystem
 	
 	lib{
 		/auth
@@ -24,11 +24,8 @@
 		/cache-database
 		/cache
 		/captcha
-		/connection
 		/cron
 		/events
-		/filesystem
-		/finger
 		/forms
 		/gapi-calendar
 		/gapi-voice
@@ -42,7 +39,6 @@
 		/queue
 		/security
 		/sessions
-		/useragents
 	}
 */
 

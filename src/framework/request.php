@@ -1,45 +1,14 @@
 <?php
 class Request
-{
-	public $method;
-	public $path;
-	public $url;
-	public $secure = false;
-	public $ajax = false; // todo
-	public $domain;
-	
-	// todo: $connection = instanceof <Connection>
-	// todo: implement user agent parameters: user_agent, isRobot, isMobile, isBrowser, languages, encodings, accept mimes, ...
-	
-	
-	
+{	
+	// Calculate Information
 	public function __construct()
 	{	
-		if(isset($this->server['REQUEST_METHOD'])) {
-			$this->method = $this->server['REQUEST_METHOD'];
-		}
-		else {
-			$this->method = 'GET';
-		}
-		
-		
-		
-		$this->url = URL::to($this->server['REQUEST_URI']);
-		$path = $this->server['REQUEST_URI'];
-		$path = (strpos($path,"?") === false ? $path : substr($path,0,strpos($path,"?")));
-		
-		while(substr($path,-1,1) == '/' && strlen($path) > 1) {
-			$path = substr($path,0,-1);
-		}
-		
-		$this->path = $path;
-		$this->domain = (isset($this->server['SERVER_NAME']) ? $this->server['SERVER_NAME'] : $this->server['SERVER_ADDR']);
-		$this->secure = (isset($this->server['https']) && $this->server['https'] == 'on');
-	}
-	
-	public function segment($idx)
-	{
-		// TODO
+		$this->_method = (isset($this->server['REQUEST_METHOD'])) ? $this->server['REQUEST_METHOD'] : 'GET';
+		$this->_uri    = $this->server['REQUEST_URI'];
+		$this->_path   = '/'.trim( (strpos($this->server['REQUEST_URI'],"?") === false ? $this->server['REQUEST_URI'] : substr($this->server['REQUEST_URI'], 0, strrpos($this->server['REQUEST_URI'],"?")))  ,'/\\');
+		$this->_secure = (isset($this->server['https']) && $this->server['https'] == 'on');
+		$this->_domain = (isset($this->server['SERVER_NAME']) ? $this->server['SERVER_NAME'] : $this->server['SERVER_ADDR']);
 	}
 	
 	// Returns whether or not the request matches a route pattern.
@@ -72,12 +41,37 @@ class Request
 	protected $_cookie;
 	protected $_file;
 	protected $_server;
+	protected $_connection;
+	protected $_client;
+	protected $_method;
+	protected $_path;
+	protected $_uri;
+	protected $_secure;
+	protected $_domain;
+	protected $_segment;
 	
 	public function __get($k)
 	{
-		if($k == 'cookie' || $k == 'cookies') {
-			if(!$this->_cookie instanceof RegistryObject)
-				$this->_cookie = new RegistryObject($_COOKIE); // todo: convert to <Cookie>
+		if($k == 'method')
+			return $this->_method;
+		elseif($k == 'path')
+			return $this->_path;
+		elseif($k == 'uri' || $k == 'query')
+			return $this->_uri;
+		elseif($k == 'secure' || $k == 'ssl' || $k == 'encrypted' || $k == 'https')
+			return $this->_secure;
+		elseif($k == 'host' || $k == 'domain')
+			return $this->_domain;
+		elseif($k == 'segment' || $k == 'segments') {
+			if(!$this->_segment instanceof RegistryObject) {
+				$this->_segment = new RegistryObject(explode("/",trim($this->path,'/')));
+			}
+			return $this->_segment;
+		}
+		elseif($k == 'cookie' || $k == 'cookies') {
+			if(!$this->_cookie instanceof RegistryObject) {
+				$this->_cookie = new RegistryObject(Cookies::getAll());
+			}
 			return $this->_cookie;
 		}
 		elseif($k == 'get') {
@@ -85,14 +79,27 @@ class Request
 				$this->_get = new RegistryObject($_GET);
 			return $this->_get;
 		}
-		elseif($k == 'post') {
+		elseif($k == 'post' || $k == 'data') {
 			if(!$this->_post instanceof RegistryObject)
 				$this->_post = new RegistryObject($_POST);
 			return $this->_post;
 		}
 		elseif($k == 'file' || $k == 'files') {
-			if(!$this->_file instanceof RegistryObject)
-				$this->_file = new RegistryObject($_FILES); // todo: <convert to FileSystem.File> $_FILES = {name => {name, type, size (bytes), tmp_name, error}}
+			if(!$this->_file instanceof RegistryObject) {
+				$files = array();
+				
+				if(len($_FILES) > 0) {
+					foreach($_FILES as $name => $info) {
+						if($info['error'] === UPLOAD_ERR_OK) {
+							$files[$name] = with(new File($info['tmp_name']))->withUploadInfo($info);
+						}
+					}
+				}
+				
+				$this->_file = new RegistryObject($files);
+				
+				unset($files);
+			}
 			return $this->_file;
 		}
 		elseif($k == 'server') {
@@ -100,7 +107,7 @@ class Request
 				$this->_server = new RegistryObject($_SERVER);
 			return $this->_server;
 		}
-		elseif($k == 'headers') {
+		elseif($k == 'headers' || $k == 'header') {
 			if(!$this->_headers instanceof RegistryObject) {
 				if(function_exists('getallheaders')) {
 					$this->_headers = new RegistryObject(getallheaders());
@@ -110,6 +117,16 @@ class Request
 				}
 			}
 			return $this->_headers;
+		}
+		elseif($k == 'connection' || $k == 'conn') {
+			if(!$this->_connection instanceof Connection)
+				$this->_connection = new Connection();
+			return $this->_connection;
+		}
+		elseif($k == 'client' || $k == 'browser' || $k == 'useragent') {
+			if(!$this->_client instanceof UserAgent)
+				$this->_client = new UserAgent($this->server['HTTP_USER_AGENT']);
+			return $this->_client;
 		}
 		else {
 			return null;

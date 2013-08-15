@@ -1,4 +1,5 @@
 <?php
+// ability to render a view using a given document then convert to inline css / embeded images for sending
 
 class Mail
 {
