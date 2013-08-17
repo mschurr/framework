@@ -119,6 +119,16 @@ abstract class DB_Driver
 	protected $queryCount = 0;
 	public $error = '';
 	
+	public function __sleep()
+	{
+		return array('host', 'port', 'user', 'pass', 'name', 'error');
+	}
+	
+	public function __wakeup()
+	{
+		$this->onLoad();
+	}
+	
 	public function __construct($host, $port, $user, $pass, $name)
 	{
 		$this->host = $host;
@@ -248,9 +258,7 @@ class DB_Result implements Iterator, ArrayAccess
 		return $this->success;
 	}
 	
-	public function __value()
-	{
-	}
+	
 	
 	/*/ --
 	public function __call($name, $args)
@@ -324,21 +332,24 @@ class DB_Result implements Iterator, ArrayAccess
 	public function offsetUnset($offset) {
 		//unset($this->row[$offset]);
 	}
+	
+	// For serialization.
+	/*protected $_serial;
+	public function __sleep()
+	{
+		$this->_serial = array();
+		return array('affected', 'insertId', 'text', 'success', 'rows', 'size', 'time', 'error', '_serial');
+	}
+	
+	public function __wakeup()
+	{
+		// Restore Driver
+		
+		// Unset Serial
+		unset($this->_serial);
+	}*/
 }
 
-class DB_Timer {
-	protected $init;
+class DB_Timer extends Timer {
 	
-	public function __construct() {
-		$time = explode(' ', microtime());
-		$time = $time[1] + $time[0];
-		$this->init = $time;
-		unset($time);
-	}
-	
-	public function reap() {
-		$time = explode(' ', microtime());
-		$time = $time[1] + $time[0];
-		return round(($time - $this->init), 3) * 1000;
-	}
 }

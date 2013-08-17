@@ -35,6 +35,7 @@ ini_set('session.gc_maxlifetime','12000000');
 ini_set('allow_url_fopen','off');
 
 require(FRAMEWORK_ROOT.'/framework/utility.php');
+require(FRAMEWORK_ROOT.'/framework/timer.php');
 require(FRAMEWORK_ROOT.'/framework/registry.php');
 require(FRAMEWORK_ROOT.'/framework/framework.php');
 require(FRAMEWORK_ROOT.'/framework/filesystem.php');

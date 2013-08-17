@@ -65,7 +65,7 @@ class Cache_Driver_filesystem extends Cache_Driver
 	{
 		$f = $this->translateKey($key);
 		if($f->exists) {
-			$json = $f->json;
+			$json = $f->serial;
 			
 			if($json[0] != -1 && time() > $json[0])
 				return value($default);
@@ -79,13 +79,13 @@ class Cache_Driver_filesystem extends Cache_Driver
 	public function put($key, $value, $minutes=60)
 	{
 		$f = $this->translateKey($key);
-		$f->json = array((time() + 60 * $minutes),value($value));
+		$f->serial = array((time() + 60 * $minutes),value($value));
 	}
 	
 	public function forever($key, $value)
 	{
 		$f = $this->translateKey($key);
-		$f->json = array(-1,value($value));
+		$f->serial = array(-1,value($value));
 	}
 	
 	/* Wipes all entries in the cache. */
@@ -147,13 +147,13 @@ class Cache_Driver_filesystem extends Cache_Driver
 	public function section_put($section, $key, $value, $minutes=60)
 	{
 		$f = $this->translateKey($key, $section);
-		$f->json = array((time() + 60 * $minutes),value($value));	
+		$f->serial = array((time() + 60 * $minutes),value($value));	
 	}
 	
 	public function section_forever($section, $key, $value)
 	{
 		$f = $this->translateKey($key, $section);
-		$f->json = array(-1,value($value));
+		$f->serial = array(-1,value($value));
 	}
 	
 	/* Gets a key from a section of the cache (if it exists) or $default on failure. $default may be a closure. */
@@ -161,7 +161,7 @@ class Cache_Driver_filesystem extends Cache_Driver
 	{
 		$f = $this->translateKey($key, $section);
 		if($f->exists) {
-			$json = $f->json;
+			$json = $f->serial;
 			
 			if($json[0] != -1 && time() > $json[0])
 				return value($default);

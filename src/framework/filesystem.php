@@ -178,6 +178,10 @@ class File implements Iterator, ArrayAccess
 		// Handle JSON (write)
 		elseif($k == 'json')
 			$this->put(to_json($v));
+			
+		// Handle Serial (write)
+		elseif($k == 'serial')
+			$this->put(serialize($v));
 	}
 		
 	public function __get($k)
@@ -203,6 +207,8 @@ class File implements Iterator, ArrayAccess
 			$value = ($this->exists) ? file_get_contents($this->path) : null;
 		elseif($k == 'json')
 			$value = ($this->exists) ? from_json($this->content) : array();
+		elseif($k == 'serial')
+			$value = ($this->exists) ? unserialize($this->content) : array();
 		elseif($k == 'size')
 			$value = ($this->exists) ? (($this->isDirectory) ? FileSystem::diskUsage($this->path) : filesize($this->path)) : null;
 		elseif($k == 'lastModified')
