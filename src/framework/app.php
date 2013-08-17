@@ -21,7 +21,6 @@
 		/auth
 		/cache-filesystem
 		/cache-memcached
-		/cache-database
 		/cache
 		/captcha
 		/cron
@@ -56,12 +55,7 @@ class App
 	
 	public static function run()
 	{
-		$route = Route::doRoute(self::$request, self::$response);
-		
-		if($route !== true) {
-			self::$response->error($route);
-		}
-		
+		Route::doRoute(self::$request, self::$response);		
 		self::$response->send();
 	}
 	

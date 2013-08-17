@@ -254,11 +254,13 @@ class File implements Iterator, ArrayAccess
 	public function touch()
 	{
 		$this->resetCache();
-		return FileSystem::touch($this->path);
+		return FileSystem::touch($this->path.($this->makeAsDirectory ? '/' : ''));
 	}
 	
 	public function delete()
 	{
+		if(!$this->exists)
+			return;
 		$this->resetCache();
 		return FileSystem::delete($this->path);
 	}
@@ -297,7 +299,20 @@ class File implements Iterator, ArrayAccess
 	
 	public function make()
 	{
-		return $this->touch();
+		if($this->exists)
+			return;
+			
+		if($this->makeAsDirectory) {
+			FileSystem::mkdir($this->path);
+		}
+		else {
+			$this->put('');
+		}
+	}
+	
+	public function create()
+	{
+		return $this->make();
 	}
 	
 	// -- Iterator Methods (for DIRECTORY CONTENTS)
@@ -355,6 +370,12 @@ class FileSystem
 		return new File($path);
 	}
 	
+	
+	public function filename($path)
+	{
+		return pathinfo($path, PATHINFO_FILENAME);
+	}
+	
 	public static function make($path, $make_dir=true)
 	{
 		$file = new File($path);
@@ -379,6 +400,21 @@ class FileSystem
 	
 	public static function searchInFile($path, $term)
 	{
+	}
+	
+	public function put($path, $data)
+	{
+		file_put_contents($path, $data);
+	}
+	
+	public function mkdir($path, $recursive=true, $mode=0777)
+	{
+		mkdir($path, $mode, $recursive);
+	}
+	
+	public function delete($path)
+	{
+		unlink($path);
 	}
 	
 	/*public function exists($path); // can be array

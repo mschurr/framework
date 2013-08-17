@@ -24,12 +24,14 @@ class Request
 		foreach($this->headers as $k => $v) {
 			$request .= $k.": ".$v.PHP_EOL;
 		}
-		if(isset($this->post)) {
+		
 			foreach($this->post as $k => $v) {
-				$request .= $k.'='.urlencode($v).''.EOL;
+				if(is_array($v))
+					$request .= $k.'='.print_r($v,true).EOL;
+				else
+					$request .= $k.'='.urlencode($v).''.EOL;
 			}
 			$request = substr($request,0,-1).PHP_EOL;
-		}
 				
 		return($request);
 	}
@@ -49,6 +51,11 @@ class Request
 	protected $_secure;
 	protected $_domain;
 	protected $_segment;
+	
+	public function __isset($k)
+	{
+		return true;
+	}
 	
 	public function __get($k)
 	{

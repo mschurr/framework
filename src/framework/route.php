@@ -34,6 +34,67 @@ Options:
 class Route
 {
 	public static function doRoute(&$request, &$response)
+	{
+		$code = self::_doRoute($request, $response);
+		
+		if($code === true)
+			return true;
+		
+		// Use Route Errors
+		if(isset(self::$error_bind[$code])) {
+			$response->status = $code;
+			
+			$target = self::$error_bind[$code];
+			
+			// Closures
+			if($target instanceof Closure) {
+				$target($request, $response);
+				return;
+			}
+			
+			// Controllers
+			$method = (strpos($target,"@") !== false ? substr($target,strpos($target,"@")+1) : strtolower($request->method));
+			$controller_path = (strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target);
+			$controller_path = str_replace(".","/",$controller_path);
+			$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
+			$controller_file = FILE_ROOT.'/controllers/'.strtolower($controller_path).'.php';
+			
+			if(!class_exists($controller)) {
+				if(!file_exists($controller_file)) {
+					$response->error(500, 'The controller could not be found for "'.$target.'".');
+					return;
+				}
+				
+				require_once($controller_file);
+				
+				if(!class_exists($controller)) {
+					$response->error(500, 'The controller could not be found for "'.$target.'".');
+					return;
+				}
+			}
+			
+			$handler = new $controller($request, $response);
+			
+			if(!is_subclass_of($handler,'RequestHandler')) {
+				$response->error(500, 'The controller "'.$target.'" must extend RequestHandler.');
+				return;
+			}
+			
+			if(!method_exists($handler, $method)) {
+				$response->error(405);
+				return;
+			}
+			
+			$handler->$method();
+			
+			return;
+		}
+		
+		// Use Default Error
+		$response->error($code);
+	}
+	
+	public static function _doRoute(&$request, &$response)
 	{		
 		// Sort Routes by Priority
 		if(self::$sort === true) {
@@ -305,8 +366,10 @@ class Route
 		return self::bind($uri_match, $target, $options);
 	}
 	
-	public static function error($code, $target, $options=array())
+	protected static $error_bind = array();
+	public static function error($code, $target)
 	{
+		self::$error_bind[$code] = $target;
 	}
 }
 

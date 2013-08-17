@@ -38,6 +38,7 @@ require(FRAMEWORK_ROOT.'/framework/utility.php');
 require(FRAMEWORK_ROOT.'/framework/registry.php');
 require(FRAMEWORK_ROOT.'/framework/framework.php');
 require(FRAMEWORK_ROOT.'/framework/filesystem.php');
+require(FRAMEWORK_ROOT.'/framework/cache.php');
 require(FRAMEWORK_ROOT.'/framework/config.php');
 require(FRAMEWORK_ROOT.'/framework/log.php');
 require(FRAMEWORK_ROOT.'/framework/connection.php');
