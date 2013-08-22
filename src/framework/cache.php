@@ -15,7 +15,7 @@ class Cache
 			import('cache-'.self::$driver_name);
 		}
 		
-		self::$driver = new $class($prefix, $config);
+		self::$driver = new $class($config);
 	}
 	
 	public static function __callStatic($name, $args) {

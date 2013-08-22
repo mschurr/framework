@@ -19,9 +19,6 @@
 	
 	lib{
 		/auth
-		/cache-filesystem
-		/cache-memcached
-		/cache
 		/captcha
 		/cron
 		/events

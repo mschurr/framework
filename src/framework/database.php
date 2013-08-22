@@ -219,7 +219,7 @@ class DB_Result implements Iterator, ArrayAccess
 	public $error;
 	
 	public function __construct(&$driver, $affected, $insertId, $text, $success, $rows, $size, $time, $error, $params=array()) {
-		$this->driver =& $driver;
+		
 		$this->affected = $affected;
 		$this->insertId = $insertId;
 		$this->text = $text;

@@ -36,6 +36,9 @@
 			files				- (For Directories Only) an array of <File> objects representing files in the directory
 			empty				- whether or not the file (or directory) is empty
 			temporary			- whether or not the file (or directory) is temporary
+			hex					- hexadecimal string representing value of file contents (useful for sql blob queries)
+			md5					- md5 hash of file contents
+			sha1				- sha1 hash of file contents
 				
 		It is possible to modify file properties directly. These will perform an action on the file.
 			e.g. $file['name'] = 'newname.log';
@@ -205,10 +208,17 @@ class File implements Iterator, ArrayAccess
 			$value = ($this->isFile) ? pathinfo($this->path, PATHINFO_EXTENSION) : null;
 		elseif($k == 'content')
 			$value = ($this->exists) ? file_get_contents($this->path) : null;
+		elseif($k == 'md5')
+			$value = ($this->exists) ? md5_file($this->path) : null;
+		elseif($k == 'hex')
+			$value = ($this->exists) ? $this->getHex() : null;
+		elseif($k == 'sha1')
+			$value = ($this->exists) ? sha1_file($this->path) : null;
 		elseif($k == 'json')
 			$value = ($this->exists) ? from_json($this->content) : array();
-		elseif($k == 'serial')
+		elseif($k == 'serial') {
 			$value = ($this->exists) ? unserialize($this->content) : array();
+		}
 		elseif($k == 'size')
 			$value = ($this->exists) ? (($this->isDirectory) ? FileSystem::diskUsage($this->path) : filesize($this->path)) : null;
 		elseif($k == 'lastModified')
@@ -250,6 +260,16 @@ class File implements Iterator, ArrayAccess
 		return $value;
 	}
 	
+	// Helpers
+	protected function getHex()
+	{
+		$handle = fopen($this->path, "rb");
+		$contents = fread($handle, $this->size);
+		$contents = bin2hex($contents);
+		fclose($handle);
+		return '0x'.strtoupper($contents);
+	}
+	
 	// Actions	
 	public function copyTo($destination)
 	{
@@ -268,7 +288,7 @@ class File implements Iterator, ArrayAccess
 		if(!$this->exists)
 			return;
 		$this->resetCache();
-		return FileSystem::delete($this->path);
+		return FileSystem::delete($this->path, true);
 	}
 	
 	public function put($content)
@@ -376,25 +396,103 @@ class FileSystem
 		return new File($path);
 	}
 	
-	
-	public function filename($path)
+	public static function filename($path)
 	{
 		return pathinfo($path, PATHINFO_FILENAME);
 	}
 	
-	public static function make($path, $make_dir=true)
+	public static function mkdir($path, $recursive=true, $mode=0777)
 	{
-		$file = new File($path);
-		
-		if($file->exists)
-			return false;
-			
-		// Check if directory exists. Make it if true. Otherrise, return false.
-		
-		// Make the empty file.
-		
+		mkdir($path, $mode, $recursive);
 		return true;
 	}
+	
+	public static function make($path, $make_dir=true)
+	{
+		$f = new File($path);
+		$dir = new File($f->directory);
+		
+		if(!$dir->exists)
+		{
+			if(!$make_dir)
+				return false;
+				
+			$dir->make();
+		}
+		
+		if($f->exists)
+			return true;
+			
+		$f->content = '';
+		return true;
+	}
+	
+	public static function put($path, $data)
+	{
+		file_put_contents($path, $data);
+		return true;
+	}
+	
+	public static function append($path, $data)
+	{
+		file_put_contents($path, $data, FILE_APPEND);
+		return true;
+	}
+	
+	public static function exists($path)
+	{	
+		if(is_array($path)) {
+			$exists = true;
+			
+			foreach($path as $file)
+				$exists = ($exists && file_exists($file));
+			
+			return $exists;	
+		}
+		
+		return file_exists($path);
+	}
+	
+	public static function delete($path, $recursive=false)
+	{
+		$f = new File($path);
+		
+		if($f->isDirectory)
+		{
+			if(!$recursive)
+			{
+				return false;
+			}
+			
+			foreach($f as $file) {
+				$file->delete();
+			}
+		}
+				
+		unlink($path);
+		return true;
+	}
+	
+	public static function type($path)
+	{
+		$f = new File($path);
+		if($f->exists)
+			return $f->mime;
+		return null;
+	}
+	
+	public static function get($path)
+	{
+		$f = new File($path);
+		return $f;
+	}
+	
+	
+	
+	// -----------------------------------------------
+	
+	
+	
 	
 	public static function search($path, $term, $recursive=false)
 	{
@@ -408,30 +506,18 @@ class FileSystem
 	{
 	}
 	
-	public function put($path, $data)
-	{
-		file_put_contents($path, $data);
-	}
 	
-	public function mkdir($path, $recursive=true, $mode=0777)
-	{
-		mkdir($path, $mode, $recursive);
-	}
 	
-	public function delete($path)
-	{
-		unlink($path);
-	}
 	
-	/*public function exists($path); // can be array
-	public function get($path);
-	public function put($path,$content);
-	public function append($path,$content);
+	
+	
+	
+	/*
+	
 	public function move($path,$target,$mkdir=false); //, use is_uploaded_file move_uploaded_file
 	public function delete($path);
 	public function copy($path, $path2);
 	public function extension($path);
-	public function type($path);
 	public function touch($path);
 	public function rename($path, $new_name)
 	// chown($path(s), $user, $recursive=false)
@@ -482,7 +568,7 @@ class FileSystem
      *
      * @return string Path of target relative to starting path
      */
-    public function makePathRelative($endPath, $startPath)
+    public static function makePathRelative($endPath, $startPath)
     {
         // Normalize separators on windows
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
@@ -514,7 +600,7 @@ class FileSystem
         return (strlen($relativePath) === 0) ? './' : $relativePath;
     }
 	
-	public function isAbsolutePath($file)
+	public static function isAbsolutePath($file)
     {
         if (strspn($file, '/\\', 0, 1)
             || (strlen($file) > 3 && ctype_alpha($file[0])

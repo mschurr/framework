@@ -23,6 +23,7 @@
 		"monolog/monolog": "1.5.*"
 	},
 	"require-dev" : {
+		"aws/aws-sdk-php": "2.2.*"
 	},
 	"autoload" : {
 		"classmap" : ["src/"],
