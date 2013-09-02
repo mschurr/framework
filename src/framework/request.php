@@ -8,7 +8,10 @@ class Request
 		$this->_uri    = $this->server['REQUEST_URI'];
 		$this->_path   = '/'.trim( (strpos($this->server['REQUEST_URI'],"?") === false ? $this->server['REQUEST_URI'] : substr($this->server['REQUEST_URI'], 0, strrpos($this->server['REQUEST_URI'],"?")))  ,'/\\');
 		$this->_secure = (isset($this->server['https']) && $this->server['https'] == 'on');
+		$this->_secure = $this->_secure || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https');
+		$this->_ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
 		$this->_domain = (isset($this->server['SERVER_NAME']) ? $this->server['SERVER_NAME'] : $this->server['SERVER_ADDR']);
+		$this->_timestamp = time();
 	}
 	
 	// Returns whether or not the request matches a route pattern.
@@ -51,6 +54,8 @@ class Request
 	protected $_secure;
 	protected $_domain;
 	protected $_segment;
+	protected $_timestamp;
+	protected $_ip;
 	
 	public function __isset($k)
 	{
@@ -61,6 +66,10 @@ class Request
 	{
 		if($k == 'method')
 			return $this->_method;
+		elseif($k == 'ip')
+			return $this->_ip;
+		elseif($k == 'timestamp')
+			return $this->_timestamp;
 		elseif($k == 'path')
 			return $this->_path;
 		elseif($k == 'uri' || $k == 'query')
