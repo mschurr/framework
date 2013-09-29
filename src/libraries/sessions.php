@@ -1,54 +1,113 @@
 <?php
-
-class Session
+class Session implements ArrayAccess
 {
-	protected static $driver;
-	protected static $driver_name;
-	protected static $loaded = false;
+	protected $driver = null;
 	
-	/* Object Constructor */
-	public static function init($driver=null, $config=array())
+	public function __construct($driver=null)
 	{
-		self::$driver_name = $driver;
-		$class = 'Session_Driver_'.self::$driver_name;
+		if(is_null($driver))
+			$driver = Config::get('session.driver', 'cache');
+		
+		$class = 'Session_Driver_'.$driver;
 		
 		if(!class_exists($class)) {
-			import('session-'.self::$driver_name);
+			import('sessions-'.$driver);
 		}
 		
-		self::$driver = new $class($config);
+		$this->driver = new $class();
 	}
 	
-	public static function __callStatic($name, $args) {
-		if(!self::$loaded)
-			self::init(Config::get('session.driver', 'database'), array());
-		
-		if(is_callable(array(self::$driver, $name)))
-			return call_user_func_array(array(self::$driver, $name), $args);
-		throw new Exception("The method 'Session::".$name."' does not exist for driver '".self::$driver_name."'.");
+	public function __get($key)
+	{
+		return $this->driver->get($key);
+	}
+	
+	public function __set($key, $value)
+	{
+		return $this->driver->set($key, $value);
+	}
+	
+	public function __isset($key)
+	{
+		return $this->driver->has($key);
+	}
+	
+	public function __unset($key)
+	{
+		return $this->driver->forget($key);
+	}
+	
+	public function offsetExists($key)
+	{
+		return $this->driver->has($key);
+	}
+	
+	public function offsetGet($key)
+	{
+		return $this->driver->get($key);
+	}
+	
+	public function offsetSet($key, $value)
+	{
+		return $this->driver->set($key, $value);
+	}
+	
+	public function offsetUnset($key)
+	{
+		return $this->driver->forget($key);
+	}
+	
+	public function __call($name, $args)
+	{
+		return call_user_func_array( array($this->driver, $name), $args );
+	}
+	
+	public function __destruct()
+	{
+	}
+	
+	public function __toString()
+	{
+		return "<Session@".$this->driver->id().">";
 	}
 }
 
 abstract class Session_Driver
 {
-	public function __construct($config)
-	{
-		$this->onLoad();
+	protected $_auth;
+	protected $_prefix = 'SESSIOND::';
+	protected $_cookie;
+	protected $_key;
+	
+	public function auth() {
+		return $this->_auth;
 	}
 	
-	public function __destruct()
+	public function user()
 	{
-		$this->onUnload();
+		return $this->_auth->user();
 	}
 	
-	// Abstract Methods (implemented by driver)
-	public abstract function onLoad();	
-	public abstract function onUnload();	
-	public abstract function put($key, $value); // accept anything (serialize)
-	public abstract function get($key, $default=null); // $default = anything (incl. closure)
+	public function __construct() {
+		$this->_key = Config::get('session.cryptkey', 'SessionCryptKey!');
+		$this->_cookie = Config::get('session.cookie', 'sessiond');
+		$this->_auth = new Auth($this);
+		$this->load();
+	}
+	
+	public function __destruct() {
+		$this->unload();
+	}
+		
+	/* Reserved Keywords: ->id, ->auth, ->user */
+	public abstract function load();
+	public abstract function unload();
+	public abstract function get($key, $default=null);
+	public abstract function set($key, $value);
 	public abstract function has($key);
 	public abstract function forget($key);
-	public abstract function flush();
-	public abstract function flash($k, $v=null); // $k = string or array
-	public abstract function keep($k); // $k = string or array
+	public abstract function flash($key, $value=null);
+	public abstract function keep($key);
+	public abstract function id();
+	public abstract function regenerate();
 }

@@ -1,6 +1,4 @@
 <?php
-
-
 /*
 	##################################################################################################
 	# BLADE TEMPLATE LANGUAGE PARSER
@@ -9,39 +7,73 @@
 	# This implementation is based loosely on Laravel Blade (http://www.laravel.com/).
 	##################################################################################################
 	
-	TODO: support @choice(lang, opts...)
-	
 	#####################################
-	# SHARED:
+	# Blade Functions:
 	#####################################
+	@extends('layout')
+		-- (For Views Only): Indicates which layout should be used. Must be the first declaration.
 		
 	@body('attr','value')
+		-- Adds an HTML attribute and value to the <body> tag.
+		
 	@head ... @endhead
+		-- Places HTML inside the <head> tag.
+	
 	@lang('string')
+		-- Substitutes the language string with the provided key.
+		
+	@lang('string', [...params])
+		-- Substitutes the language string with the provided key and parameters.
+		
 	@script(statement)
+		-- Includes a JavaScript file. Possible to use PHP e.g. @script( URL::asset('js/my.js') )
+	
 	@style(statement)
+		-- Includes a Cascading Style Sheet. Possible to use PHP e.g. @script( URL::asset('css/my.css') )
+	
 	@title('string')
+		-- Sets the document title. Usually you would do this in the controller.
+	
 	@keywords('string')
+		-- Sets the document keywords.
+	
 	@description('string')
+		-- Adds the document description.
+	
 	@meta('key, 'value')
-	@link('rel', 'type', href, 'media')
+		-- Adds a meta tag to the <head>.
 	
-	{{{ $var }}}		-- This prints out an html escaped variable.
-	{{ $var }}			-- This prints out a variable.
-	{{-- Comment --}}	-- This indicates comments (these are not rendered)
+	@link('rel', 'type', 'href', 'media')
+		-- Adds a link tag to the <head>.
 	
-	@include('view')	
+	{{{ $var }}}
+		-- This prints out an html escaped variable.
+		
+	{{ $var }}
+		-- This prints out a variable.
+		
+	{{-- ... --}}
+		-- This indicates a blade comment (these are not rendered).
+	
+	@include('view')
+		-- Dumps the source of another view file into the current layout or view (similar to PHP includes).
 	
 	@section('sidebar') ... [@parent] @endsection
-	@yield('section')
+		-- (In Layouts): Defines a section with a default value.
+		-- (In Views): Defines the content of a section. 
+		               Overwrites the content defined in the layout (unless @parent is declared, in which case @parent is replaced with the parent's content).
 	
-	@if ($var == true)
-		$var is true!
-	@elseif (is_array($array))
-		$array is an array!
+	@yield('section')
+		-- (In Layouts): Yields the content of a section.
+	
+	@if ( ...condition... )
+		... do this ...
+	@elseif ( ...condition... )
+		... do this ...
 	@else
-		None of the conditions were met!
+		... do this ...
 	@endif
+		-- Checks whether condition(s) are met. Can use any PHP functions/constructs. e.g. @if($var == true || is_array($array))
 	
 	@unless ($loggedin)
 		You are not logged in.
@@ -64,10 +96,6 @@
 	@empty
 		This will be printed if $array is empty.
 	@endforelse
-	
-	
-	
-	
 */
 
 

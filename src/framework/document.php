@@ -24,7 +24,7 @@ class HTMLDocument
 			<!--[if IE 9]><html class="no-js ie ie9 lte9"><![endif]-->
 			<!--[if !IE]><!--><html class="no-js"><!--<![endif]-->
 				<head>
-					<title>'.escape_html($this->title).'</title>';
+					<title>'.escape_html($this->title. Config::get('document.titlesuffix', '')).'</title>';
 					
 					foreach($this->meta as $k => $v)
 						$html .= '<meta name="'.escape_html($k).'" http-equiv="'.escape_html($k).'" content="'.escape_html($v).'" /> ';
@@ -142,58 +142,7 @@ class HTMLDocument
 	
 	
 	// ----
-	
-	protected function getCSS_JS() {
-		$s = '';
-		
-		// Parse CSS
-		$rsrc = 'http://cdn.'.DOMAIN.'/resources.h?';
-		$rsrc .= (isset($this->vars['GLOBAL_CSS']) && $this->vars['GLOBAL_CSS'] == false ? '' : 'css/global.css&');
-		
-		foreach($this->addCSS as $k => $v) {
-			if(substr($v,0,strlen('http://cdn.'.DOMAIN.'/')) == 'http://cdn.'.DOMAIN.'/' && !in_array($v,$this->no_optimize)) {
-				$rsrc .= substr($v,strlen('http://cdn.'.DOMAIN.'/')).'&';
-			}
-			else {
-				$s .= '<link rel="stylesheet" type="text/css" href="'.htmlentities($v).'" media="screen,projection" />';
-			}
-		}		
-		
-		if(substr($rsrc,-1) == '&')
-			$rsrc = substr($rsrc,0,-1);
-		
-		$s .= '<link rel="stylesheet" type="text/css" href="'.htmlentities($rsrc).'" media="screen,projection" />';
-		
-		// Parse JS
-		$rsrc = 'http://cdn.'.DOMAIN.'/resources.h?';
-		
-		foreach($this->addJS as $k => $v) {
-			if(substr($v,0,strlen('http://cdn.'.DOMAIN.'/')) == 'http://cdn.'.DOMAIN.'/' && !in_array($v,$this->no_optimize)) {
-				$rsrc .= substr($v,strlen('http://cdn.'.DOMAIN.'/')).'&';
-			}
-			else {
-				$s .= '<script src="'.htmlentities($v).'" type="text/javascript"></script>';
-			}
-		}
-		
-		
-		if(substr($rsrc,-1) == '&')
-			$rsrc = substr($rsrc,0,-1);
-		
-		$s .= '<script src="'.htmlentities($rsrc).'" type="text/javascript"></script>';
-		
-		return $s;	
-	}
 
-
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	/*

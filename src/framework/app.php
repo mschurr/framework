@@ -2,9 +2,7 @@
 
 /*
 	/app
-	/blade		- language choice support
 	/config
-	/cookies
 	/crypt
 	/document
 	/models
@@ -18,24 +16,7 @@
 	/filesystem
 	
 	lib{
-		/auth
-		/captcha
-		/cron
-		/events
-		/forms
-		/gapi-calendar
-		/gapi-voice
-		/geolocation
-		/hashlib
-		/httpcache
-		/imagelib
-		/mail
-		/mail-driver
-		/paginate
-		/queue
-		/security
-		/sessions
-		/objectstorage
+		/auth, /auth-cas
 	}
 */
 
@@ -111,11 +92,24 @@ class App
 	}
 	
 	protected static $db = null;
-	public static function &DB()
+	public static function &database()
 	{
 		if(self::$db === null)
 			self::$db = new Database();
 		return self::$db;
+	}
+	
+	public static function &db()
+	{
+		return self::database();
+	}
+	
+	protected static $session = null;
+	public static function &session()
+	{
+		if(self::$session === null)
+			self::$session = new Session();
+		return self::$session;
 	}
 }
 App::init();

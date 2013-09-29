@@ -47,7 +47,7 @@ require(FRAMEWORK_ROOT.'/framework/useragent.php');
 require(FRAMEWORK_ROOT.'/framework/response.php');
 require(FRAMEWORK_ROOT.'/framework/request.php');
 require(FRAMEWORK_ROOT.'/framework/crypt.php');
-require(FRAMEWORK_ROOT.'/framework/requesthandler.php');
+require(FRAMEWORK_ROOT.'/framework/controller.php');
 require(FRAMEWORK_ROOT.'/framework/output.php');
 require(FRAMEWORK_ROOT.'/framework/route.php');
 require(FRAMEWORK_ROOT.'/framework/url.php');

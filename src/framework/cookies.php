@@ -96,7 +96,8 @@ class Cookie
 	
 	public function save()
 	{
-		Cookies::put($this);
+		//Cookies::put($this);
+		App::getResponse()->with($this);
 		return $this;
 	}
 	
@@ -106,15 +107,19 @@ class Cookie
 		return NULL;
 	}
 	
-	public function encrypt($key)
+	public function encrypt($key=null)
 	{
+		if(is_null($key))
+			$key = Config::get('crypt.defaultkey', 'CookieCryptoKey!');
 		$ec = new AES_Encryption($key);
 		$this->value = $ec->encrypt($this->value)->get();
 		return $this;
 	}
 	
-	public function decrypt($key)
+	public function decrypt($key=null)
 	{
+		if(is_null($key))
+			$key = Config::get('crypt.defaultkey', 'CookieCryptoKey!');
 		$ec = new AES_Encryption($key);
 		$this->value = $ec->decrypt($this->value)->get();
 		return $this;

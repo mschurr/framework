@@ -1,34 +1,173 @@
 <?php
+// alerts of failed logins
+// notify last login and report fraudulent
+// ability to terminate all persistent sessions
+// tokens older than certain time are invalid
+// method to tell whether user has entered their password this session (or was logged in via a token) to restrict access to certain functions
 
 class Auth
 {
-	public static function check($username, $password)
+	protected $_session;
+	protected $_provider;
+	
+	public function __construct(Session_Driver $session, $driver = null)
+	{
+		$this->_session = $session;
+		
+		if(is_null($driver))
+			$driver = Config::get('auth.driver', 'db');
+		
+		$class = 'User_Service_Provider_'.$driver;
+		
+		if(!class_exists($class)) {
+			import('auth-'.$driver);
+		}
+		
+		$this->driver = new $class();
+		
+		// Authentication Logic and Expiration
+		
+		// According to the session, is the user already logged in?
+		
+		// If not, check for a persistent login token. If the token is valid, log the user in and invalidate it [throttle]. Generate a new persistent token and set it. (NOTE TOKENS STORED AS HASHES IN DB)
+		
+		// Let's check for sessionexpiration
+		
+		// Make sure account exists and is not banned / is valid
+		
+		// Fingerprint changes invalidate login
+	}
+	
+	public function __destruct()
 	{
 	}
 	
-	public static function login($userid, $remember=false)
+	public function __get($k)
+	{
+		if($k == 'user')
+			return $this->_provider;
+		if($k == 'loggedIn' || $k == 'isLoggedIn')
+			return $this->loggedIn();
+		return null;
+	}
+	
+	public function loggedIn()
+	{
+		return false;
+	}
+	
+	public function hasPrivelage($id)
 	{
 	}
 	
-	public static function attempt($username, $password, $remember=false)
+	public function logout()
+	{
+		// invalidate any persistent tokens
+	}
+	
+	public function __isset($k)
+	{
+		if($k == 'user' || $k == 'loggedIn' || $k == 'isLoggedIn')
+			return true;
+		return false;
+	}
+	
+	public function user()
+	{
+		return $this->_provider;
+	}
+	
+	public function check($username, $password)
 	{
 	}
 	
-	public static function user()
-	/* Returns the currently authenticated user id or null on failure. */
+	public function login($userid, $remember=false)
 	{
 	}
 	
-	public static function validate($credentials)
+	public function attempt($username, $password, $remember=false)
 	{
-	}
-	
-	public static function once($credentials)
-	{
+		// [throttle] 0 0 0 2 4 8 16 30 60 60 60
+		// no error info
+		
+		// on success, regenerate session and write changes to session
 	}
 }
 
-abstract class UserProvider implements Iterator, ArrayAccess
+abstract class User_Service_Provider
+{
+	// loadByGuid()
+	// loadByName()
+	// loadByEmail()
+}
+
+abstract class Group_Service_Provider
+{
+	// loadByGuid()
+}
+
+abstract class Group_Provider
+{
+	// hasPrivelage()
+	// hasPrivelages()
+	// listUsers()
+}
+
+abstract class User_Provider implements Iterator, ArrayAccess, Countable
+{
+	public static abstract function makeWithPassword($username, $password);
+	public abstract function getEmail();
+	public abstract function getUsername();
+	public abstract function verify($password); // also rehashes
+	public abstract function isBanned();
+	public abstract function setBanned($state); // time|true|false
+	public abstract function hasPrivelage($id);
+	public abstract function hasPrivelages($array);
+	public abstract function inGroup($id);
+	public abstract function setGroup($id);
+	public abstract function setProperty($name, $value);
+	public abstract function getProperty($name);
+	public abstract function save();
+	public abstract function onLoad($guid);
+	public abstract function onUnload();
+	
+	// ----- Concrete Implementations
+	public function __construct()
+	{
+	}
+	
+	public function __destruct()
+	{
+	}
+	
+	public function passwordIsValid($username, $password)
+	{
+		// Restricted Usernames
+		$restrict = array('admin', 'root', 'user', 'username', 'account', 'email');
+		if(in_array(strtolower($username), $restrict))
+			return false;
+			
+		// Username != Password
+		if(strtolower($username) == strtolower($password)) {
+			return false;
+		}
+		
+		// Length
+		if(strlen($password) > 100 || strlen($password) < 10)
+			return false;
+			
+		// Commonly Used Passwords
+		// TODO
+		
+		// Entropy Calculation and Threshold
+		// TODO
+		
+		return true;
+	}
+}
+
+/*
+abstract class User_ProviderOld implements Iterator, ArrayAccess, Countable
 {
 	protected $data = array();
 	protected $saltchars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789{}[]@()!#^-_|+';
@@ -38,11 +177,6 @@ abstract class UserProvider implements Iterator, ArrayAccess
 	public function __construct()
 	{
 		$this->onLoad();
-	}
-	
-	public function passwordConstraintCheck($password)
-	{
-		
 	}
 	
 	// Provider Implemented
@@ -58,6 +192,7 @@ abstract class UserProvider implements Iterator, ArrayAccess
 	public abstract function save();
 	
 	// Object Properties
+	
 	public function __get($key)
 	{
 		if(isset($this->data[$key]))
@@ -67,7 +202,7 @@ abstract class UserProvider implements Iterator, ArrayAccess
 	
 	public function __set($key, $value)
 	{
-		$this->data[$key] = $this->setProperty($key, $value);
+		$this->data[$key] = $value;
 	}
 	
 	public function __isset($key, $value)
@@ -85,7 +220,15 @@ abstract class UserProvider implements Iterator, ArrayAccess
 		return sizeof($this->data);
 	}
 	
+	// Countable
+	
+	public function count()
+	{
+		return sizeof($this->data);
+	}
+	
 	// Iterator
+	
 	protected $__position = 0;
 	
 	public function rewind() {
@@ -112,6 +255,7 @@ abstract class UserProvider implements Iterator, ArrayAccess
 	}
 	
 	// ArrayAcess
+	
 	public function offsetSet($offset, $value) {
 		if(is_null($offset))
 			return;
@@ -129,4 +273,4 @@ abstract class UserProvider implements Iterator, ArrayAccess
 	public function offsetUnset($offset) {
 		return $this->__unset($offset);
 	}
-}
+}*/

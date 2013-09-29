@@ -48,4 +48,21 @@ class URL
 	}
 }
 
+class URL_Helper
+{
+	public function __construct()
+	{
+		return $this;
+	}
+	
+	public function withParameters()
+	{
+	}
+	
+	public function withQueryString()
+	{
+	}
+}
+
+
 URL::init();

@@ -57,8 +57,21 @@
 		auth.driver
 		auth.model
 		auth.table
-		auth.template.reminder
-		auth.reminderstable
+		auth.remindertemplate
+		auth.remindertable
+		auth.cookie
+		auth.driver
+		auth.timeout
+		auth.cas.port
+		auth.cas.host
+		auth.cas.path
+		auth.cas.cert
+		crypt.defaultkey
+		session.driver		mysql|cache|file
+		session.cache		true|false (does not work if the driver is "cache")
+		session.cookie
+		session.cryptkey			(encryption key)
+		document.titlesuffix
 */
 
 class Config

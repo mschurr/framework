@@ -229,8 +229,9 @@ class Route
 		
 		// Check URLs with required variables. Return array of matched variables.
 		if(strpos($pattern,"}") !== false) {
+			
 			// Replace Variable Names
-			$regex = preg_replace("/\/\{(.[A-Za-z0-9-_.]+)\}/s", "/(.[A-Za-z0-9-_.]+)", $pattern);
+			$regex = preg_replace("/\/\{(.[A-Za-z0-9-_.]+)\}/s", "/(.[A-Za-z0-9-_.]*)", $pattern);
 			
 			// Escape Slashes
 			$regex = str_replace("/","\/",$regex);

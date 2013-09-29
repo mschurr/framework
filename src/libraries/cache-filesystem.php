@@ -46,6 +46,31 @@ class Cache_Driver_filesystem extends Cache_Driver
 		$f = new File($this->storage.'/');
 		if(!$f->exists)
 			$f->create();
+			
+		// Let's clean expired entries.
+		$lastClean = $this->get('__cacheCleanTime', 0);
+		
+		if( (time() - $lastClean) > 3600 ) {
+			$this->cleanExpired($f);
+			$this->put('__cacheCleanTime', time());
+		}
+	}
+	
+	public function cleanExpired($dir)
+	{
+		foreach($dir as $file)
+		{
+			if($file->isDirectory) {
+				$this->cleanExpired($file);
+			}
+			else {
+				$json = $file->serial;
+				
+				if($json[0] != -1 && time() > $json[0]) {
+					$file->delete();
+				}
+			}
+		}
 	}
 	
 	/* Clears a key from the cache. */
@@ -57,7 +82,16 @@ class Cache_Driver_filesystem extends Cache_Driver
 	/* Returns whether or not the cache has a key. */
 	public function has($key)
 	{
-		return $this->translateKey($key)->exists;
+		$f = $this->translateKey($key);
+		if($f->exists) {
+			$json = $f->serial;
+			
+			if($json[0] != -1 && time() > $json[0])
+				return false;
+			
+			return true;
+		}
+		return false;
 	}
 	
 	/* Returns a key from the cache (if it exists) or $default on failure. $default may be a closure. */

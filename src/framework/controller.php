@@ -1,10 +1,11 @@
 <?php
 
-abstract class RequestHandler
+abstract class Controller
 {
 	protected $response;
 	protected $request;
 	protected $_database;
+	protected $_session;
 	
 	public function __construct(&$request, &$response)
 	{
@@ -21,20 +22,27 @@ abstract class RequestHandler
 	{
 		if($k == 'database' || $k == 'db') {
 			if(!($this->_database instanceof Database))
-				$this->_database =& App::DB();
+				$this->_database =& App::database();
 			return $this->_database;
 		}
 		if($k == 'document') {
 			return $this->response->document;
 		}
+		if($k == 'session') {
+			if(!($this->_session instanceof Session))
+				$this->_session =& App::session();
+			return $this->_session;
+		}
+		if($k == 'auth')
+			return $this->session->auth();
+		if($k == 'user')
+			return $this->session->user();
 		return null;
 	}
 	
 	public function __isset($k)
 	{
-		if($k == 'database' || $k == 'db')
-			return true;
-		if($k == 'document')
+		if($k == 'database' || $k == 'db' || $k == 'document' || $k == 'session' || $k == 'auth' || $k == 'user')
 			return true;
 		return false;
 	}
@@ -51,3 +59,6 @@ abstract class RequestHandler
 			$this->_database = $v;
 	}
 }
+
+if(function_exists('class_alias'))
+	class_alias('Controller', 'RequestHandler');
