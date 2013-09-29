@@ -51,6 +51,8 @@ function len($value)
 		return sizeof($value);
 	if(is_object($value) && is_callable(array($value, '__len')))
 		return $value->__len();
+	if(is_object($value) && is_callable(array($value, 'count')))
+		return $value->count();
 	return null;
 }
 

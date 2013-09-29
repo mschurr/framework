@@ -206,7 +206,7 @@ class DB_PreparedStatement
 	}
 }
 
-class DB_Result implements Iterator, ArrayAccess
+class DB_Result implements Iterator, ArrayAccess, Countable
 {
 	public $affected;
 	public $insertId;
@@ -232,6 +232,11 @@ class DB_Result implements Iterator, ArrayAccess
 	}
 	
 	public function __len()
+	{
+		return $this->size;
+	}
+	
+	public function count()
 	{
 		return $this->size;
 	}

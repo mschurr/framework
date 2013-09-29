@@ -52,7 +52,7 @@ class Registry
 	}
 }
 
-class RegistryObject implements Iterator, ArrayAccess
+class RegistryObject implements Iterator, ArrayAccess, Countable
 {
 	protected $data = array();
 	protected $allow_modify = false;
@@ -64,6 +64,11 @@ class RegistryObject implements Iterator, ArrayAccess
 	}
 	
 	public function __len()
+	{
+		return len($this->data);
+	}
+	
+	public function count()
 	{
 		return len($this->data);
 	}

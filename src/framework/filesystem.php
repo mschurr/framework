@@ -50,8 +50,9 @@
 			name			- renames the file
 			extension		- changes the file's extension
 			content			- writes to the file. overwrites existing content. creates file if needed.
-			                  it is possible to append ($file->content .= appendage), but using the append(content) function is more memory efficient. 
-			json			- writes a php array to the file as json. overwrites existing content.  creates file if needed.
+			                  NOTE: it is possible to append ($file->content .= morecontent), but using the ->append(content) method is more efficient because it does not require existing file content to be loaded to memory 
+			json			- writes a php object to the file as json. overwrites existing content.  creates file if needed.
+			serial			- writes a php object to the file using serialize(). overwrites existing content. creates file if needed.
 			
 		File objects can be iterated over, provided the object represents a directory (equivalent to saying foreach($dir->files)).
 			foreach($dir as $file_object)
@@ -100,7 +101,7 @@
 		- Returns a human readable size for the provided bytes (e.g. 5.2 MB).
 */
 
-class File implements Iterator, ArrayAccess
+class File implements Iterator, ArrayAccess, Countable
 {
 	// Provided Values
 	protected $path;
@@ -366,6 +367,11 @@ class File implements Iterator, ArrayAccess
 	
 	public function __len() {
 		return sizeof($this->files);
+	}
+	
+	public function count()
+	{
+		return $this->__len();
 	}
 	
 	// -- ArrayAcess Methods (for FILE PROPERTIES)

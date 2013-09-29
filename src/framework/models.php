@@ -2,17 +2,18 @@
 
 class Model
 {
-	public function __construct() {
+	public function __construct()
+	{
 	}
-	
 	
 	// --- Static Functions
 	public static function load($path)
 	{
 	}
 	
-	public static function make($name, $db_result)
+	public static function make(/* String name, [Mixed parameter1,[...]]*/)
 	{
+		$n = func_get_args();
 	}
 }
 
