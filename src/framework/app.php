@@ -9,11 +9,11 @@
 	/output
 	/redirect
 	/response
-	/route
 	/url
 	/connection
 	/useragent
 	/filesystem
+	/route -- deal with returning views OR http error codes OR null OR Redirect
 	
 	lib{
 		/auth, /auth-cas

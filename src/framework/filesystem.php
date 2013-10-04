@@ -78,15 +78,18 @@
 			append(content)
 				- appends content to the file. creates file if needed.
 			
-			moveTo(target,mkdir=false)
-				- moves the file to the target path (including file name). if mkdir is set, directories will be created if neccesary.
+			moveTo(target,mkdir=true)
+				- moves the file to the target path (including file name). if mkdir is set, directories will be created if neccesary. returns true on success or false on fail.
 			
 			rename(newname)
 				- changes the name of the file in its current directory
 				
 			make() ~ aliases: create()
 				- makes the file if it does not exist (as an empty directory or empty file).
-				
+			
+			assetURL()
+				- attempts to make a URL to this file (if it's in the static directory) or returns null.
+			
 	-----------
 	
 	This library also provides access to more general file system functions.
@@ -99,6 +102,8 @@
 		
 	FileSystem::formatBinarySize($bytes)
 		- Returns a human readable size for the provided bytes (e.g. 5.2 MB).
+		
+	// TODO: allow size comparison in HR format... eg file->sizeCompare('10M')
 */
 
 class File implements Iterator, ArrayAccess, Countable
@@ -119,6 +124,8 @@ class File implements Iterator, ArrayAccess, Countable
 		$this->cache['temporary'] = true;
 		$this->cache['name'] = $file_info['name'];
 		$this->cache['mime'] = $file_info['mime'];
+		$this->cache['extension'] = pathinfo($file_info['name'], PATHINFO_EXTENSION);
+		return $this;
 	}
 	
 	// On-Demand Values
@@ -305,7 +312,7 @@ class File implements Iterator, ArrayAccess, Countable
 		return FileSystem::append($this->path, $content);
 	}
 	
-	public function moveTo($target, $mkdir=false)
+	public function moveTo($target, $mkdir=true)
 	{
 		if(FileSystem::move($this->path, $target, $mkdir)) {
 			$this->resetCache();
@@ -323,6 +330,13 @@ class File implements Iterator, ArrayAccess, Countable
 			return true;
 		}
 		return false;
+	}
+	
+	public function assetURL()
+	{
+		if(!str_startswith($this->path, FILE_ROOT.'/static'))
+			return null;
+		return URL::asset( substr($this->path, strlen(FILE_ROOT.'/static/')) );
 	}
 	
 	public function make()
@@ -494,6 +508,20 @@ class FileSystem
 		return $f;
 	}
 	
+	public static function move($path, $target, $mkdir=false)
+	{
+		$dir = pathinfo($target, PATHINFO_DIRNAME);
+		if(!file_exists($dir) && !is_dir($dir) && $mkdir) {
+			self::mkdir($dir, true);
+		}
+		
+		if(file_exists($target)) {
+			return false;
+		}
+		
+		rename($path, $target);
+		return true;
+	}
 	
 	
 	// -----------------------------------------------

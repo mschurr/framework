@@ -36,6 +36,41 @@ class Output
 	public function pass($file_path, $range_start=false, $range_end=false)
 	{
 		// NOT_YET_IMPLEMENTED
+		
+		/*
+		HTTP/1.1 200 or HTTP/1.1 304
+		Content-Length
+		Access-Control-Allow-Origin: *
+		Content-Type
+		Content-Range
+		Accept-Ranges
+		Age
+		Content-Disposition: inline|attachment; filename=
+		Etag
+		Content-Transfer-Encoding
+		Date
+		Pragma
+		Last-Modified
+		Cache-Control: public, max-age=3600, must-revalidate
+		Content-Encoding
+		Expires
+		
+		
+		Accept
+		Accept-Charset
+		Accept-Encoding
+		Accept-Language
+		Accept-Datetime
+		Cache-Control
+		If-Modified-Since
+		If-None-Match
+		If-Match
+		If-Range
+		If-Unmodified-Since
+		Range
+		TE
+		User-Agent
+		*/
 	}
 	
 	public function write($out)

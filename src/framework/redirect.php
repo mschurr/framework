@@ -32,7 +32,7 @@ class Redirect
 
 class RedirectHelper
 {
-	public function with($key, $val)
+	public function with($key, $val=null)
 	{
 		return $this;
 	}

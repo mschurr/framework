@@ -74,6 +74,7 @@
 		session.cookie
 		session.cryptkey			(encryption key)
 		document.titlesuffix
+		csrf.driver			session|cookies(default)
 */
 
 class Config

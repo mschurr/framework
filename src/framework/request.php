@@ -103,15 +103,14 @@ class Request
 		elseif($k == 'file' || $k == 'files') {
 			if(!$this->_file instanceof RegistryObject) {
 				$files = array();
-				
 				if(len($_FILES) > 0) {
+					
 					foreach($_FILES as $name => $info) {
 						if($info['error'] === UPLOAD_ERR_OK) {
 							$files[$name] = with(new File($info['tmp_name']))->withUploadInfo($info);
 						}
 					}
 				}
-				
 				$this->_file = new RegistryObject($files);
 				
 				unset($files);
