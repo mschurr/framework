@@ -59,7 +59,7 @@ class Request
 	
 	public function __isset($k)
 	{
-		return true;
+		return ($this->__get($k) !== null);
 	}
 	
 	public function __get($k)

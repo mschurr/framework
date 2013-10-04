@@ -10,6 +10,7 @@
 		cache.table
 		cache.prefix
 		cache.memcached		=   array(array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100))
+		cache.directory		--  a location on the file system. this location does not need to be nonvolatile storage, so it is okay to use a ramdisk
 		captcha.driver 		= 	cookies|session|recaptcha
 		database.default
 		database.connections = 
@@ -66,6 +67,7 @@
 		auth.cas.host
 		auth.cas.path
 		auth.cas.cert
+		cookies.secretKey
 		crypt.defaultkey
 		session.driver		mysql|cache|file
 		session.cache		true|false (does not work if the driver is "cache")
@@ -111,7 +113,7 @@ class Config
 	{
 	}
 	
-	public static function gets($key, $closure)
+	public static function remember($key, $closure)
 	{
 	}
 	
@@ -125,6 +127,7 @@ class Config
 	
 	protected static function save()
 	{
+		// change behavior based on app::isRunning
 	}
 }
 ?>

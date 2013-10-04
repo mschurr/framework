@@ -1,5 +1,5 @@
 <?php
-class HTMLDocument
+class HTMLDocument // implements ArrayAccess
 {
 	protected $title = 'Untitled Page';
 	protected $meta = array(

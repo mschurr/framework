@@ -1,186 +1,394 @@
 <?php
-
-class Cookie
+/**
+ * Cookie Class
+ * ---------------------------------------
+ *
+ 	This class aims to simplify operations with HTTP Cookies.
+ 
+	Reading Cookies:
+		Cookies::has(String $name) 			// returns true or false
+		Cookies::get(String $name)			// returns a Cookie object
+		Cookies::getAll() 					// returns an array ( (String) COOKIE_NAME => (Cookie) COOKIE_OBJECT, ... )
+		isset($request->cookies['name'])	// equivalent to Cookies::has('name')
+		$request->cookies['name']			// equivalent to Cookies::get('name')
+		
+	Writing Cookies:
+		Cookies::delete(Cookie $cookie)					// deletes the passed Cookie
+		Cookies::delete(String $name)					// deletes cookies with the passed name
+		Cookies::put(Cookie $cookie)					// sends a cookie to the client
+		$response->cookies['name'] = Cookie $cookie;	// equivalent to Cookies::put($cookie). notice that 'name' is irrelvant in this case.
+		$response->cookies[] = Cookie $cookie; 			// equivalent to Cookies::put($cookie)
+		$response->cookies->add(Cookie $cookie)			// equivalent to Cookies::put($cookie)
+		$response->with(Cookie $cookie)					// equivalent to Cookies::put($cookie)
+		$response->addCookie(Cookie $cookie)			// equivalent to Cookies::put($cookie)
+		unset($response->cookies['name'])				// allows you to cancel sending of the pending cookie with 'name' (if you sent it with put in the same request)
+		$response->cookies->remove(String $name)
+		$response->cookies->remove(Cookie $cookie)
+		$response->cookies->delete(String $name)
+		$response->cookies->delete(Cookie $cookie)
+		$response->cookies['name'] 						// gets the Cookie object of the pending cookie with 'name'
+		isset($response->cookies['name'])			    // whether or not a pending cookie exists with the given name
+		$response->cookies->has(Cookie $cookie)			// whether or not a pending cookie exists with the given name
+		$response->cookies->has(String $name)			// whether or not a pending cookie exists with the given name
+		len($response->cookies) 						// number of pending cookies
+		foreach($response->cookies as 
+			String $name => Cookie $cookie) 			// iterate through pending cookies
+		
+	Properties of Cookies
+		$cookie = new Cookie($name, $value); // note value is optional
+		$cookie->delete(); // deletes the cookie (should be used on cookies you read)
+		$cookie->send(); // sends the cookie (this function really doesn't need to be called directly)
+		
+		NOTE: Properties can be accessed $cookie->property or $cookie['property']
+		$cookie->name		String
+		$cookie->httponly	true|false		- Send cookie only over http. Defaults to true.
+		$cookie->secure		true|false		- Send cookie only over ssl. Defaults to whether or not request was made over ssl.
+		$cookie->domain		String			- Defaults to current domain
+		$cookie->path		String			- Defaults to /
+		$cookie->expiry		Integer			- Should be a timestamp. Defaults to two weeks.
+		$cookie->value		String			- Defaults to null.
+		
+	Preventing Tampering
+		The cookie library will automatically check whether or not cookies you set were tampered with.
+		If a cookie has been tampered with, the API will treat it as if it does not exist (e.g. Cookies::has('name') will return FALSE).
+ */
+ 
+class CookieRegistry implements ArrayAccess, Countable, Iterator
 {
-	protected $name = NULL;
-	protected $value = "";
-	protected $expiry;
-	protected $path = '/';
-	protected $domain = '';
-	protected $secure = false;
-	protected $httponly = false;
-	
-	public function __construct($name = NULL)
+	// Methods
+	public function add($o)
 	{
-		$this->expiry = time() + 14*24*3600;
-		$this->name = $name;
-		$this->domain = URL::getCurrentDomain();
+		Cookies::registerPending($v);
 	}
 	
-	public function getValue()
+	public function push($o)
 	{
-		return $this->value;
+		Cookies::registerPending($v);
 	}
 	
-	public function getName()
+	public function has($o)
 	{
-		return $this->name;
+		return Cookies::hasPending($o);
 	}
 	
-	public function getExpiry()
+	public function remove($o)
 	{
-		return $this->expiry;
+		Cookies::removePending($o);
 	}
 	
-	public function getPath()
+	public function delete($o)
 	{
-		return $this->path;
+		Cookies::removePending($o);
 	}
 	
-	public function getDomain()
+	// Iterator
+	protected $_position = 0;
+	
+	public function current()
 	{
-		return $this->domain;
+		$pending =& Cookies::getAllPending();
+		$keys = array_keys($pending);
+		return $pending[$keys[$this->_position]];
 	}
 	
-	public function getSecure()
+	public function key()
 	{
-		return $this->secure;
+		$pending =& Cookies::getAllPending();
+		$keys = array_keys($pending);
+		return $keys[$this->_position];
 	}
 	
-	public function getHTTPOnly()
+	public function next()
 	{
-		return $this->httponly;
+		$this->_position += 1;
 	}
 	
-	public function setName($name)
+	public function rewind()
 	{
-		$this->name = $name;
-		return $this;
+		$this->_position = 0;
 	}
 	
-	public function setValue($value)
+	public function valid()
 	{
-		$this->value = $value;
-		return $this;
+		return $this->_position < $this->count();
 	}
 	
-	public function setExpiry($time)
+	// PropertyAccess
+	public function __isset($o)
 	{
-		$this->expiry = $time;
-		return $this;
+		return Cookies::hasPending($o);
 	}
 	
-	public function setPath($path)
+	public function __get($o)
 	{
-		$this->path = $path;
-		return $this;
+		return Cookies::getPending($o);
 	}
 	
-	public function setDomain($domain)
+	public function __unset($o)
 	{
-		$this->domain = $domain;
-		return $this;
+		Cookies::removePending($o);
 	}
 	
-	public function setSecure($secure)
+	public function __set($o, $v)
 	{
-		$this->secure = $secure;
-		return $this;
+		Cookies::registerPending($v);
 	}
 	
-	public function setHTTPOnly($httponly)
+	// ArrayAccess
+	public function offsetExists($o)
 	{
-		$this->httponly = $httponly;
-		return $this;
+		return Cookies::hasPending($o);
 	}
 	
-	public function save()
+	public function offsetGet($o)
 	{
-		//Cookies::put($this);
-		App::getResponse()->with($this);
-		return $this;
+		return Cookies::getPending($o);
 	}
 	
-	public function delete()
+	public function offsetUnset($o)
 	{
-		Cookies::del($this);
-		return NULL;
+		Cookies::removePending($o);
 	}
 	
-	public function encrypt($key=null)
+	public function offsetSet($o, $v)
 	{
-		if(is_null($key))
-			$key = Config::get('crypt.defaultkey', 'CookieCryptoKey!');
-		$ec = new AES_Encryption($key);
-		$this->value = $ec->encrypt($this->value)->get();
-		return $this;
+		Cookies::registerPending($v);
 	}
 	
-	public function decrypt($key=null)
+	// Countable
+	public function count()
 	{
-		if(is_null($key))
-			$key = Config::get('crypt.defaultkey', 'CookieCryptoKey!');
-		$ec = new AES_Encryption($key);
-		$this->value = $ec->decrypt($this->value)->get();
-		return $this;
+		return Cookies::getNumPending();
 	}
 }
 
 class Cookies
 {
+	// Received Cookies
 	protected static $cookies = array();
 	
 	public static function init()
 	{
-		if(isset($_COOKIE)) {
-			foreach($_COOKIE as $name => $value) {
-				$cookie = new Cookie($name);
-				$cookie->setValue($value);
+		foreach($_COOKIE as $name => $value) {
+			$cookie = new Cookie($name, $value, true);
+			
+			if($cookie->valid)
 				self::$cookies[$name] = $cookie;
-			}
 		}
 	}
 	
-	public static function has($cookienm)
+	public static function has($name)
 	{
-		return isset(self::$cookies[$cookienm]);
+		return isset(self::$cookies[$name]);
 	}
 	
-	public static function get($cookienm)
-	/* Returns a (Cookie) with the given name (if it exists). Otherwise, returns (bool) False. */
+	public static function get($name)
 	{
-		if(isset(self::$cookies[$cookienm]))
-			return self::$cookies[$cookienm];
-		return false;
+		if(isset(self::$cookies[$name])) {
+			return self::$cookies[$name];
+		}
+		return null;
+	}
+	
+	public static function delete($cookie)
+	{
+		if(is_string($cookie)) {
+			$cookie = new Cookie($cookie);
+			$cookie->delete();
+		}
+		else {
+			$cookie->delete();
+		}
 	}
 	
 	public static function put($cookie)
-	/* Writes a cookie to the client. Returns void. */
 	{
-		setcookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiry(), $cookie->getPath(), $cookie->getDomain(), $cookie->getSecure(), $cookie->getHTTPOnly());
-		return NULL;
-	}
-	
-	public static function del($cookie)
-	/* Deletes a cookie from the client. Returns void. */
-	{
-		setcookie($cookie->getName(), '', time() - 3600, '/', '.'.DOMAIN, false, false);
-		return NULL;
-	}
-	
-	public static function del_byname($cookienm)
-	/* Deletes a cookie with the given name from the client. Returns void.*/
-	{
-		if(isset(self::$cookies[$cookienm]))
-			return self::del(self::$cookies[$cookienm]);
-		return NULL;
+		$cookie->send();
 	}
 	
 	public static function getAll()
-	/* Returns an array of all currently set cookies as array( (string) name => (Cookie) cookie, ..+). */
 	{
 		return self::$cookies;
 	}
 	
-} Cookies::init();
-?>
+	// Pending Cookies
+	protected static $pending = array();
+	
+	public static function registerPending($cookie)
+	{
+		self::$pending[$cookie->name] =& $cookie;
+	}
+	
+	public static function hasPending($cookie)
+	{
+		if(is_string($cookie))
+			return isset(self::$pending[$cookie]);
+		return isset(self::$pending[$cookie->name]);
+	}
+	
+	public static function removePending($cookie)
+	{
+		if(is_string($cookie))
+			unset(self::$pending[$cookie]);
+		unset(self::$pending[$cookie->name]);
+	}
+	
+	public static function getPending($cookie)
+	{
+		if(isset(self::$pending[$cookie]))
+			return self::$pending[$cookie];
+		return null;
+	}
+	
+	public static function &getAllPending()
+	{
+		return self::$pending;
+	}
+	
+	public static function getNumPending()
+	{
+		return sizeof(self::$pending);
+	}
+	
+	public static function writePendingToBrowser()
+	{
+		foreach(self::$pending as $cookie) {
+			setcookie($cookie->name, $cookie->getFinalValue(), $cookie->expiry, $cookie->path, $cookie->domain, $cookie->secure, $cookie->httponly);
+		}
+	}
+}
+
+class Cookie implements ArrayAccess
+{
+	const HASH_ALGO = 'sha256';
+	const HASH_SIZE = 64;
+	
+	public function __construct($name, $value=null, $fromExisting=false)
+	{
+		$this->name = $name;
+		$this->httponly = true;
+		$this->secure = false;
+		$this->domain = URL::getCurrentDomain();
+		$this->path = '/';
+		$this->expiry =  time() + 1209600;
+		$this->value = $value;
+		$this->secret = Config::get('cookies.secretKey', function(){
+			throw new Exception("To use cookies, you must set the 'cookies.secretKey' configuration value.");
+		});
+		$this->valid = false;
+		
+		if($fromExisting === true)
+			$this->validate();		
+	}
+	
+	/* Properties */
+	protected $_properties = array();
+	
+	public function get($property)
+	{
+		if(isset($this->_properties[$property]))
+			return $this->_properties[$property];
+		return null;
+	}
+	
+	public function has($property)
+	{
+		return isset($this->_properties[$property]);
+	}
+	
+	public function forget($property)
+	{
+		unset($this->_properties[$property]);
+	}
+	
+	public function set($property, $value)
+	{
+		$this->_properties[$property] = $value;
+	}
+	
+	/* ArrayAccess and PropertyAccess*/
+	public function __get($key)
+	{
+		return $this->get($key);
+	}
+	
+	public function __set($key, $value)
+	{
+		return $this->set($key, $value);
+	}
+	
+	public function __isset($key)
+	{
+		return $this->has($key);
+	}
+	
+	public function __unset($key)
+	{
+		return $this->forget($key);
+	}
+	
+	public function offsetExists($key)
+	{
+		return $this->has($key);
+	}
+	
+	public function offsetGet($key)
+	{
+		return $this->get($key);
+	}
+	
+	public function offsetSet($key, $value)
+	{
+		return $this->set($key, $value);
+	}
+	
+	public function offsetUnset($key)
+	{
+		return $this->forget($key);
+	}
+	
+	/* Deletes the cookie from the client's browser. */
+	public function delete()
+	{
+		// To delete the cookie, make a blank one with the same name that expires in a minute.
+		$this->httponly = false;
+		$this->secure = false;
+		$this->expiry = time() + 60;
+		$this->value = '';
+		$this->send();
+	}
+	
+	/* Sends the cookie to the client's browser. */
+	public function send()
+	{
+		// Let the Cookie class handle it.
+		Cookies::registerPending($this);
+	}
+	
+	/* Checks the HMAC signature of a cookie to ensure it is valid. */
+	protected function validate()
+	{
+		if(strlen($this->value) < self::HASH_SIZE + 3)
+			return;
+			
+		if(strpos($this->value, '::') === false)
+			return;
+			
+		$last = strrpos($this->value, '::');
+		$signature = substr($this->value, $last+2);
+		$value = substr($this->value, 0, $last);
+		
+		if(hash_hmac(self::HASH_ALGO, $value, $this->secret) !== $signature)
+			return;
+		
+		$this->value = $value;
+		$this->valid = true;
+	}
+	
+	/* Returns the signed and/or encrypted value to send to the browser. */
+	public function getFinalValue()
+	{
+		// We need to get the value plus the HMAC signature.
+		return $this->value.'::'.hash_hmac(self::HASH_ALGO, $this->value, $this->secret);
+	}
+}

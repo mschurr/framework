@@ -1,4 +1,11 @@
 <?php
+/**
+ * Sessions Cache Driver
+ * -----------------------------------------------------------------------------------------------------------------------
+ *
+ * This class implements the session driver using the Cache API. You should not instantiate this class directly; use the Session class.
+ * You can find the public API documentation for the class in the Session class.
+ */
 
 class Session_Driver_cache extends Session_Driver
 {
@@ -16,12 +23,8 @@ class Session_Driver_cache extends Session_Driver
 		
 		// Let's attempt to find our session identifier using cookies.
 		if(Cookies::has($this->_cookie)) {
-			$id = Cookies::get($this->_cookie)->decrypt($this->_key)->getValue();
-			
-			if(strlen($id) >= strlen($this->_prefix) && substr($id, 0, strlen($this->_prefix)) == $this->_prefix) {
-				$this->_id = substr($id, strlen($this->_prefix));
-				return $this->_id;
-			}
+			$this->_id = Cookies::get($this->_cookie)->value;
+			return $this->_id;
 		}
 		
 		// If we couldn't find it, let's generate a new one and set the cookie (encrypted, secure, httponly).
@@ -38,15 +41,13 @@ class Session_Driver_cache extends Session_Driver
 		
 		// Send the cookie.
 		$cookie = new Cookie($this->_cookie);
-		$cookie ->setValue($this->_prefix.$this->_id)
-				->setExpiry(time() + 3600 * 24 * 14)
-				->setPath('/')
-				->setDomain('.'.App::getRequest()->domain)
-				->setSecure(App::getRequest()->secure)
-				->setHTTPOnly(true)
-				->encrypt($this->_key);
-				
-		App::getResponse()->with($cookie);
+		$cookie->value = $this->_id;
+		$cookie->expiry = time() + 3600 * 24 * 14;
+		$cookie->path = '/';
+		$cookie->domain = App::getRequest()->domain;
+		$cookie->secure = App::getRequest()->secure;
+		$cookie->httponly = true;
+		$cookie->send();
 	}
 	
 	protected $_idchars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
@@ -82,7 +83,7 @@ class Session_Driver_cache extends Session_Driver
 	{
 		// Load our session variables from the cache.
 		$object =& $this;
-		$data = Cache::section('session')->get( sha1($this->id().$this->_key), function() use (&$object) {
+		$data = Cache::section('session')->get( sha1($this->id()), function() use (&$object) {
 			return array( 'vars' => $object->defaultVars(), 'flash' => array() );
 		});
 		
@@ -130,7 +131,7 @@ class Session_Driver_cache extends Session_Driver
 	{
 		if(!$this->_renewable)
 			return;
-		Cache::section('session')->put( sha1($this->id().$this->_key), array(
+		Cache::section('session')->put( sha1($this->id()), array(
 			'vars' => $this->_vars,
 			'flash' => $this->_flashwrite
 		) );

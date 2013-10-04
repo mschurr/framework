@@ -1,17 +1,21 @@
 <?php
-/*
-	MySQL Database Driver
-	
-	--------------------------------------
-	
-	This class is a wrapper for the PDO extension that gives us better control over syntax and easier management of results.
-	
-*/
+/**
+ * MySQL Database Driver
+ * -----------------------------------------------------------------------------------------------------------------------
+ *
+ * This class implements the database driver for MySQL. You should not instantiate this class directly; use the Database class.
+ * You can find the public API documentation for the class in the Database class.
+ */
 
 class DB_Driver_mysql extends DB_Driver
 {
+	/* Whether or not we are in a transaction. */
 	protected $transaction = false;
+	
+	/* Whether or not the user can issue the rollback command. */
 	protected $allow_rollback = false;
+	
+	/* Whether or not we have established a connection to a database server. */
 	protected $connected = false;
 	
 	/* Securely establishes a connection to the database. */
@@ -61,7 +65,7 @@ class DB_Driver_mysql extends DB_Driver
 		return $str;
 	}
 	
-	/* Executes a database query. Returns <DB_Result>($driver, $affected, $insert_id, $text, $row, $success, $rows, $size, $time, $error) */
+	/* Executes a database query. Returns a <DB_Result>. */
 	public function query($query)
 	{
 		if(!$this->connected)
@@ -112,7 +116,7 @@ class DB_Driver_mysql extends DB_Driver
 		}
 	}
 	
-	/* Create a prepared procedure. Returns <DB_PreparedStatement>($this, $statement, $data) or false on failure. */
+	/* Create a prepared procedure. Returns <DB_PreparedStatement> or false on failure. */
 	public function prepare($statement)
 	{
 		if(!$this->connected)
@@ -136,7 +140,7 @@ class DB_Driver_mysql extends DB_Driver
 		);
 	}
 	
-	/* Execute a prepared procedure with parameters. Returns <DB_Result>($driver, $affected, $insert_id, $text, $row, $success, $rows, $size, $time, $error). */
+	/* Execute a prepared procedure with parameters. Returns <DB_Result>. */
 	public function execute($statement, $params)
 	{		
 		if(!$this->connected)

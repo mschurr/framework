@@ -8,7 +8,6 @@ class Response
 		'Server' => 'Restricted'
 	);
 	public $status = 200;
-	public $setCookies = array();
 	
 	public function __construct()
 	{
@@ -35,9 +34,7 @@ class Response
 			}
 		}
 		
-		foreach($this->setCookies as $cookie) {
-			Cookies::put($cookie);
-		}
+		Cookies::writePendingToBrowser();
 		
 		$this->out->send();
 	}
@@ -80,7 +77,7 @@ class Response
 	public function addCookie($obj)
 	{
 		if($obj instanceof Cookie)
-			$this->setCookies[$obj->getName()] =& $obj;
+			Cookies::registerPending($obj);
 	}
 	
 	public function pass($path, $name=false, $extra_headers=array())
@@ -131,7 +128,8 @@ class Response
 			$this->out->setView($obj);
 		}
 		if($obj instanceof Cookie) {
-			$this->setCookies[$obj->getName()] =& $obj;
+			echo 'using obj';
+			Cookies::registerPending($obj);
 		}
 		return $this;
 	}
@@ -179,11 +177,25 @@ class Response
 		505 => 'HTTP Version Not Supported'
 	);
 	
+	protected $_cookie = null;
+	
 	public function __get($s)
 	{
 		if($s == 'document')
 			return $this->out->document;
-		
+		if($s == 'cookie' || $s == 'cookies') {
+			if($this->_cookie === null) {
+				$this->_cookie = new CookieRegistry();
+			}
+			return $this->_cookie;
+		}
 		return null;
+	}
+	
+	public function __isset($s)
+	{
+		if($s == 'cookie' || $s == 'cookies' || $s == 'document')
+			return true;
+		return false;
 	}
 }

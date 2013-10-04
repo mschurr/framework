@@ -25,6 +25,7 @@ class App
 	protected static $request;
 	protected static $response;
 	protected static $errors = false;
+	protected static $running = false;
 	
 	public static function init()
 	{
@@ -34,8 +35,11 @@ class App
 	
 	public static function run()
 	{
+		self::$running = true;
+		Cookies::init();
 		Route::doRoute(self::$request, self::$response);		
 		self::$response->send();
+		self::$running = false;
 	}
 	
 	public static function abort($http_code, $message=false)
@@ -91,6 +95,11 @@ class App
 	{
 	}
 	
+	public static function isRunning()
+	{
+		return self::$running;
+	}
+	
 	protected static $db = null;
 	public static function &database()
 	{
@@ -110,6 +119,16 @@ class App
 		if(self::$session === null)
 			self::$session = new Session();
 		return self::$session;
+	}
+	
+	public static function &getDatabase()
+	{
+		return self::database();
+	}
+	
+	public static function &getSession()
+	{
+		return self::session();
 	}
 }
 App::init();

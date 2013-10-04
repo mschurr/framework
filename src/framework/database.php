@@ -202,6 +202,10 @@ class DB_PreparedStatement
 	
 	public function execute($opts=array())
 	{
+		if(is_string($opt))
+			$opt = array($opt);
+		if(func_num_args() > 1)
+			$opt = func_get_args();
 		return $this->driver->execute($this, $opts);
 	}
 }

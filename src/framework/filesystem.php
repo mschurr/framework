@@ -48,8 +48,8 @@
 			path			- moves/renames the file to locate it at the new path
 			directory		- moves the file to the new directory
 			name			- renames the file
-			extension		- changes the file's extension
-			content			- writes to the file. overwrites existing content. creates file if needed.
+			extension		- changes the file's extension (aliases: type, ext)
+			content			- writes to the file. overwrites existing content. creates file if needed. (aliases: contents)
 			                  NOTE: it is possible to append ($file->content .= morecontent), but using the ->append(content) method is more efficient because it does not require existing file content to be loaded to memory 
 			json			- writes a php object to the file as json. overwrites existing content.  creates file if needed.
 			serial			- writes a php object to the file using serialize(). overwrites existing content. creates file if needed.
@@ -84,7 +84,7 @@
 			rename(newname)
 				- changes the name of the file in its current directory
 				
-			make()
+			make() ~ aliases: create()
 				- makes the file if it does not exist (as an empty directory or empty file).
 				
 	-----------
@@ -127,7 +127,8 @@ class File implements Iterator, ArrayAccess, Countable
 		'parent  ' => 'directory',
 		'ext'      => 'extension',
 		'type'     => 'extension',
-		'writable' => 'writeable'
+		'writable' => 'writeable',
+		'contents' => 'content'
 	);
 	
 	public function resetCache()

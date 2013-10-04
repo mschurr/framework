@@ -28,7 +28,7 @@ Options:
 	name    => (str)
 	pass    => false|true
 	prio    => (int)
-	filters => array(var => regex, ..+)
+	filters => array(var => regex, closure ..+)				-- closure filters return true, false or a status code (if false, it just skips the route; if status code, it will error)
 */
 
 class Route
@@ -113,6 +113,7 @@ class Route
 		foreach(self::$routes as $pattern => $options) {
 			// Check Pattern
 			$parameters = self::is($pattern, $request);
+			$throwFilterError = null;
 			if(is_array($parameters)) {
 				// Check Method
 				$allowed = explode("|", $options['method']);
@@ -132,8 +133,20 @@ class Route
 				// Check Filters
 				$passed = true;
 				foreach($options['filters'] as $k => $reg) {
-					if(!preg_match('/^('.$reg.')$/s',$parameters[$k])) {
-						$passed = false;
+					if(is_string($reg)) {
+						if(!preg_match('/^('.$reg.')$/s',$parameters[$k])) {
+							$passed = false;
+						}
+					}
+					elseif($reg instanceof Closure) {
+						$value = $reg();
+						
+						if($value === false) {
+							$passed = false;
+						}
+						else if ($value !== true) {
+							$throwFilterError = $value;
+						}
 					}
 				}
 				
@@ -149,6 +162,10 @@ class Route
 		// 404 Not Found
 		if($route === false)
 			return 404;
+			
+		// Check: Closure Filters
+		if(isset($throwFilterError) && !is_null($throwFilterError))
+			return $throwFilterError;
 			
 		// Check: Passthroughs TODO
 		
@@ -275,7 +292,12 @@ class Route
 		// Group Mode
 		if(self::$group === true) {
 			foreach(self::$groupopts as $k => $v) {
-				$options[$k] = $v;
+				if($k == 'filters') {
+					$options[$k] = array_merge(self::$groupopts[$k], $v);
+				}
+				else {
+					$options[$k] = $v;
+				}
 			}
 		}
 		
@@ -335,6 +357,11 @@ class Route
 		$closure();		
 		self::$group = false;
 		self::$groupopts = array();
+	}
+	
+	public static function filter($filter, $closure)
+	{
+		self::group(array('filters' => array($filter)), $closure);
 	}
 	
 	public static function get($uri_match, $target, $options=array())

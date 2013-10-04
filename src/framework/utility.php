@@ -35,6 +35,11 @@ function from_json($string) {
 	return json_decode($string, true);
 }
 
+function &model($string) {
+	/* Loads a model. */
+	return call_user_func_array('Model::make', func_get_args());
+}
+
 /**
  * Return the length of the given string, array, or object.
  *

@@ -11,7 +11,7 @@
 	I recommend locally caching your queries to eliminate load on the server.
 
     Example Usage:
-        $res = FingerUtility::finger("mas20"); # Search by NetID
+        $res = finger("mas20"); # Search by NetID
 
         Array(
 			Array(
@@ -26,7 +26,7 @@
 			)
 		)
 
-        $res = FingerUtility::finger("Devika"); # Search by Name
+        $res = finger("Devika"); # Search by Name
 
         Array(
 			Array(
@@ -43,59 +43,70 @@
 			)
 		)
 */
-			
-class Finger
-{
-	public static function query($query, $host='rice.edu') {
-		/* Searches the FINGER server at $host (see http://tools.ietf.org/html/rfc1288) for information related to a search query. Returns an array of arrays. */
-		$h = fsockopen($host,79,$errno,$errstr,3);
-		
-		if(!$h)
-			return array();
-		
-		fputs($h, $query.PHP_EOL);
-		stream_set_timeout($h, 3);
-		
-		$response = '';
-		
-		while(!feof($h)) {
-			$response .= fgets($h, 1024);
+
+/**
+ * Searches a FINGER server (assumes rice.edu) (see http://tools.ietf.org/html/rfc1288) for information related to a search query.
+ * Returns an array of arrays.
+ * Example Usage: $res = finger("user@domain.tld") 
+ */	
+function finger($opt) {
+	
+	if(strpos($opt,"@") === false) {
+		$host = 'rice.edu';
+		$query = $opt;
+	}
+	else {
+		$host = substr($opt,strpos($opt, "@")+1);
+		$query = substr($opt,0,strpos($opt,"@"));
+	}
+	
+	$h = fsockopen($host,79,$errno,$errstr,3);
+	
+	if(!$h)
+		return array();
+	
+	fputs($h, $query.PHP_EOL);
+	stream_set_timeout($h, 3);
+	
+	$response = '';
+	
+	while(!feof($h)) {
+		$response .= fgets($h, 1024);
+	}
+	
+	fclose($h);
+	
+	if(strpos($response,"0 RESULTS:") !== false) {
+		return array();
+	}
+	
+	$res = array();
+	
+	$segments = explode("------------------------------------------------------------",$response);
+	
+	foreach($segments as $seg) {
+		if(strpos($seg,"name:") === false) {
+			continue;
 		}
 		
-		fclose($h);
-		
-		if(strpos($response,"0 RESULTS:")  !== false) {
-			return array();
-		}
-		
-		$res = array();
-		
-		$segments = explode("------------------------------------------------------------",$response);
-		
-		foreach($segments as $seg) {
-			if(strpos($seg,"name:") === false) {
+		$record = array();
+		$lines = explode("\n",$seg);
+	
+		foreach($lines as $line) {
+			if(strpos($line,":") === false) {
 				continue;
 			}
 			
-			$record = array();
-			$lines = explode("\n",$seg);
-			
-			foreach($lines as $line) {
-				if(strpos($line,":") === false) {
-					continue;
-				}
-				
-				$idx = strpos($line,":");
-				$key = str_replace(" ","_",trim(substr($line,0,$idx)));
-				$val = trim(substr($line,$idx+1));
-				
-				$record[$key] = $val;
-			}
-			
-			$res[] = $record;
+			$idx = strpos($line,":");
+			$key = str_replace(" ","_",trim(substr($line,0,$idx)));
+			$val = trim(substr($line,$idx+1));
+	
+			$record[$key] = $val;
 		}
-		
-		return $res;
+	
+		$res[] = $record;
 	}
+	
+	return $res;
 }
 

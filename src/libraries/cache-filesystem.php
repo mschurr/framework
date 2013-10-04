@@ -41,7 +41,8 @@ class Cache_Driver_filesystem extends Cache_Driver
 	/* Automatically called when the driver is loaded. */
 	public function onLoad()
 	{
-		$this->storage = FILE_ROOT.'/cache/fscache';
+		$dir = Config::get('cache.directory', FILE_ROOT.'/cache');
+		$this->storage = $dir.'/fscache';
 		
 		$f = new File($this->storage.'/');
 		if(!$f->exists)

@@ -113,8 +113,9 @@ abstract class Group_Provider
 	// listUsers()
 }
 
-abstract class User_Provider implements Iterator, ArrayAccess, Countable
+abstract class User_Provider/* implements Iterator, ArrayAccess, Countable*/
 {
+	/*
 	public static abstract function makeWithPassword($username, $password);
 	public abstract function getEmail();
 	public abstract function getUsername();
@@ -163,7 +164,7 @@ abstract class User_Provider implements Iterator, ArrayAccess, Countable
 		// TODO
 		
 		return true;
-	}
+	}*/
 }
 
 /*

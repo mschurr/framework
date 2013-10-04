@@ -1,4 +1,11 @@
 <?php
+/*
+Could implement check-and-set
+
+gets(key) -> value, unique
+cas(key, value, unique)
+*/
+
 class Cache
 {
 	protected static $driver;

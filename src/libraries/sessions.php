@@ -1,4 +1,11 @@
 <?php
+/**
+ * Session Driver
+ * -----------------------------------------------------------------------------------------------------------------------
+ *
+ * This class by itself is abstract; it requires a concrete <Session_Driver> implementation.
+ */
+
 class Session implements ArrayAccess
 {
 	protected $driver = null;
@@ -75,39 +82,59 @@ class Session implements ArrayAccess
 abstract class Session_Driver
 {
 	protected $_auth;
-	protected $_prefix = 'SESSIOND::';
 	protected $_cookie;
-	protected $_key;
 	
-	public function auth() {
-		return $this->_auth;
-	}
-	
-	public function user()
+	public function __construct()
 	{
-		return $this->_auth->user();
-	}
-	
-	public function __construct() {
-		$this->_key = Config::get('session.cryptkey', 'SessionCryptKey!');
 		$this->_cookie = Config::get('session.cookie', 'sessiond');
 		$this->_auth = new Auth($this);
 		$this->load();
 	}
 	
-	public function __destruct() {
+	public function __destruct()
+	{
 		$this->unload();
 	}
+	
+	/* If the user is logged in, returns a <User_Provider> for the account. Returns null otherwise. */
+	public function user()
+	{
+		return $this->_auth->user();
+	}
+	
+	/* Returns an <Auth> object linked to the current session. */
+	public function auth()
+	{
+		return $this->_auth;
+	}
 		
-	/* Reserved Keywords: ->id, ->auth, ->user */
+	/* Called automatically on driver load. */
 	public abstract function load();
+	
+	/* Called automatically on driver unload. */
 	public abstract function unload();
+	
+	/* Gets a session value (if it exists) or returns $default otherwise. */
 	public abstract function get($key, $default=null);
+	
+	/* Sets a session value for the given key. */
 	public abstract function set($key, $value);
+	
+	/* Returns whether or not the session has a value for the given key. */
 	public abstract function has($key);
+	
+	/* Forgets the remembered value for the given key (if it exists). */
 	public abstract function forget($key);
+	
+	/* Sets a value for the given key that will be available only on the next request. */
 	public abstract function flash($key, $value=null);
+	
+	/* Keeps the value for a given key in memory that was flashed. */
 	public abstract function keep($key);
+	
+	/* Returns the raw session identifier. You should not store this anywhere else unless you hash it first. */
 	public abstract function id();
+	
+	/* Calculates and sets a new session identifier. Useful for preventing session fixation. Occurs automatically on certain events and periodically to prevent fixation. */
 	public abstract function regenerate();
 }

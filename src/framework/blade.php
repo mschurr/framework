@@ -130,7 +130,14 @@ abstract class BladeParser
 	{
 		$this->blade_name = trim(str_replace(".", "/", strtolower($name)),'/');	
 		$this->blade_file = FILE_ROOT.'/'.($this->is('view') ? 'views' : 'layouts').'/'.$this->blade_name.'.blade.php';
-		$this->blade_file_cache = FILE_ROOT.'/cache/blade-'.md5($this->blade_file).'.blade';
+		
+		$dir = Config::get('cache.directory', FILE_ROOT.'/cache');
+		
+		$f = new File($dir.'/');
+		if(!$f->exists)
+			$f->create();
+		
+		$this->blade_file_cache = $dir.'/blade-'.md5($this->blade_file).'.blade';
 		call_user_func_array(array($this, 'init'), func_get_args());
 	}
 	
