@@ -4,6 +4,8 @@
  * -----------------------------------------------------------------------------------------------------------------------
  *
  * This class by itself is abstract; it requires a concrete <Session_Driver> implementation.
+ *
+ * Will probably also add support for Iterator, Countable
  */
 
 class Session implements ArrayAccess
@@ -26,6 +28,12 @@ class Session implements ArrayAccess
 	
 	public function __get($key)
 	{
+		if($key == 'id')
+			return $this->driver->id();
+		if($key == 'auth')
+			return $this->driver->auth();
+		if($key == 'user')
+			return $this->driver->user();
 		return $this->driver->get($key);
 	}
 	
@@ -51,6 +59,12 @@ class Session implements ArrayAccess
 	
 	public function offsetGet($key)
 	{
+		if($key == 'id')
+			return $this->driver->id();
+		if($key == 'auth')
+			return $this->driver->auth();
+		if($key == 'user')
+			return $this->driver->user();
 		return $this->driver->get($key);
 	}
 	

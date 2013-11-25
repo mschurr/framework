@@ -1,7 +1,74 @@
 <?php
 /*
-Could implement check-and-set
+	Cache Library
+	-------------------------------------------------------------------------------------
+	
+	You can use this library to safely store bits of information in a cache.
+	
+	* The cache is a high-performance key-value store that is partitioned into sections. Data stored in the cache is available globally across page views.
+	
+	* Information stored in the cache is VOLATILE (usually it is stored in RAM). It will be lost on system restart. DO NOT STORE PERSISTENT DATA IN THE CACHE.
+	
+	* The cache is good for storing the results of time-intensive tasks that can be re-used rather than re-calculated. If the cache is wiped, we can always
+		re-calculate the missing value. Database results are a good example of something to cache.
+	
+	* The cache is limited by a maximum memory size. When you attempt to insert something that will exceed the memory limit,
+	    the cache will make space by deleting items in the cache in LEAST RECENTLY USED order.
+		
+	* Information stored in the cache will expire after 60 minutes (unless specified otherwise). Note that information IS NOT GUARANTEED to be available up until that point of time
+		(it may be removed to make space for new entries). The system only guarantees that it will not be available after the expiration time.
+		
+	* Caches are one of the largest factors in application scalability. Caches can be scaled very easily by spreading the data across a cluster of servers (using a hash-map) and 
+		PHP by can be scaled easily by adding more app servers behind load balancers. Databases are much more difficult to scale, so we alleviate the load on them by using caching.
 
+	* You need to ensure that your backing data is always in-sync with the cached data. For example, if a user updates a record in the database, you need to update any records in the
+		cache that might be affected, too. You should always UPDATE the cache; do not clear cache keys and rely on them to be re-calculated by the next request (this will result in poor performance).
+		
+	The cache service provides the following API:
+	
+	$value = Cache::remember($key, $value, $minutes=60)
+		- Attempts to retrieve the data for $key from the cache; if it exists, returns the data.
+		  If it does not exist, sets the data for $key to $value in the cache and returns $value.
+	
+	$value = Cache::rememberForever($key, $value)
+		- Equivalent to Cache::remember, but the value will be stored with no expiration.
+	
+	Cache::forget($key)
+		- Wipes information for $key from the cache.
+	
+	Cache::has($key)
+		- Returns whether or not the cache has information for $key.
+	
+	Cache::get($key, $default=null)
+		- Returns the information for $key in the cache (if it exists) or $default otherwise.
+	
+	
+	Cache::put($key, $value, $minutes=60)
+		- Stores information for $value to $key in the cache for $minutes.
+	
+	Cache::forever($key, $value)
+		- Stores information for $value to $key in the cache forever.
+	
+	
+	Cache::flush()
+		- Clears the entire cache.
+	
+	Cache::all()
+		- Returns an array of all keys stored in the cache.
+		
+	Cache::increment($key, $amount=1)
+	Cache::decrement($key, $amount=1)
+		- Increments or decrements the value stored at $key in the cache.
+		  This operation is atomic, and should be used over instead of put and get.
+	
+	Any of the above functions can also be used on a section of the cache. Sections of the cache act like the global cache but are isolated from all other parts of the cache.
+	For example, Cache::section('name')->remember($key, $value, $minutes=60)
+
+*/
+
+
+/*
+TODO: implement check-and-set
 gets(key) -> value, unique
 cas(key, value, unique)
 */

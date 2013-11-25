@@ -15,6 +15,7 @@
 	Writing Cookies:
 		Cookies::delete(Cookie $cookie)					// deletes the passed Cookie
 		Cookies::delete(String $name)					// deletes cookies with the passed name
+		$request->cookie['name']->delete()
 		Cookies::put(Cookie $cookie)					// sends a cookie to the client
 		$response->cookies['name'] = Cookie $cookie;	// equivalent to Cookies::put($cookie). notice that 'name' is irrelvant in this case.
 		$response->cookies[] = Cookie $cookie; 			// equivalent to Cookies::put($cookie)
@@ -378,7 +379,7 @@ class Cookie implements ArrayAccess
 		$signature = substr($this->value, $last+2);
 		$value = substr($this->value, 0, $last);
 		
-		if(hash_hmac(self::HASH_ALGO, $value, $this->secret) !== $signature)
+		if(hash_hmac(self::HASH_ALGO, $this->name.':'.$value, $this->secret) !== $signature)
 			return;
 		
 		$this->value = $value;
@@ -389,6 +390,6 @@ class Cookie implements ArrayAccess
 	public function getFinalValue()
 	{
 		// We need to get the value plus the HMAC signature.
-		return $this->value.'::'.hash_hmac(self::HASH_ALGO, $this->value, $this->secret);
+		return $this->value.'::'.hash_hmac(self::HASH_ALGO, $this->name.':'.$this->value, $this->secret);
 	}
 }

@@ -32,4 +32,7 @@ class UserAgent
 	
 	// todo: implement user agent parameters: user_agent, isRobot, isMobile, isBrowser, languages, encodings, accept mimes, ...
 	
+	public function __toString()
+	{
+	}	
 }

@@ -1,23 +1,26 @@
 <?php
 
 /*
-	/app
 	/config
 	/crypt
 	/document
 	/models
 	/output
 	/redirect
-	/response
 	/url
-	/connection
-	/useragent
-	/filesystem
-	/route -- deal with returning views OR http error codes OR null OR Redirect
-	
+	/xhttp -- redo to return response object like we are used to
 	lib{
 		/auth, /auth-cas
 	}
+	
+	/app
+	/response
+	/useragent
+	/connection
+	/filesystem
+	
+	//  
+
 */
 
 class App
@@ -35,8 +38,8 @@ class App
 	
 	public static function run()
 	{
-		self::$running = true;
 		Cookies::init();
+		self::$running = true;
 		Route::doRoute(self::$request, self::$response);		
 		self::$response->send();
 		self::$running = false;
@@ -44,6 +47,8 @@ class App
 	
 	public static function abort($http_code, $message=false)
 	{
+		//Log::write('Application aborted with code '.$http_code.' and message '.$message.'.');
+		//Route::doRouteError(self::$request, self::$response, $http_code);
 		self::$response->error($http_code, $message, true);
 	}
 	

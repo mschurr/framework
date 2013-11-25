@@ -94,184 +94,114 @@ class Auth
 	}
 }
 
-abstract class User_Service_Provider
-{
-	// loadByGuid()
-	// loadByName()
-	// loadByEmail()
-}
-
 abstract class Group_Service_Provider
 {
-	// loadByGuid()
+	public static abstract /*Group_Provider*/ function load(/*int*/$guid);
+	public static abstract /*array<Group_Provider>*/ function groups(/*int*/ $offset=0, /*int*/$limit=null);
+	public static abstract /*Group_Provider*/ function create(/*String*/$name);
+	public static abstract /*void*/ function delete(/*Group_Provider*/$group);
 }
 
 abstract class Group_Provider
 {
-	// hasPrivelage()
-	// hasPrivelages()
-	// listUsers()
+	public abstract /*string*/ function name();
+	public abstract /*void*/ function setName(/*string*/$name);
+	public abstract /*array<int>*/ function privelages();
+	public abstract /*bool*/ function hasPrivelage(/*int*/$id);
+	public abstract /*bool*/ function hasPrivelages(/*array<int>*/$privelages);
+	public abstract /*void*/ function addPrivelage(/*int*/$id);
+	public abstract /*void*/ function addPrivelages(/*array<int>*/$privelages);
+	public abstract /*void*/ function removePrivelage(/*int*/$id);
+	public abstract /*void*/ function removePrivelages(/*array<int>*/$privelages);
+	public abstract /*array<User_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=null);
+	public abstract /*bool*/ function hasUser(/*User_Provider*/$user);
+	public abstract /*void*/ function removeUser(/*User_Provider*/$user);
+	public abstract /*void*/ function addUser(/*User_Provider*/$user);
+	public abstract /*bool*/ function hasUsers(/*array<User_Provider>*/$users);
+	public abstract /*void*/ function removeUsers(/*array<User_Provider>*/$users);
+	public abstract /*void*/ function addUsers(/*array<User_Provider>*/$users);
 }
 
-abstract class User_Provider/* implements Iterator, ArrayAccess, Countable*/
+abstract class User_Service_Provider
 {
-	/*
-	public static abstract function makeWithPassword($username, $password);
-	public abstract function getEmail();
-	public abstract function getUsername();
-	public abstract function verify($password); // also rehashes
-	public abstract function isBanned();
-	public abstract function setBanned($state); // time|true|false
-	public abstract function hasPrivelage($id);
-	public abstract function hasPrivelages($array);
-	public abstract function inGroup($id);
-	public abstract function setGroup($id);
-	public abstract function setProperty($name, $value);
-	public abstract function getProperty($name);
-	public abstract function save();
-	public abstract function onLoad($guid);
-	public abstract function onUnload();
+	public static abstract /*User_Provider*/ function load(/*int*/$guid);
+	public static abstract /*User_Provider*/ function loadByName(/*String*/$name);
+	public static abstract /*User_Provider*/ function loadByEmail(/*String*/$email);
+	public static abstract /*array<Group_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=null);
+	public static abstract /*User_Provider*/ function create(/*String*/$username, /*String*/$password);
+	public static abstract /*void*/ function delete(/*User_Provider*/$user);
+	public static abstract /*bool*/ function login(/*String*/$username, /*String*/$password);
+	public static abstract /*void*/ function logout();
+	public static abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username);
 	
-	// ----- Concrete Implementations
-	public function __construct()
+	const RESTRICTED_USERNAMES = array('admin','root','user','username','account','email');
+	public static /*bool*/ function passwordMeetsConstraints($username, $password)
 	{
-	}
-	
-	public function __destruct()
-	{
-	}
-	
-	public function passwordIsValid($username, $password)
-	{
-		// Restricted Usernames
-		$restrict = array('admin', 'root', 'user', 'username', 'account', 'email');
-		if(in_array(strtolower($username), $restrict))
+		if(!self::usernameMeetsConstraints($username))
+			return false;
+		
+		if(in_array(strtolower($username),self::RESTRICTED_USERNAMES))
 			return false;
 			
-		// Username != Password
-		if(strtolower($username) == strtolower($password)) {
-			return false;
-		}
-		
-		// Length
-		if(strlen($password) > 100 || strlen($password) < 10)
+		if(strtolower($username) == strtolower($password))
 			return false;
 			
-		// Commonly Used Passwords
-		// TODO
-		
-		// Entropy Calculation and Threshold
-		// TODO
+		if(strlen($password) < 10 || strlen($password) > 100)
+			return false;
+			
+		// TODO: Commonly Used Passwords
+		// TODO: Entropy Calculation and Threshold
 		
 		return true;
-	}*/
+	}
 }
 
-/*
-abstract class User_ProviderOld implements Iterator, ArrayAccess, Countable
+abstract class User_Provider implements ArrayAccess, Iterator, Countable
 {
-	protected $data = array();
-	protected $saltchars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789{}[]@()!#^-_|+';
-	protected $codechars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
+	public abstract /*void*/ function __construct(/*int*/$id);
+	public abstract /*String*/ function email();
+	public abstract /*void*/ function setEmail(/*String*/$email);
+	public abstract /*String*/ function username();
+	public abstract /*void*/ function setUsername(/*String*/$username);
+	public abstract /*bool*/ function banned();
+	public abstract /*void*/ function setBanned(/*int*/$expireTime);
+	public abstract /*void*/ function setPassword(/*String*/$password);
+	public abstract /*bool*/ function checkPassword(/*String*/$input);
+	public abstract /*void*/ function __destruct();
+	public abstract /*array<int>*/ function privelages();
+	public abstract /*void*/ function hasPrivelage(/*int*/$id);
+	public abstract /*void*/ function hasPrivelages(/*array<int>*/$id);
+	public abstract /*void*/ function addPrivelage(/*int*/$id);
+	public abstract /*void*/ function addPrivelages(/*array<int>*/$id);
+	public abstract /*void*/ function removePrivelage(/*int*/$id) /*throws Exception*/;
+	public abstract /*void*/ function removePrivelages(/*array<int>*/$id) /*throws Exception*/;
+	public abstract /*array<Group_Provider>*/ function groups();
+	public abstract /*array<string:mixed>*/ function properties();
+	public abstract /*mixed*/ function getProperty(/*string*/$name);
+	public abstract /*void*/ function setProperty(/*string*/$name, /*mixed*/$value);
 	
-	// Master Implemented
-	public function __construct()
-	{
-		$this->onLoad();
-	}
+	/* Array Access */
+	public abstract /*bool*/ function offsetExists(/*mixed*/$offset);
+	public abstract /*void*/ function offsetUnset(/*mixed*/$offset);
+	public abstract /*mixed*/ function offsetGet(/*mixed*/$offset);
+	public abstract /*void*/ function offsetSet(/*mixed*/$offset);
 	
-	// Provider Implemented
-	public abstract function onLoad();
-	public abstract function verify($password);
-	public abstract function load($id);
-	public abstract function loadByName($username);
-	public abstract function loadByEmail($email);
-	public abstract function hasPrivelage($pid);
-	public abstract function hasPrivelages($array);
-	public abstract function inGroup($id=false);
-	public abstract function setProperty($prop, $value);
-	public abstract function save();
+	/* Countable */
+	public abstract /*int*/ function count();
 	
-	// Object Properties
+	/* Iterator */
+	public abstract /*void*/ function rewind();
+	public abstract /*mixed*/ function current();
+	public abstract /*mixed*/ function key();
+	public abstract /*void*/ function next();
+	public abstract /*bool*/ function valid();
+
+	/* Magic Properties */
+	public abstract /*mixed*/ function __get(/*String*/$property);
+	public abstract /*void*/ function __set(/*String*/$property, /*mixed*/$value);
+	public abstract /*bool*/ function __isset(/*String*/$property);
+	public abstract /*void*/ function __unset(/*String*/$property);
 	
-	public function __get($key)
-	{
-		if(isset($this->data[$key]))
-			return $this->data[$key];
-		return null;
-	}
-	
-	public function __set($key, $value)
-	{
-		$this->data[$key] = $value;
-	}
-	
-	public function __isset($key, $value)
-	{
-		return isset($this->data[$key]);
-	}
-	
-	public function __unset($key)
-	{
-		unset($this->data[$key]);
-	}
-	
-	public function __len()
-	{
-		return sizeof($this->data);
-	}
-	
-	// Countable
-	
-	public function count()
-	{
-		return sizeof($this->data);
-	}
-	
-	// Iterator
-	
-	protected $__position = 0;
-	
-	public function rewind() {
-		$this->__position = 0;
-	}
-	
-	public function current() {
-		$keys = array_keys($this->data);
-		return $this->data[$keys[$this->__position]];
-	}
-	
-	public function key() {
-		$keys = array_keys($this->data);
-		return $keys[$this->__position];
-	}
-	
-	public function next() {
-		++$this->__position;
-	}
-	
-	public function valid() {
-		$keys = array_keys($this->data);
-		return isset($keys[$this->__position]) && isset($this->data[$keys[$this->__position]]);
-	}
-	
-	// ArrayAcess
-	
-	public function offsetSet($offset, $value) {
-		if(is_null($offset))
-			return;
-		return $this->__set($offset, $value);
-	}
-	
-	public function offsetExists($offset) {
-		return $this->__isset($offset);
-	}
-	
-	public function offsetGet($offset) {
-		return $this->__get($offset);
-	}
-	
-	public function offsetUnset($offset) {
-		return $this->__unset($offset);
-	}
-}*/
+	/* Constants */
+	const SALT_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789{}[]@()!#^-_|+';
+}

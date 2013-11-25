@@ -33,60 +33,127 @@ Options:
 
 class Route
 {
-	public static function doRoute(&$request, &$response)
+	/**
+	 * Executes a controller.
+	 */
+	protected static function executeController(&$request, &$response, &$target, $parameters=array())
 	{
-		$code = self::_doRoute($request, $response);
+		// Closure Controllers
+		if($target instanceof Closure) {
+			if(sizeof($parameters) > 0) {
+				$params = array_merge(array($request, $response),$parameters);
+				$result = call_user_func_array($target,$params);
+			}
+			else {
+				$result = $target($request, $response);
+			}
+			self::processControllerCallback($request, $response, $result);
+			return;
+		}
 		
-		if($code === true)
-			return true;
-		
-		// Use Route Errors
-		if(isset(self::$error_bind[$code])) {
-			$response->status = $code;
-			
-			$target = self::$error_bind[$code];
-			
-			// Closures
-			if($target instanceof Closure) {
-				$target($request, $response);
+		// Class Controllers
+		$method = (strpos($target,"@") !== false ? substr($target,strpos($target,"@")+1) : strtolower($request->method));
+		$controller_path = (strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target);
+		$controller_path = str_replace(".","/",$controller_path);
+		$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
+		$controller_file = FILE_ROOT.'/controllers/'.strtolower($controller_path).'.php';
+	
+		if(!class_exists($controller)) {
+			if(!file_exists($controller_file)) {
+				$response->error(500, 'The controller could not be found for "'.$target.'".');
 				return;
 			}
 			
-			// Controllers
-			$method = (strpos($target,"@") !== false ? substr($target,strpos($target,"@")+1) : strtolower($request->method));
-			$controller_path = (strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target);
-			$controller_path = str_replace(".","/",$controller_path);
-			$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
-			$controller_file = FILE_ROOT.'/controllers/'.strtolower($controller_path).'.php';
+			require_once($controller_file);
 			
 			if(!class_exists($controller)) {
-				if(!file_exists($controller_file)) {
-					$response->error(500, 'The controller could not be found for "'.$target.'".');
-					return;
-				}
-				
-				require_once($controller_file);
-				
-				if(!class_exists($controller)) {
-					$response->error(500, 'The controller could not be found for "'.$target.'".');
-					return;
-				}
-			}
-			
-			$handler = new $controller($request, $response);
-			
-			if(!is_subclass_of($handler,'RequestHandler')) {
-				$response->error(500, 'The controller "'.$target.'" must extend RequestHandler.');
+				$response->error(500, 'The controller could not be found for "'.$target.'".');
 				return;
 			}
+		}
+		
+		
+		$handler = new $controller($request, $response);
 			
-			if(!method_exists($handler, $method)) {
-				$response->error(405);
-				return;
-			}
 			
-			$handler->$method();
-			
+		if(!is_subclass_of($handler,'RequestHandler')) {
+			$response->error(500, 'The controller "'.$target.'" must extend RequestHandler.');
+			return;
+		}
+		
+		if(!method_exists($handler, $method)) {
+			self::doRouteError($request, $response, 405);
+			return;
+		}
+	
+		if(sizeof($parameters) > 0) {
+			$result = call_user_func_array(array($handler,$method),$parameters);
+		}
+		else {
+			$result = $handler->$method();
+		}
+	
+		self::processControllerCallback($request, $response, $result);
+	}
+	
+	/**
+	 * Processes the return value of a Controller.
+	 */
+	protected static function processControllerCallback(&$request, &$response, &$value)
+	{		
+		// The controller returned null.
+		if($value === null) {
+			// We assume the controller has handled everything appropriately and do nothing.
+			return;
+		}
+		
+		// The controller returned a closure controller.
+		if($value instanceof Closure) {
+			self::executeController($request, $response, $value);
+			return;
+		}
+		
+		// The controller returned a string controller target.
+		if(is_string($value)) {
+			self::executeController($request, $response, $value);
+			return;
+		}
+		
+		// The controller returned an (int) HTTP Error Code.
+		if(is_integer($value)) {
+			// We need to call the error controller for the provided code.
+			self::doRouteError($request, $response, $value);
+			return;
+		}
+		
+		// The controller returned a (BladeView) view.
+		if($value instanceof BladeView) {
+			// We need to attach the view to the response.
+			$response->with($value);
+			return;
+		}
+		
+		// The controller returned a (Redirect) redirect or (URL) location.
+		if($value instanceof Redirect || $value instanceof URL) {
+			$response->error(500, 'A controller returned URL or Redirect, but these are not implemented.');
+			return;
+		}
+		
+		// Otherwise, we must throw an error.
+		$response->error(500, 'A controller returned an unexpected object or value.');
+		return;
+	}
+	
+	/**
+	 * Routes an error.
+	 */
+	public static function doRouteError(&$request, &$response, $code)
+	{
+		// (If Available): Use User-Specified Error Pages
+		if(isset(self::$error_bind[$code])) {
+			$response->status = $code;
+			$target = self::$error_bind[$code];
+			self::executeController($request,$response,$target);
 			return;
 		}
 		
@@ -94,7 +161,10 @@ class Route
 		$response->error($code);
 	}
 	
-	public static function _doRoute(&$request, &$response)
+	/**
+	 * Routes the request based on the path and other options.
+	 */
+	public static function doRoute(&$request, &$response)
 	{		
 		// Sort Routes by Priority
 		if(self::$sort === true) {
@@ -132,6 +202,7 @@ class Route
 				
 				// Check Filters
 				$passed = true;
+				
 				foreach($options['filters'] as $k => $reg) {
 					if(is_string($reg)) {
 						if(!preg_match('/^('.$reg.')$/s',$parameters[$k])) {
@@ -139,7 +210,8 @@ class Route
 						}
 					}
 					elseif($reg instanceof Closure) {
-						$value = $reg();
+						$_params = array_merge(array($request),$parameters);
+						$value = call_user_func_array($reg,$_params);
 						
 						if($value === false) {
 							$passed = false;
@@ -160,69 +232,22 @@ class Route
 		}
 		
 		// 404 Not Found
-		if($route === false)
-			return 404;
+		if($route === false) {
+			self::doRouteError($request, $response, 404);
+			return;
+		}
 			
 		// Check: Closure Filters
-		if(isset($throwFilterError) && !is_null($throwFilterError))
-			return $throwFilterError;
-			
-		// Check: Passthroughs TODO
-		
-		// Check: Closure
-		if(is_callable(self::$routes[$route]['target'])) {
-			$target = self::$routes[$route]['target'];
-			
-			if(sizeof($parameters) > 0) {
-				$params = array_merge(array($request, $response),$parameters);
-				call_user_func_array($target,$params);
-			}
-			else {
-				$target($request, $response);
-			}
-			return true;
+		if(isset($throwFilterError) && !is_null($throwFilterError)) {
+			self::processControllerCallback($request, $response, $throwFilterError);
+			return;
 		}
+			
+		// Check: Passthroughs (NOT IMPLEMENTED)
 		
-		// Check: Controller
+		// Execute the controller.
 		$target = self::$routes[$route]['target'];
-		$method = (strpos($target,"@") !== false ? substr($target,strpos($target,"@")+1) : strtolower($request->method));
-		$controller_path = (strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target);
-		$controller_path = str_replace(".","/",$controller_path);
-		$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
-		$controller_file = FILE_ROOT.'/controllers/'.strtolower($controller_path).'.php';
-		
-		if(!class_exists($controller)) {
-			if(!file_exists($controller_file)) {
-				$response->error(500, 'The controller could not be found for "'.$target.'".');
-				return true;
-			}
-			
-			require_once($controller_file);
-			
-			if(!class_exists($controller)) {
-				$response->error(500, 'The controller could not be found for "'.$target.'".');
-				return true;
-			}
-		}
-		
-		$handler = new $controller($request, $response);
-		
-		if(!is_subclass_of($handler,'RequestHandler')) {
-			$response->error(500, 'The controller "'.$target.'" must extend RequestHandler.');
-			return true;
-		}
-		
-		if(!method_exists($handler, $method)) {
-			return 405;
-		}
-		
-		if(sizeof($parameters) > 0) {
-			call_user_func_array(array($handler,$method),$parameters);
-		}
-		else {
-			$handler->$method();
-		}
-		
+		self::executeController($request, $response, $target, $parameters);
 		return true;
 	}
 	
@@ -404,6 +429,7 @@ class Route
 class RouteHelper
 {
 	protected $route;
+	protected $off = 0;
 	
 	public function __construct($route)
 	{
@@ -416,6 +442,10 @@ class RouteHelper
 			foreach($opt1 as $k => $v) {
 				Route::_updateroutefilter($this->route, $k, $v);
 			}
+		}
+		elseif($opt1 instanceof Closure) {
+			Route::_updateroutefilter($this->route, '_closure'.$this->off, $opt1);
+			$this->off += 1;
 		}
 		else {
 			Route::_updateroutefilter($this->route, $opt1, $opt2);

@@ -32,7 +32,11 @@ function to_json($array) {
 
 function from_json($string) {
 	/* Converts a JSON string to a PHP array. */
-	return json_decode($string, true);
+	$native = json_decode($string, true);
+	
+	if(json_last_error() == JSON_ERROR_NONE)
+		return $native;
+	return null;
 }
 
 function &model($string) {

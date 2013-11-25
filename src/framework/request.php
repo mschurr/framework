@@ -133,6 +133,9 @@ class Request
 			}
 			return $this->_headers;
 		}
+		elseif($k == 'session') {
+			return App::getSession();
+		}
 		elseif($k == 'connection' || $k == 'conn') {
 			if(!$this->_connection instanceof Connection)
 				$this->_connection = new Connection();

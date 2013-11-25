@@ -28,6 +28,13 @@ class URL
 	{
 	}
 	
+	public static function ofFilePath($path)
+	{
+		if(!str_startswith($path, FILE_ROOT.'/static'))
+			return null;
+		return URL::asset( substr($path, strlen(FILE_ROOT.'/static/')) );
+	}
+	
 	public static function action($controller)
 	{
 	}

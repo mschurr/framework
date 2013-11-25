@@ -80,9 +80,10 @@ class Response
 			Cookies::registerPending($obj);
 	}
 	
-	public function pass($path, $name=false, $extra_headers=array())
+	public function pass($path, $name=null, $extra_headers=array())
 	{
 		// Passes a file through to the end-user, allowing them to download it.
+		// $path can also be instance of file
 		// Supports HTTP Range headers, allowing clients to pause and resume downloads.
 	}
 	
@@ -128,7 +129,6 @@ class Response
 			$this->out->setView($obj);
 		}
 		if($obj instanceof Cookie) {
-			echo 'using obj';
 			Cookies::registerPending($obj);
 		}
 		return $this;

@@ -334,9 +334,7 @@ class File implements Iterator, ArrayAccess, Countable
 	
 	public function assetURL()
 	{
-		if(!str_startswith($this->path, FILE_ROOT.'/static'))
-			return null;
-		return URL::asset( substr($this->path, strlen(FILE_ROOT.'/static/')) );
+		return URL::ofFilePath($this->path);
 	}
 	
 	public function make()
