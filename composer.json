@@ -19,7 +19,8 @@
 		"lib-openssl" : "*",
 		"filp/whoops" : "1.0.7",
 		"swiftmailer/swiftmailer" : "5.0.*",
-		"monolog/monolog": "1.5.*"
+		"monolog/monolog": "1.5.*",
+		"jasig/phpcas" : "dev-master"
 	},
 	"require-dev" : {
 		"aws/aws-sdk-php": "2.2.*"

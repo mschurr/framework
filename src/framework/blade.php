@@ -168,7 +168,8 @@ abstract class BladeParser
 			include($this->blade_file_cache);
 		}
 		catch (Exception $e) {
-			ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file contains errors and could not be parsed.',$this->blade_file, 0,'',false);
+			throw new Exception('The"'.$this->blade_file.'" blade file contains errors and could not be parsed.');
+			//ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file contains errors and could not be parsed.',$this->blade_file, 0,'',false);
 		}
 		$content = ob_get_contents();				
 		ob_end_clean();
@@ -208,8 +209,10 @@ abstract class BladeParser
 	public function &compile($return=false)
 	{
 		// Check Existence
-		if(!file_exists($this->blade_file))
-			return ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file does not exist.',$this->blade_file, 0,'',false);
+		if(!file_exists($this->blade_file)) {
+			throw new Exception('The "'.$this->blade_file.'" blade file does not exist.');
+			//return ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file does not exist.',$this->blade_file, 0,'',false);
+		}
 		
 		// Load Blade From File
 		$blade = file_get_contents($this->blade_file);
