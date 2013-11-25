@@ -20,7 +20,8 @@
 		"filp/whoops" : "1.0.7",
 		"swiftmailer/swiftmailer" : "5.0.*",
 		"monolog/monolog": "1.5.*",
-		"aws/aws-sdk-php": "2.2.*"
+		"aws/aws-sdk-php": "2.2.*",
+		"Jasig/phpCAS" : "dev-master"
 	},
 	"require-dev" : {
 	},
