@@ -27,7 +27,7 @@
 		"swiftmailer/swiftmailer" : "5.0.*",
 		"monolog/monolog": "1.5.*",
 		"aws/aws-sdk-php": "2.2.*",
-		"jasig/phpcas" : "*"
+		"jasig/phpcas" : "dev-master"
 	},
 	"require-dev" : {
 	},
