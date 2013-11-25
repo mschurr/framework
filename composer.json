@@ -11,12 +11,6 @@
 				"email" : "mschurr@rice.edu"
 		}
 	],
-	"repositories" : [
-		{
-			"type" : "vcs",
-			"url" : "https://github.com/Jasig/phpCAS"
-		}
-	],
 	"require" : {
 		"php" : ">=5.3.0",
 		"ext-gd" : "*",
@@ -26,8 +20,7 @@
 		"filp/whoops" : "1.0.7",
 		"swiftmailer/swiftmailer" : "5.0.*",
 		"monolog/monolog": "1.5.*",
-		"aws/aws-sdk-php": "2.2.*",
-		"jasig/phpcas" : "dev-master"
+		"aws/aws-sdk-php": "2.2.*"
 	},
 	"require-dev" : {
 	},
