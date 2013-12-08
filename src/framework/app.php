@@ -1,26 +1,19 @@
 <?php
 
 /*
+	/auth
+	/auth-cas
+	/app
 	/config
-	/crypt
 	/document
+	/filesystem
 	/models
 	/output
-	/redirect
-	/url
-	/xhttp -- redo to return response object like we are used to
-	lib{
-		/auth, /auth-cas
-	}
-	
-	/app
 	/response
+	/storage
+	/url
 	/useragent
-	/connection
-	/filesystem
-	
-	//  
-
+	/xhttp -- redo to return response object like we are used to
 */
 
 class App
@@ -40,7 +33,8 @@ class App
 	{
 		Cookies::init();
 		self::$running = true;
-		Route::doRoute(self::$request, self::$response);		
+		Route::doRoute(self::$request, self::$response);
+		Redirect::apply(self::$response);		
 		self::$response->send();
 		self::$running = false;
 	}
@@ -103,6 +97,11 @@ class App
 	public static function isRunning()
 	{
 		return self::$running;
+	}
+	
+	public static function storage()
+	{
+		return null;
 	}
 	
 	protected static $db = null;

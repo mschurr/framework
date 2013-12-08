@@ -58,6 +58,11 @@ abstract class Controller
 		if($k == 'database' || $k == 'db')
 			$this->_database = $v;
 	}
+	
+	/*public function __toString()
+	{
+		return get_class($this);
+	}*/
 }
 
 if(function_exists('class_alias'))

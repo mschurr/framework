@@ -1,4 +1,15 @@
 <?php
+/**
+ * FileSystem Cache Driver
+ * -----------------------------------------------------------------------------------------------------------------------
+ *
+ * This class implements the cache driver for the local filesystem. You should not instantiate this class directly; use the Cache class.
+ * You can find the public API documentation for the class in the Cache class.
+ *
+ * IMPORTANT: This driver should not be used on distributed systems; cache changes are saved to the current server node. For distributed 
+ *  systems, use another driver, such as memcached.
+ */
+
 class Cache_Driver_filesystem extends Cache_Driver
 {
 	protected $storage;

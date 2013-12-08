@@ -334,7 +334,7 @@ class File implements Iterator, ArrayAccess, Countable
 	
 	public function assetURL()
 	{
-		return URL::ofFilePath($this->path);
+		return URL::to($this);
 	}
 	
 	public function make()

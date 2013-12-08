@@ -139,6 +139,18 @@ class Route
 			return;
 		}
 		
+		// The controller returned a file;
+		if($value instanceof File) {
+			$response->error(500, 'A controller returned File, but these are not implemented.');
+			return;
+		}
+		
+		// The  controller returned a storage file.
+		if($value instanceof StorageFile) {
+			$response->error(500, 'A controller returned StorageFile, but these are not implemented.');
+			return;
+		}
+		
 		// Otherwise, we must throw an error.
 		$response->error(500, 'A controller returned an unexpected object or value.');
 		return;

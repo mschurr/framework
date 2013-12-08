@@ -12,8 +12,8 @@ if (version_compare(phpversion(), '5.3.0', '<') == true) {
 	die('You must install PHP >= 5.3.0 in order to use this framework.');
 }
 
-define('FILE_ROOT',str_replace("/index.php","",$_SERVER['SCRIPT_FILENAME']));
-define('FRAMEWORK_ROOT',FILE_ROOT.'/vendor/mschurr/framework/src');
+define('FILE_ROOT', str_replace("/index.php","",$_SERVER['SCRIPT_FILENAME']));
+define('FRAMEWORK_ROOT', FILE_ROOT.'/vendor/mschurr/framework/src');
 define('EOL', PHP_EOL);
 require(FRAMEWORK_ROOT.'/framework/errors.php');
 
@@ -21,18 +21,14 @@ ini_set('expose_php',false);
 ini_set('magic_quotes_gpc','Off');
 ini_set('register_globals','Off');
 ini_set('default_charset','UTF-8');
-ini_set('memory_limit','64M');
-ini_set('max_execution_time','200');
+ini_set('memory_limit','100M');
+ini_set('max_execution_time','60');
 ini_set('max_input_time','200');
-ini_set('upload_max_filesize','999M');
-ini_set('post_max_size', '999M');
+ini_set('upload_max_filesize','70M');
+ini_set('post_max_size', '70M');
 ini_set('max_file_uploads', 10);
 ini_set('safe_mode','Off');
-ini_set('mysql.connect_timeout','20');
-ini_set('session.use_cookies','On');
-ini_set('session.use_trans_sid','Off');
-ini_set('session.gc_maxlifetime','12000000');
-ini_set('allow_url_fopen','off');
+ini_set('allow_url_fopen','Off');
 
 require(FRAMEWORK_ROOT.'/framework/utility.php');
 require(FRAMEWORK_ROOT.'/framework/timer.php');
@@ -46,7 +42,6 @@ require(FRAMEWORK_ROOT.'/framework/connection.php');
 require(FRAMEWORK_ROOT.'/framework/useragent.php');
 require(FRAMEWORK_ROOT.'/framework/response.php');
 require(FRAMEWORK_ROOT.'/framework/request.php');
-require(FRAMEWORK_ROOT.'/framework/crypt.php');
 require(FRAMEWORK_ROOT.'/framework/controller.php');
 require(FRAMEWORK_ROOT.'/framework/output.php');
 require(FRAMEWORK_ROOT.'/framework/route.php');

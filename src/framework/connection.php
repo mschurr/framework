@@ -59,17 +59,19 @@ class Connection
 		return true;
 	}
 	
-	public function keepAlive($closure, $aborted=false) {
+	public function keepAlive($continue, $aborted=false) {
 		/* This causes the server to keep the connection to the client alive until the provided closure returns FALSE or the user disconnects. Useful for long polling.
 			If the client disconnects early, the aborted function is called.
 		 */
 		
 		// Use Chunked Transfer Encoding
 		do {
-			if($closure() === false) {
+			if($continue() === false) {
 				$this->drop();
 				break;
 			}
+			
+			sleep(1);
 			
 			if($this->aborted()) {
 				if(is_callable($aborted))

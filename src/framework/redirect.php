@@ -1,55 +1,44 @@
 <?php
+/**
+ * Redirection Class
+ * --------------------------------------------------------------------------------
+ * This class handles user redirection. To use it, simply call Redirect::to(URL);
+ * Statements after the Redirect call will still be executed; if you wish to stop executing,
+ *  you will need to return the redirect from the controller.
+ */
 
 class Redirect
 {
-	public static function _redirect($uri)
+	protected static /*Redirect*/ $redirect;
+	
+	/**
+	 * Applies the last redirect to the response. Called automatically by the Framework.
+	 */
+	public static function apply(Response $response)
 	{
-		App::getResponse()->headers['Location'] = $uri;
-		App::getResponse()->error(302);
-		$rh = new RedirectHelper();
-		return $rh;
+		if(self::$redirect !== null) {
+			$response->headers['Location'] = (string) self::$redirect->url;
+			$response->status = 302;
+			$response->out->clear();
+		}
 	}
 	
-	public static function to($uri, $data=array())
+	/**
+	 * Redirects the client to the provided URL object or string URL. Calling this function does not stop execution of statements following the redirect,
+	 *  although the user will still be redirected after the script ends and anything on the output buffer will not be displayed. 
+	 */
+	public static function to($url)
 	{
-		return self::_redirect(URL::to($uri))->with($data);
+		return new Redirect(URL::to($url));
 	}
 	
-	public static function route($route, $data=array()) //named route [w/ named or unnamed parameters]
-	{
-		return self::_redirect(URL::route($route))->with($data);
-	}
+	// -------------------------------------------
 	
-	public static function action($controller_method, $data=array()) // to controller [@action] [w/ named or unnamed params]
-	{
-		return self::_redirect(URL::action($controller_method))->with($data);
-	}
+	protected /*URL*/ $url;
 	
-	public static function cdn($path)
+	public function __construct(URL $url)
 	{
-	}
-}
-
-class RedirectHelper
-{
-	public function with($key, $val=null)
-	{
-		return $this;
-	}
-	
-	public function withInput()
-	{
-		return $this;
-	}
-	
-	public function withInputOnly()
-	{
-		return $this;
-	}
-	
-	public function withInputExcept()
-	{
-		return $this;
+		$this->url =& $url;
 	}
 }
 ?>
