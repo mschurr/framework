@@ -1,75 +1,26 @@
 <?php
-class xHTTPResponse2
-{
-	// send()
-	// cookie or cookies
-	// toString
-	// http version
-	// http status
-	// http headers
-	// remote_adddr
-	// size
-	// type
-	// body
-	// timestamp
-	/*
-	protected $status_text = array(
-		100 => 'Continue',
-		101 => 'Switching Protocols',
-		200 => 'OK',
-		201 => 'Created',
-		202 => 'Accepted',
-		203 => 'Non-Authoritative Information',
-		204 => 'No Content',
-		205 => 'Reset Content',
-		206 => 'Partial Content',
-		300 => 'Multiple Choices',
-		301 => 'Moved Permanently',
-		302 => 'Found',
-		303 => 'See Other',
-		304 => 'Not Modified',
-		305 => 'Use Proxy',
-		307 => 'Temporary Redirect',
-		400 => 'Bad Request',
-		401 => 'Unauthorized',
-		402 => 'Payment Required',
-		403 => 'Forbidden',
-		404 => 'Not Found',
-		405 => 'Method Not Allowed',
-		406 => 'Not Acceptable',
-		407 => 'Proxy Authentication Required',
-		408 => 'Request Timeout',
-		409 => 'Conflict',
-		410 => 'Gone',
-		411 => 'Length Required',
-		412 => 'Precondition Failed',
-		413 => 'Request Entity Too Large',
-		414 => 'Request-URI Too Long',
-		415 => 'Unsupported Media Type',
-		416 => 'Requested Range Not Satisfiable',
-		417 => 'Expectation Failed',
-		500 => 'Internal Server Error',
-		501 => 'Not Implemented',
-		502 => 'Bad Gateway',
-		503 => 'Service Unavailable',
-		504 => 'Gateway Timeout',
-		505 => 'HTTP Version Not Supported'
-	);
-	*/
-}
+/****************************************
+ * xHTTP Library
+ ****************************************
+ 
+ This library contains a user-friendly interface for making requests over HTTP. It's essentially an 
+ object-oriented wrapper for CURL.
 
-class xHTTPRequest2
-{
-	// toString
-	// method
-	// path
-	// uri
-	// host
-	// cookie or cookies
-	// get post file files
-	// header headers
-	// useragent|client|browser
-}
+ Supported Methods:
+ 	GET, POST, XMLHTTP
+	
+ Sample Usage:
+	$client = new xHTTPClient();
+
+	$response = $client->get('http://www.google.com/');
+	var_dump($response);
+
+	$response = $client->post('http://www.google.com/', array(
+		'field' => 'value'
+	));
+	var_dump($response);
+	
+*/
 
 class xHTTPResponse
 {
@@ -81,15 +32,16 @@ class xHTTPResponse
 		'body' => '',
 		'size' => '', // in bytes
 		'type' => '',
-		'json' => '',
-		'rss' => '',
-		'xml' => '',
-		'html' => '',
-		'file' => ''
+		'file' => '',
+		'timestamp' => '',
+		'remote_addr' => null,
+		'cookies' => array(),
+		'time' => null
 	);	
 	
 	public function __construct($data) {
 		$this->data = array_merge($this->data, $data);
+		$this->data['timestamp'] = time();
 	}
 	
 	public function __get($name) {
@@ -100,6 +52,11 @@ class xHTTPResponse
 	
 	public function __isset($name) {
 		return isset($this->data[$name]);
+	}
+	
+	public function __toString()
+	{
+		return "<xHTTPResponse Object>";
 	}
 }
 
@@ -158,7 +115,7 @@ class xHTTPClient
 				
 		// Check For CURL Errors
 		if (curl_errno($this->ch) != 0) {
-			return false;
+			return null;
 		}
 		
 		$header = substr($res, 0, $res_headers['header_size']);
@@ -182,6 +139,8 @@ class xHTTPClient
 		
 		$type = (str_contains($res_headers['content_type'],";") ? substr($res_headers['content_type'],0,strpos($res_headers['content_type'],';')) : $res_headers['content_type']);
 		
+		$timer = new Timer();
+		
 		$response = new xHTTPResponse(array(
 			'status' => $res_headers['http_code'],
 			'status_text' => $text,
@@ -190,8 +149,7 @@ class xHTTPClient
 			'body' => $body,
 			'size' => ($res_headers['size_download'] - $res_headers['header_size']),
 			'type' => $type,
-			'json' => ($type == 'application/json' ? from_json($body) : null),
-			'file' => null
+			'time' => $timer->reap()
 		));
 		
 		return $response;

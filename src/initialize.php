@@ -54,6 +54,10 @@ require(FRAMEWORK_ROOT.'/framework/document.php');
 require(FRAMEWORK_ROOT.'/framework/views.php');
 require(FRAMEWORK_ROOT.'/framework/blade.php');
 require(FRAMEWORK_ROOT.'/framework/database.php');
+require(FRAMEWORK_ROOT.'/framework/sessions.php');
+require(FRAMEWORK_ROOT.'/framework/auth.php');
+require(FRAMEWORK_ROOT.'/framework/userservice.php');
+require(FRAMEWORK_ROOT.'/framework/groupservice.php');
 require(FRAMEWORK_ROOT.'/framework/app.php');
 
 if(client_ip() == '127.0.0.1' || client_ip() == '::1') {

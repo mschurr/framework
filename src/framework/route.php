@@ -135,7 +135,7 @@ class Route
 		
 		// The controller returned a (Redirect) redirect or (URL) location.
 		if($value instanceof Redirect || $value instanceof URL) {
-			$response->error(500, 'A controller returned URL or Redirect, but these are not implemented.');
+			Redirect::to($value);
 			return;
 		}
 		

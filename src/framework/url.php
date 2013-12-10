@@ -40,13 +40,7 @@ class URL
 	// ----------------------------------------------------------------------
 	
 	protected $_valid = false;
-	protected /*array*/ $_parameters;
-	protected /*array*/ $_variables;
-	protected /*String*/ $_protocol;
-	protected /*String*/ $_hostname;
-	protected /*String*/ $_port;
-	protected /*String*/ $_path;
-	protected /*String*/ $_fragment;
+	protected $_url = "";
 	
 	// account for domain in routing
 	
@@ -71,28 +65,50 @@ class URL
 		if(is_string($object)) {
 			if(str_startswith($object, 'file://')) {
 			}
+			elseif(str_startswith($object, 'mailto:')) {
+			}
 			elseif(str_startswith($object, 'http://') || str_startswith($object, 'https://') || str_startswith($object, '//')) {
+				$this->_url = $object;
+				$this->_valid = true;
 			}
 			elseif(str_startswith($object, '/')) {
+				$this->_url = $object;
+				$this->_valid = true;
+			}
+			elseif(str_startswith($object, '.')) {
 			}
 			else { // Controller
 			}
 		}
-		
 	}
 	
-	protected function valid()
+	public function valid()
 	{
 		return $this->_valid;
 	}
 	
 	public function __toString()
 	{
+		return $this->_url;
 	}
 	
 	public function __get($param)
 	{
-		
+		if($param == 'protocol') {
+			$parse = parse_url($this->_url);
+			return $parse['scheme'];
+		}
+		if($param == 'hostname') {
+			$parse = parse_url($this->_url);
+			return $parse['host'];
+		}
+		//protected /*array*/ $_parameters;
+		//protected /*array*/ $_variables;
+		//protected /*String*/ $_protocol;
+		//protected /*String*/ $_hostname;
+		//protected /*String*/ $_port;
+		//protected /*String*/ $_path;
+		//protected /*String*/ $_fragment;
 		//querystring
 	}
 	
@@ -110,6 +126,12 @@ class URL
 	
 	public function makeRelativeTo(URL $url)
 	{
+		if(str_startswith($this->_url, './') || str_startswith($this->_url, '../')) {
+		}
+		if(str_startswith($this->_url, '/')) {
+			$this->_url = $url->protocol.'://'.$url->hostname.$this->_url;
+			$this->_valid = true;
+		}
 	}
 	
 	public function appendQueryString($string)
@@ -118,6 +140,11 @@ class URL
 	
 	public function appendPathComponent($string)
 	{
+	}
+	
+	public function equals(URL $url)
+	{
+		return $url->__toString() === $this->__toString();
 	}
 	
 	public function isInternal()

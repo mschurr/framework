@@ -33,6 +33,10 @@ abstract class Controller
 				$this->_session =& App::session();
 			return $this->_session;
 		}
+		if($k == 'users')
+			return App::getUserService();
+		if($k == 'groups')
+			return App::getGroupService();
 		if($k == 'auth')
 			return $this->session->auth();
 		if($k == 'user')
@@ -42,7 +46,7 @@ abstract class Controller
 	
 	public function __isset($k)
 	{
-		if($k == 'database' || $k == 'db' || $k == 'document' || $k == 'session' || $k == 'auth' || $k == 'user')
+		if($k == 'database' || $k == 'db' || $k == 'document' || $k == 'session' || $k == 'auth' || $k == 'user' || $k == 'users' || $k == 'groups')
 			return true;
 		return false;
 	}

@@ -4,7 +4,10 @@ class Framework
 {
 	public static function import($library)
 	{
-		if(file_exists(FRAMEWORK_ROOT.'/libraries/'.$library.'.php')) {
+		if(file_exists(FRAMEWORK_ROOT.'/framework/'.$library.'.php')) {
+			require_once(FRAMEWORK_ROOT.'/framework/'.$library.'.php');
+		}
+		elseif(file_exists(FRAMEWORK_ROOT.'/libraries/'.$library.'.php')) {
 			require_once(FRAMEWORK_ROOT.'/libraries/'.$library.'.php');
 		}
 		elseif(file_exists(FILE_ROOT.'/helpers/'.$library.'.php')) {

@@ -36,7 +36,7 @@
 			files				- (For Directories Only) an array of <File> objects representing files in the directory
 			empty				- whether or not the file (or directory) is empty
 			temporary			- whether or not the file (or directory) is temporary
-			hex					- hexadecimal string representing value of file contents (useful for sql blob queries)
+			hex					- hexadecimal string representing value of file contents
 			md5					- md5 hash of file contents
 			sha1				- sha1 hash of file contents
 				
@@ -89,6 +89,7 @@
 			
 			assetURL()
 				- attempts to make a URL to this file (if it's in the static directory) or returns null.
+				- DEPRECATED - USE URL::to(File $file) instead.
 			
 	-----------
 	

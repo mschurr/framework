@@ -8,10 +8,16 @@ class Response
 		'Server' => 'Restricted'
 	);
 	public $status = 200;
+	public $autoflush = false;
 	
 	public function __construct()
 	{
 		$this->out = new Output();
+	}
+	
+	public function autoflush($opt = true)
+	{
+		$this->autoflush = $opt;
 	}
 		
 	public function enableCaching($http=true, $content=true, $session_specific=false)

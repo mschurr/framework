@@ -13,7 +13,9 @@
 	/storage
 	/url
 	/useragent
-	/xhttp -- redo to return response object like we are used to
+	/userservice
+	/groupservice
+	/auth-db
 */
 
 class App
@@ -133,6 +135,36 @@ class App
 	public static function &getSession()
 	{
 		return self::session();
+	}
+	
+	protected static $groupService;
+	public static function &getGroupService()
+	{
+		if(self::$groupService == null) {
+			$class = 'Group_Service_Provider_'.Config::get('auth.driver', function(){throw new Exception("You must configure auth.driver to use authentication.");});
+		
+			if(!class_exists($class)) {
+				import('auth-'.Config::get('auth.driver'));
+			}
+			
+			self::$groupService = new $class();
+		}
+		return self::$groupService;
+	}
+	
+	protected static $userService;
+	public static function &getUserService()
+	{
+		if(self::$userService == null) {
+			$class = 'User_Service_Provider_'.Config::get('auth.driver', function(){throw new Exception("You must configure auth.driver to use authentication.");});
+		
+			if(!class_exists($class)) {
+				import('auth-'.Config::get('auth.driver'));
+			}
+			
+			self::$userService = new $class();
+		}
+		return self::$userService;
 	}
 }
 App::init();

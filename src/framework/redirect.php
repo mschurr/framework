@@ -29,7 +29,14 @@ class Redirect
 	 */
 	public static function to($url)
 	{
-		return new Redirect(URL::to($url));
+		if($url instanceof Redirect) {
+			self::$redirect = $url;
+			return $url;
+		}
+		
+		$redirect = new Redirect(URL::to($url));
+		self::$redirect = $redirect;
+		return $redirect;
 	}
 	
 	// -------------------------------------------

@@ -1,11 +1,16 @@
 <?php
-require_once(FRAMEWORK_ROOT."/external/phpCAS/CAS.php");
-
-class User_Service_Provider_cas extends User_Service_Provider
+class User_Service_Provider_db extends User_Service_Provider
 {
+	protected /*Database*/ $db;
+	
+	public function __construct()
+	{
+		$this->db =& App::getDatabase();
+	}
+	
 	public /*User_Provider*/ function load(/*int*/$guid)
 	{
-		$user = new User_Provider_cas($guid);
+		$user = new User_Provider_db($guid);
 		
 		if($user->exists())
 			return $user;
@@ -14,42 +19,12 @@ class User_Service_Provider_cas extends User_Service_Provider
 	
 	public /*User_Provider*/ function login(/*String*/$username, /*String*/$password)
 	{
-		$error = function(){ throw new Exception("You have not properly configured the server for CAS authentication."); };
-		list($host, $port, $context, $cert) = array(
-			Config::get('auth.cas.host', $error),
-			(int) Config::get('auth.cas.port', $error),
-			Config::get('auth.cas.path', $error),
-			Config::get('auth.cas.cert', $error)
-		);
 		
-		phpCAS::client(CAS_VERSION_2_0, $host, $port, $context);
-		phpCAS::setCasServerCACert($cert);
-		
-		if(phpCAS::isAuthenticated()) {
-			return $this->loadByName(phpCAS::getUser());
-		}
-		else {
-			phpCAS::forceAuthentication();
-			return null;
-		}
 	}
 	
 	public /*void*/ function logout()
 	{
-		$error = function(){ throw new Exception("You have not properly configured the server for CAS authentication."); };
-		list($host, $port, $context, $cert) = array(
-			Config::get('auth.cas.host', $error),
-			Config::get('auth.cas.port', $error),
-			Config::get('auth.cas.path', $error),
-			Config::get('auth.cas.cert', $error)
-		);
 		
-		phpCAS::client(CAS_VERSION_2_0, $host, $port, $context);
-		phpCAS::setCasServerCACert($cert);
-		
-		if(phpCas::isAuthenticated()) {
-			phpCAS::logout();
-		}
 	}
 	
 	public /*User_Provider*/ function loadByName(/*String*/$name){ return $this->load($name); }
@@ -60,12 +35,14 @@ class User_Service_Provider_cas extends User_Service_Provider
 	public /*bool*/ function usernameMeetsConstraints(/*String*/$username){ throw new Exception("CAS does not support user listing."); }
 }
 
-class User_Provider_cas extends User_Provider
+class User_Provider_db extends User_Provider
 {
 	protected $id;
+	protected /*Database*/ $db;
 	
 	public /*void*/ function __construct(/*int*/$id){
 		$this->id = $id;	
+		$this->db =& App::getDatabase();
 	}
 	public /*String*/ function email(){
 		return $this->id.'@'.substr(Config::get('auth.cas.host'),strrpos(Config::get('auth.cas.host'),'.'));
@@ -137,8 +114,15 @@ class User_Provider_cas extends User_Provider
 	}
 }
 
-class Group_Service_Provider_cas extends Group_Service_Provider
+class Group_Service_Provider_db extends Group_Service_Provider
 {
+	protected /*Database*/ $db;
+	
+	public function __construct()
+	{
+		$this->db =& App::getDatabase();
+	}
+	
 	public /*Group_Provider*/ function load(/*int*/$guid)
 	{
 		return null;
@@ -160,10 +144,13 @@ class Group_Service_Provider_cas extends Group_Service_Provider
 	}	
 }
 
-class Group_Provider_cas extends Group_Provider
+class Group_Provider_db extends Group_Provider
 {
+	protected /*Database*/ $db;
+	
 	public /*void*/ function __construct(/*int*/$id)
 	{
+		$this->db =& App::getDatabase();
 	}
 	
 	public /*string*/ function name()
