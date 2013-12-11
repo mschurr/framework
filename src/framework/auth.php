@@ -234,8 +234,8 @@ abstract class Auth_Driver
 	   of the equivalent User_Provider method when such measures are neccesary (ie only on user input). Should indicate that user has entered their password this session. */
 	public abstract /*bool*/ function check($password) /*throws AuthException*/;
 	
-	/* Logs the client in as the provided user. USE WITH CAUTION - NOT SUBJECT TO SECURITY MEASURES AND DOES NOT VERIFY PASSWORD. Should indicate that user has entered their password this session and call userDidLogin on the User_Service_Provider. */
-	public abstract /*void*/ function login(User_Provider $user, $persistent=false);
+	/* Logs the client in as the provided user. USE WITH CAUTION - NOT SUBJECT TO SECURITY MEASURES AND DOES NOT VERIFY PASSWORD. Should indicate that user has entered their password this session if not from token and call userDidLogin on the User_Service_Provider. */
+	public abstract /*void*/ function login(User_Provider $user, $persistent=false, $fromToken=false);
 	
 	/* Attempts to log the client in to the user with the provided username and password. You may pass any extra information required by your driver into $extra.
 	   Returns true on success. If successful, modifies the current session to be logged in as the user and optionally sets persistent tokens.
@@ -244,8 +244,8 @@ abstract class Auth_Driver
 	   Should indicate that the user has entered their password this session and call userDidLogin on the User_Service_Provider. */
 	public abstract /*bool*/ function attempt($username, $password, $persistent=false, array $extra=array()) /*throws AuthException*/;
 	
-	/* Terminates the current user's session and invalidates any persistent tokens associated with the current client. */
-	public abstract /*void*/ function logout();
+	/* Terminates the current user's session and (optionally) invalidates any persistent tokens associated with the current client. */
+	public abstract /*void*/ function logout($deletePersistent=true);
 	
 	/* Returns whether or not this session is current logged in. */
 	public abstract /*bool*/ function loggedIn();

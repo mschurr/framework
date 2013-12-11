@@ -1,4 +1,25 @@
 <?php
+class UserServiceException extends Exception
+{
+	protected $publicErrorMessage;
+	
+	public function __construct($message = null, $publicErrorMessage = null, $code = 0, Exception $previous = null)
+	{
+		parent::__construct($message, $code, $previous);
+		$this->publicErrorMessage = $publicErrorMessage;
+	}
+	
+	public function __toString()
+	{
+		return $this->publicErrorMessage;
+	}
+	
+	public function getErrorMessage()
+	{
+		return $this->publicErrorMessage;
+	}
+}
+
 
 abstract class User_Service_Provider
 {
@@ -6,12 +27,12 @@ abstract class User_Service_Provider
 	public abstract /*User_Provider*/ function loadByName(/*String*/$name);
 	public abstract /*User_Provider*/ function loadByEmail(/*String*/$email);
 	public abstract /*array<User_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=null);
-	public abstract /*User_Provider*/ function create(/*String*/$username, /*String*/$password);
+	public abstract /*User_Provider*/ function create(/*String*/$username, /*String*/$password) /*throws UserServiceException*/;
 	public abstract /*void*/ function delete(/*User_Provider*/$user);
 	public abstract /*User_Provider*/ function login(/*String*/$username, /*String*/$password);
-	public /*void*/ function userDidLogin(/*User_Provider*/$user){}
+	public abstract /*void*/ function userDidLogin(/*User_Provider*/$user);
 	public abstract /*void*/ function logout(/*User_Provider*/ $user);
-	public abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username);
+	public abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username) /*throws UserServiceException*/;
 	
 	private static $restricted = array('admin','root','user','username','account','email');
 	public /*bool*/ function passwordMeetsConstraints($username, $password)
@@ -48,21 +69,86 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 	public abstract /*void*/ function setPassword(/*String*/$password);
 	public abstract /*bool*/ function checkPassword(/*String*/$input);
 	public abstract /*void*/ function __destruct();
-	public abstract /*array<int>*/ function privelages();
-	public abstract /*void*/ function hasPrivelage(/*int*/$id);
-	public abstract /*void*/ function hasPrivelages(/*array<int>*/$id);
-	public abstract /*void*/ function addPrivelage(/*int*/$id);
-	public abstract /*void*/ function addPrivelages(/*array<int>*/$id);
-	public abstract /*void*/ function removePrivelage(/*int*/$id) /*throws Exception*/;
-	public abstract /*void*/ function removePrivelages(/*array<int>*/$id) /*throws Exception*/;
-	public abstract /*array<Group_Provider>*/ function groups();
 	public abstract /*array<string:mixed>*/ function properties();
 	public abstract /*mixed*/ function getProperty(/*string*/$name);
 	public abstract /*void*/ function setProperty(/*string*/$name, /*mixed*/$value);
 	public abstract /*bool*/ function hasProperty(/*string*/$name);
 	public abstract /*void*/ function deleteProperty(/*string*/$name);
+	public abstract /*array<int>*/ function _privelages();
+	public abstract /*void*/ function _hasPrivelage(/*int*/$id);
+	public abstract /*void*/ function _addPrivelage(/*int*/$id);
+	public abstract /*void*/ function _removePrivelage(/*int*/$id) /*throws Exception*/;
 	
 	// -------------------------------------------------------------------------
+	
+	public /*array<int>*/ function privelages()
+	{
+		$privelages = $this->_privelages();
+		
+		foreach($this->groups() as $group) {
+			$privelages = array_merge($privelages, $group->privelages());
+		}
+		
+		return array_unique($privelages, SORT_NUMERIC);
+	}
+	
+	public /*void*/ function hasPrivelage(/*int*/$id)
+	{
+		if( $this->_hasPrivelage($id) )
+			return true;
+			
+		foreach($this->groups() as $group) {
+			if($group->hasPrivelage($id))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	public /*void*/ function addPrivelage(/*int*/$id)
+	{
+		$this->_addPrivelage($id);	
+	}
+	
+	public /*void*/ function removePrivelage(/*int*/$id) /*throws Exception*/
+	{
+		$this->_removePrivelage($id);
+		
+		if($this->hasPrivelage($id)) {
+			throw new Exception("Removal failed, user inherits privelage from group.");
+		}
+	}
+	
+	public /*array<Group_Provider>*/ function groups()
+	{
+		return App::getGroupService()->groupsForUser($this);
+	}
+		
+	public /*void*/ function hasPrivelages(/*array<int>*/$ids)
+	{
+		foreach($ids as $id) {
+			if(!$this->hasPrivelage($id))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	
+	public /*void*/ function addPrivelages(/*array<int>*/$ids)
+	{
+		foreach($ids as $id) {
+			$this->addPrivelage($id);
+		}
+	}
+	
+	
+	public /*void*/ function removePrivelages(/*array<int>*/$ids) /*throws Exception*/
+	{
+		foreach($ids as $id) {
+			$this->removePrivelage($id);
+		}
+	}
 	
 	/* Iterator */
 	private $__position = 0;

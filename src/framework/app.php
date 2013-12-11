@@ -154,7 +154,7 @@ class App
 	{
 		if(self::$userService == null) {
 			$class = 'User_Service_Provider_'.Config::get('users.driver', function(){throw new Exception("You must configure users.driver to use user services.");});
-		
+			
 			if(!class_exists($class)) {
 				import('userservice-'.Config::get('users.driver'));
 			}
