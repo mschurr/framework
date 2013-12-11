@@ -52,6 +52,9 @@
 	Preventing Tampering
 		The cookie library will automatically check whether or not cookies you set were tampered with.
 		If a cookie has been tampered with, the API will treat it as if it does not exist (e.g. Cookies::has('name') will return FALSE).
+		
+	Possible Improvements
+		Fingerprint user browser and use to mark cookies as tampered with to prevent or limit effect of interception attacks
  */
  
 class CookieRegistry implements ArrayAccess, Countable, Iterator

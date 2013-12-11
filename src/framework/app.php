@@ -2,7 +2,7 @@
 
 /*
 	/auth
-	/auth-cache
+	/auth-db
 	/app
 	/config
 	/document
@@ -12,8 +12,7 @@
 	/response
 	/storage
 	/url
-	/useragent
-	/auth-db
+	/useragent\
 */
 
 class App

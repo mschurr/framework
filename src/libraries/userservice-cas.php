@@ -34,7 +34,7 @@ class User_Service_Provider_cas extends User_Service_Provider
 		}
 	}
 	
-	public /*void*/ function logout()
+	public /*void*/ function logout(/*User_Provider*/ $user)
 	{
 		$error = function(){ throw new Exception("You have not properly configured the server for CAS authentication."); };
 		list($host, $port, $context, $cert) = array(
@@ -66,6 +66,10 @@ class User_Provider_cas extends User_Provider
 	
 	public /*void*/ function __construct(/*int*/$id){
 		$this->id = $id;	
+	}
+	public /*int*/ function id()
+	{
+		return $this->id;
 	}
 	public /*String*/ function email(){
 		return $this->id.'@'.substr(Config::get('auth.cas.host'),strrpos(Config::get('auth.cas.host'),'.'));

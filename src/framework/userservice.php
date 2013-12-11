@@ -9,7 +9,8 @@ abstract class User_Service_Provider
 	public abstract /*User_Provider*/ function create(/*String*/$username, /*String*/$password);
 	public abstract /*void*/ function delete(/*User_Provider*/$user);
 	public abstract /*User_Provider*/ function login(/*String*/$username, /*String*/$password);
-	public abstract /*void*/ function logout();
+	public /*void*/ function userDidLogin(/*User_Provider*/$user){}
+	public abstract /*void*/ function logout(/*User_Provider*/ $user);
 	public abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username);
 	
 	private static $restricted = array('admin','root','user','username','account','email');
@@ -37,6 +38,7 @@ abstract class User_Service_Provider
 abstract class User_Provider implements ArrayAccess, Iterator, Countable
 {
 	public abstract /*void*/ function __construct(/*int*/$id);
+	public abstract /*int*/ function id();
 	public abstract /*String*/ function email();
 	public abstract /*void*/ function setEmail(/*String*/$email);
 	public abstract /*String*/ function username();
@@ -86,6 +88,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 
 	/* Magic Properties */
 	public /*mixed*/ function __get(/*String*/$property) {
+		if($property == 'id') return $this->id();
 		if($property == 'email') return $this->email();
 		if($property == 'username') return $this->username();
 		if($property == 'banned') return $this->banned();
@@ -105,6 +108,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 	public /*bool*/ function __isset(/*String*/$property) {
 		return ($this->hasProperty($property)
 			|| $property == 'email'
+			|| $property == 'id'
 			|| $property == 'username'
 			|| $property == 'banned'
 			|| $property == 'privelages'

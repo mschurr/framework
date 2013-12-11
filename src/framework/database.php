@@ -67,7 +67,12 @@
 			foreach($result as $row){}	Iterate through the result set ($row is a column associative array).
 			$result['key'] 				Equivalent to $result->row['key'].
 			
+		Important:
+			All queries that are not part of a transaction will throw a DatabaseException on failure.
+			
 */
+
+class DatabaseException extends Exception {}
 
 class Database
 {
@@ -97,6 +102,10 @@ class Database
 			return $override;
 			
 		return Config::get($key, $default);
+	}
+	
+	public function __isset($key) {
+		return isset($this->driver->{$key});
 	}
 	
 	public function __get($key) {
@@ -202,10 +211,10 @@ class DB_PreparedStatement
 	
 	public function execute($opts=array())
 	{
-		if(is_string($opt))
-			$opt = array($opt);
+		if(is_string($opts))
+			$opts = array($opts);
 		if(func_num_args() > 1)
-			$opt = func_get_args();
+			$opts = func_get_args();
 		return $this->driver->execute($this, $opts);
 	}
 }
@@ -216,6 +225,7 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 	public $insertId;
 	public $text;
 	public $success;
+	public $successful;
 	public $rows;
 	public $size;
 	public $driver;
@@ -228,11 +238,15 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 		$this->insertId = $insertId;
 		$this->text = $text;
 		$this->success = $success;
+		$this->successful = $success;
 		$this->rows = $rows;
 		$this->size = $size;
 		$this->time = $time;
 		$this->error = $error;
 		$this->params = $params;
+		
+		if($success === false && $driver->inTransaction() === false)
+			throw new DatabaseException("A database query failed: ".$this->error);
 	}
 	
 	public function __len()

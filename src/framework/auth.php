@@ -23,13 +23,14 @@
  	* Throttling should occur at the rate (for each failed attempt, in seconds): 0 0 0 2 4 8 16 30 60 60 60....
 	* Throttling should occur both on the current client and the user account in question.
 	* Error messages should not give potential attackers any useful information.
+	* We recommend fingerprinting the user's browser in some way to limit usefulness of intercepted cookies.
  
 */
 
 class Auth
 {
 	protected $driver;
-	protected $driver_class;
+	protected static $driver_class;
 	
 	public function __construct(Session_Driver $session, $driver=null)
 	{
@@ -39,11 +40,48 @@ class Auth
 			});
 		}
 		if(is_string($driver)) {
+			$class = 'Auth_Driver_'.$driver;
 		
+			if(!class_exists($class)) {
+				import('auth-'.$driver);
+			}
+			
+			$driver = new $class($session);
 		}
 		if($driver instanceof Auth_Driver) {
-		
+			$this->driver =& $driver;
+			self::$driver_class = get_class($driver);
 		}
+	}
+		
+	public function __isset($key) {
+		return isset($this->driver->{$key});
+	}
+	
+	public function __get($key) {
+		return $this->driver->{$key};
+	}
+	
+	public function __call($name, $args) {
+		return call_user_func_array(array($this->driver, $name), $args);
+	}
+		
+	public static function __callStatic($name, $args)
+	{
+		if(self::$driver_class === null) {
+			$driver = Config::get('auth.driver', function(){
+				throw new Exception("You must configure an authentication driver in order to use the auth library.");	
+			});
+			
+			$class = 'Auth_Driver_'.$driver;
+		
+			if(!class_exists($class)) {
+				import('auth-'.$driver);
+			}
+			
+			self::$driver_class = $class;
+		}
+		return call_user_func_array(array(self::$driver_class, $name), $args);
 	}
 }
 
@@ -78,19 +116,23 @@ class AuthException extends Exception
 abstract class Auth_Attempt implements ArrayAccess
 {	
 	public final function __get($k) {
-		if($k == 'ip')
+		if($k == 'ipaddress')
 			return $this->ip();
+		if($k == 'userid')
+			return $this->userid();
 		if($k == 'user')
 			return App::getUserService()->load($this->userguid());
 		if($k == 'timestamp')
 			return $this->timestamp();
 		if($k == 'successful')
 			return $this->successful();
+		if($k == 'fraudulent')
+			return $this->fraudulent();
 		trigger_error("Unauthorized Access");
 	}
 	
 	public final function __isset($k) {
-		if($k == 'ip' || $k == 'user' || $k == 'timestamp' || $k == 'successful')
+		if($k == 'ipaddress' || $k == 'user' || $k == 'userid' || $k == 'timestamp' || $k == 'successful' || $k == 'fraudulent')
 			return true;
 	}
 	
@@ -105,10 +147,11 @@ abstract class Auth_Attempt implements ArrayAccess
 	public final function offsetUnset($offset){trigger_error("Unauthorized Access");}
 	public final function offsetSet($offset,$value){trigger_error("Unauthorized Access");}
 
-	public abstract /*string*/ function ip();
-	public abstract /*int*/ function userguid();
+	public abstract /*string*/ function ipaddress();
+	public abstract /*int*/ function userid();
 	public abstract /*int*/ function timestamp();
 	public abstract /*bool*/ function successful();
+	public abstract /*bool*/ function fraudulent();
 }
 
 /**
@@ -135,13 +178,13 @@ abstract class Auth_Driver
 		
 	// -------------- Instance Methods
 	protected /*Session_Driver*/ $session;
-	protected /*User_Service_Provider*/ $users;
-	protected /*Group_Service_Provider */$groups;
+	protected /*User_Service_Provider*/ $userservice;
+	protected /*Group_Service_Provider */$groupservice;
 	
 	public final function __construct(Session_Driver $session)
 	{
-		$this->users =& App::getUserService();
-		$this->groups =& App::getGroupService();
+		$this->userService =& App::getUserService();
+		$this->groupService =& App::getGroupService();
 		$this->session =& $session;
 		$this->load();
 	}
@@ -182,7 +225,7 @@ abstract class Auth_Driver
 	/* Terminates all active sessions and persistent tokens for the current user account (excluding this one). */
 	public abstract /*void*/ function terminateAllOtherSessionsForCurrentUser();
 	
-	/* Returns whether or not the user has entered their password this session. Use this to restrict access to certain functions following persistent logins. */
+	/* Returns whether or not the user has entered their password this session with the last hour. Use this to restrict access to certain functions following persistent logins. */
 	public abstract /*bool*/ function userHasEnteredPasswordThisSession();
 	
 	/* Checks whether or not the provided password is correct for the account this session is currently logged into. Returns true on success.
@@ -191,14 +234,14 @@ abstract class Auth_Driver
 	   of the equivalent User_Provider method when such measures are neccesary (ie only on user input). Should indicate that user has entered their password this session. */
 	public abstract /*bool*/ function check($password) /*throws AuthException*/;
 	
-	/* Logs the client in as the provided user. USE WITH CAUTION - NOT SUBJECT TO SECURITY MEASURES AND DOES NOT VERIFY PASSWORD. Should indicate that user has entered their password this session. */
+	/* Logs the client in as the provided user. USE WITH CAUTION - NOT SUBJECT TO SECURITY MEASURES AND DOES NOT VERIFY PASSWORD. Should indicate that user has entered their password this session and call userDidLogin on the User_Service_Provider. */
 	public abstract /*void*/ function login(User_Provider $user, $persistent=false);
 	
 	/* Attempts to log the client in to the user with the provided username and password. You may pass any extra information required by your driver into $extra.
 	   Returns true on success. If successful, modifies the current session to be logged in as the user and optionally sets persistent tokens.
 	   This function is subject to security measures on the current client/session and associated user account (e.g. throttling).
 	   If unsuccessful, throws an AuthException containing information about what went wrong (e.g. incorrect password).
-	   Should indicate that the user has entered their password this session. */
+	   Should indicate that the user has entered their password this session and call userDidLogin on the User_Service_Provider. */
 	public abstract /*bool*/ function attempt($username, $password, $persistent=false, array $extra=array()) /*throws AuthException*/;
 	
 	/* Terminates the current user's session and invalidates any persistent tokens associated with the current client. */
@@ -210,7 +253,7 @@ abstract class Auth_Driver
 	/* Returns the user that this session is currently logged into or null if not logged in. */
 	public abstract /*User_Provider*/ function user();
 	
-	/* Called automatically when the driver is instantiated. */
+	/* Called automatically when the driver is instantiated. Check for persistent tokens or existing session here. */
 	public abstract /*void*/ function load();
 	
 	/* Called automatically when the driver is deallocated from memory. */
