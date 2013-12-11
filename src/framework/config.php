@@ -13,6 +13,8 @@
 		cache.directory		--  a location on the file system. this location does not need to be nonvolatile storage, so it is okay to use a ramdisk
 		captcha.driver 		= 	cookies|session|recaptcha
 		database.default
+		groups.driver
+		users.driver
 		database.connections = 
 		'sqlite' => array(
 			'driver'   => 'sqlite',

@@ -2,7 +2,7 @@
 
 /*
 	/auth
-	/auth-cas
+	/auth-cache
 	/app
 	/config
 	/document
@@ -13,8 +13,6 @@
 	/storage
 	/url
 	/useragent
-	/userservice
-	/groupservice
 	/auth-db
 */
 
@@ -141,10 +139,10 @@ class App
 	public static function &getGroupService()
 	{
 		if(self::$groupService == null) {
-			$class = 'Group_Service_Provider_'.Config::get('auth.driver', function(){throw new Exception("You must configure auth.driver to use authentication.");});
+			$class = 'Group_Service_Provider_'.Config::get('groups.driver', function(){throw new Exception("You must configure groups.driver to use group services.");});
 		
 			if(!class_exists($class)) {
-				import('auth-'.Config::get('auth.driver'));
+				import('groupservice-'.Config::get('groups.driver'));
 			}
 			
 			self::$groupService = new $class();
@@ -156,10 +154,10 @@ class App
 	public static function &getUserService()
 	{
 		if(self::$userService == null) {
-			$class = 'User_Service_Provider_'.Config::get('auth.driver', function(){throw new Exception("You must configure auth.driver to use authentication.");});
+			$class = 'User_Service_Provider_'.Config::get('users.driver', function(){throw new Exception("You must configure users.driver to use user services.");});
 		
 			if(!class_exists($class)) {
-				import('auth-'.Config::get('auth.driver'));
+				import('userservice-'.Config::get('users.driver'));
 			}
 			
 			self::$userService = new $class();

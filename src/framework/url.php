@@ -1,4 +1,12 @@
 <?php
+/****************************************
+ * URL Wrapper Library
+ ****************************************
+ 
+ This class provides a method of wrapping URLs as objects.
+ 
+*/
+
 class URL
 {
 	protected static $base;

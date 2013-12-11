@@ -88,6 +88,7 @@ class Response
 	
 	public function pass($path, $name=null, $extra_headers=array())
 	{
+		throw new Exception("File passing is not implemented.");
 		// Passes a file through to the end-user, allowing them to download it.
 		// $path can also be instance of file
 		// Supports HTTP Range headers, allowing clients to pause and resume downloads.
