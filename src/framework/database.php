@@ -211,7 +211,7 @@ class DB_PreparedStatement
 	
 	public function execute($opts=array())
 	{
-		if(is_string($opts))
+		if(!is_array($opts))
 			$opts = array($opts);
 		if(func_num_args() > 1)
 			$opts = func_get_args();

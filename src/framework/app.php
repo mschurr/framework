@@ -1,8 +1,6 @@
 <?php
 
 /*
-	/auth
-	/auth-db
 	/app
 	/config
 	/document
@@ -12,7 +10,13 @@
 	/response
 	/storage
 	/url
-	/useragent\
+	/useragent
+	userservice-db
+	groupservice-db
+	
+	initialize, errors (currently always shown)
+	userservice-cas
+	groupservice-cas
 */
 
 class App
@@ -119,8 +123,9 @@ class App
 	protected static $session = null;
 	public static function &session()
 	{
-		if(self::$session === null)
+		if(self::$session === null) {
 			self::$session = new Session();
+		}
 		return self::$session;
 	}
 	

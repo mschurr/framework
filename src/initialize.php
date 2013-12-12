@@ -30,6 +30,7 @@ ini_set('max_file_uploads', 10);
 ini_set('safe_mode','Off');
 ini_set('allow_url_fopen','Off');
 
+
 require(FRAMEWORK_ROOT.'/framework/utility.php');
 require(FRAMEWORK_ROOT.'/framework/timer.php');
 require(FRAMEWORK_ROOT.'/framework/registry.php');
@@ -40,10 +41,11 @@ require(FRAMEWORK_ROOT.'/framework/config.php');
 require(FRAMEWORK_ROOT.'/framework/log.php');
 require(FRAMEWORK_ROOT.'/framework/connection.php');
 require(FRAMEWORK_ROOT.'/framework/useragent.php');
+require(FRAMEWORK_ROOT.'/framework/output.php');
 require(FRAMEWORK_ROOT.'/framework/response.php');
 require(FRAMEWORK_ROOT.'/framework/request.php');
+require(FRAMEWORK_ROOT.'/framework/app.php');
 require(FRAMEWORK_ROOT.'/framework/controller.php');
-require(FRAMEWORK_ROOT.'/framework/output.php');
 require(FRAMEWORK_ROOT.'/framework/route.php');
 require(FRAMEWORK_ROOT.'/framework/url.php');
 require(FRAMEWORK_ROOT.'/framework/redirect.php');
@@ -58,12 +60,6 @@ require(FRAMEWORK_ROOT.'/framework/sessions.php');
 require(FRAMEWORK_ROOT.'/framework/auth.php');
 require(FRAMEWORK_ROOT.'/framework/userservice.php');
 require(FRAMEWORK_ROOT.'/framework/groupservice.php');
-require(FRAMEWORK_ROOT.'/framework/app.php');
-
-if(client_ip() == '127.0.0.1' || client_ip() == '::1') {
-	App::displayErrors(true);
-	define('FORCE_DISPLAY_ERRORS', true);
-}
 
 require(FILE_ROOT.'/webapp.php');
 App::run();

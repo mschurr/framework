@@ -93,7 +93,7 @@ class Session implements ArrayAccess
 	}
 }
 
-abstract class Session_Driver
+abstract class Session_Driver implements ArrayAccess
 {
 	protected $_auth;
 	protected $_cookie;
@@ -101,8 +101,8 @@ abstract class Session_Driver
 	public function __construct()
 	{
 		$this->_cookie = Config::get('session.cookie', 'sessiond');
-		$this->_auth = new Auth($this);
 		$this->load();
+		$this->_auth = new Auth($this);
 	}
 	
 	public function __destruct()
@@ -151,4 +151,57 @@ abstract class Session_Driver
 	
 	/* Calculates and sets a new session identifier. Useful for preventing session fixation. Occurs automatically on certain events and periodically to prevent fixation. */
 	public abstract function regenerate();
+	
+	// --- Magic Methods
+	public function __get($key)
+	{
+		if($key == 'id')
+			return $this->id();
+		if($key == 'auth')
+			return $this->auth();
+		if($key == 'user')
+			return $this->user();
+		return $this->get($key);
+	}
+	
+	public function __set($key, $value)
+	{
+		return $this->set($key, $value);
+	}
+	
+	public function __isset($key)
+	{
+		return $this->has($key);
+	}
+	
+	public function __unset($key)
+	{
+		return $this->forget($key);
+	}
+	
+	public function offsetExists($key)
+	{
+		return $this->has($key);
+	}
+	
+	public function offsetGet($key)
+	{
+		if($key == 'id')
+			return $this->id();
+		if($key == 'auth')
+			return $this->auth();
+		if($key == 'user')
+			return $this->user();
+		return $this->get($key);
+	}
+	
+	public function offsetSet($key, $value)
+	{
+		return $this->set($key, $value);
+	}
+	
+	public function offsetUnset($key)
+	{
+		return $this->forget($key);
+	}
 }

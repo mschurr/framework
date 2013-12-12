@@ -7,7 +7,7 @@ error_reporting(E_ALL & ~E_NOTICE);
 ini_set('error_log', FILE_ROOT.'/webapp.log');
 ini_set('log_errors', true);
 
-if(FORCE_DISPLAY_ERRORS == true || App::getErrorMode() === true) {
+if(true) {
 	$run = new Run;
 	$handler = new PrettyPageHandler;
 	

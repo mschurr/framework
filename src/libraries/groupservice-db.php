@@ -1,7 +1,7 @@
 <?php
 /* This could really use some sort of caching. */
 
-abstract class Group_Service_Provider_db
+class Group_Service_Provider_db extends Group_Service_Provider
 {	
 	public /*Group_Provider*/ function load(/*int*/$guid)
 	{
@@ -25,7 +25,7 @@ abstract class Group_Service_Provider_db
 		return $result;
 	}
 	
-	public abstract /*array<Group_Provider>*/ function groupsForUser(User_Provider $user)
+	public /*array<Group_Provider>*/ function groupsForUser(User_Provider $user)
 	{
 		$statement = $this->db->prepare("SELECT `groupid` FROM `group_membership` WHERE `userid` = ?;");
 		$query = $statement->execute($user->id());
@@ -39,7 +39,7 @@ abstract class Group_Service_Provider_db
 		return $result;
 	}
 	
-	public abstract /*Group_Provider*/ function create(/*String*/$name)
+	public /*Group_Provider*/ function create(/*String*/$name)
 	{
 		if(str_contains($name, '%'))
 			return null;
@@ -55,14 +55,14 @@ abstract class Group_Service_Provider_db
 		return new Group_Provider_db($query->insertId);
 	}
 	
-	public abstract /*void*/ function delete(/*Group_Provider*/$group)
+	public /*void*/ function delete(/*Group_Provider*/$group)
 	{
 		$statement = $this->db->prepare("DELETE FROM `groups` WHERE `groupid` = ?;");
 		$query = $statement->execute($group->id());
 	}
 }
 
-abstract class Group_Provider_db
+class Group_Provider_db extends Group_Provider
 {
 	protected $id;
 	protected $name;
@@ -100,7 +100,7 @@ abstract class Group_Provider_db
 		return $this->name;
 	}
 	
-	public abstract /*void*/ function setName(/*string*/$name)
+	public /*void*/ function setName(/*string*/$name)
 	{
 		$this->name = $name;
 		$statement = $this->db->prepare("UPDATE `groups` SET `name` = ? WHERE `groupid` = ?;");
@@ -108,7 +108,7 @@ abstract class Group_Provider_db
 	}
 	
 	protected $privelages;
-	public abstract /*array<int>*/ function privelages()
+	public /*array<int>*/ function privelages()
 	{
 		if($this->privelages === null) {
 			$statement = $this->db->prepare("SELECT `privelageid` FROM `group_privelages` WHERE `groupid` = ?;");
@@ -124,12 +124,12 @@ abstract class Group_Provider_db
 		return $this->privelages;
 	}
 
-	public abstract /*bool*/ function hasPrivelage(/*int*/$id)
+	public /*bool*/ function hasPrivelage(/*int*/$id)
 	{
 		return in_array($id, $this->privelages());
 	}
 	
-	public abstract /*void*/ function addPrivelage(/*int*/$id)
+	public /*void*/ function addPrivelage(/*int*/$id)
 	{
 		if($this->hasPrivelage($id))
 			return;
@@ -140,7 +140,7 @@ abstract class Group_Provider_db
 		$statement->execute($this->id, $id);
 	}
 	
-	public abstract /*void*/ function removePrivelage(/*int*/$id)
+	public /*void*/ function removePrivelage(/*int*/$id)
 	{
 		if(!$this->hasPrivelage($id))
 			return;
@@ -151,7 +151,7 @@ abstract class Group_Provider_db
 		$statement->execute($this->id, $id);
 	}
 		
-	public abstract /*array<User_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=50)
+	public /*array<User_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=50)
 	{
 		$statement = $this->db->prepare("SELECT `userid` FROM `group_membership` WHERE `groupid` = ? ORDER BY `userid` ASC LIMIT ".(int)$offset.", ".(int)$limit.";");
 		$query = $statement->execute($this->id);
@@ -165,20 +165,20 @@ abstract class Group_Provider_db
 		return $result;
 	}
 	
-	public abstract /*bool*/ function hasUser(/*User_Provider*/$user)
+	public /*bool*/ function hasUser(/*User_Provider*/$user)
 	{
 		$statement = $this->db->prepare("SELECT * FROM `group_membership` WHERE `groupid` = ? AND `userid` = ?;");
 		$query = $statement->execute($this->id, $user->id());
 		return len($query) > 0;
 	}
 	
-	public abstract /*void*/ function removeUser(/*User_Provider*/$user)
+	public /*void*/ function removeUser(/*User_Provider*/$user)
 	{
 		$statement = $this->db->prepare("DELETE FROM `group_membership` WHERE `groupid` = ? AND `userid` = ?;");
 		$statement->execute($this->id, $user->id());
 	}
 	
-	public abstract /*void*/ function addUser(/*User_Provider*/$user)
+	public /*void*/ function addUser(/*User_Provider*/$user)
 	{
 		$statement = $this->db->prepare("INSERT INTO `group_membership` (`groupid`, `userid`) VALUES (?, ?);");
 		$statement->execute($this->id, $user->id());

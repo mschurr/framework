@@ -62,12 +62,12 @@ class CookieRegistry implements ArrayAccess, Countable, Iterator
 	// Methods
 	public function add($o)
 	{
-		Cookies::registerPending($v);
+		Cookies::registerPending($o);
 	}
 	
 	public function push($o)
 	{
-		Cookies::registerPending($v);
+		Cookies::registerPending($o);
 	}
 	
 	public function has($o)
@@ -197,7 +197,7 @@ class Cookies
 	public static function delete($cookie)
 	{
 		if(is_string($cookie)) {
-			$cookie = new Cookie($cookie);
+			$cookie = new Cookie($cookie,'');
 			$cookie->delete();
 		}
 		else {

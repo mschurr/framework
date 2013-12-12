@@ -155,7 +155,7 @@ class Auth_Driver_db extends Auth_Driver
 		$query = $statement->execute(array($user->id, $token));
 		
 		$statement = $this->db->prepare("DELETE FROM `auth_sessions` WHERE `userid` = ? AND `token_hash` != ?;");
-		$token = isset($this->request->cookies['_auth']) ? hash('sha512',$this->request->cookies['_auth']->value) : '';
+		$token = isset($this->session['_auth_session']) ? $this->session['_auth_session'] : '';
 		$query = $statement->execute(array($user->id, $token));
 	}
 	
@@ -178,7 +178,7 @@ class Auth_Driver_db extends Auth_Driver
 	/* Terminates the current user's session and invalidates any persistent tokens associated with the current client. */
 	public /*void*/ function logout($deletePersistent=true)
 	{
-		if($this->loggedIn())
+		if(!$this->loggedIn())
 			return;
 		
 		// Invalidate the persistent token in the database and the persistent token cookie.
@@ -189,13 +189,9 @@ class Auth_Driver_db extends Auth_Driver
 			Cookies::delete('_auth_token');
 		}
 		
-		// Invalidate the session token in the database and the session token cookie.
-		if(isset($this->request->cookies['_auth']))
-		{
-			$statement = $this->db->prepare("DELETE FROM `auth_sessions` WHERE `userid` = ? AND `token_hash` = ?;");
-			$statement->execute(array($this->user->id(), hash('sha512', $this->request->cookies['_auth']->value)));
-			Cookies::delete('_auth');
-		}
+		// Invalidate the session token in the database.
+		$statement = $this->db->prepare("DELETE FROM `auth_sessions` WHERE `userid` = ? AND `token_hash` = ?;");
+		$statement->execute(array($this->user->id(), hash('sha512', $this->session['_auth_session'])));
 		
 		// Tell the user service to initiate a logout.
 		$this->userService->logout($this->user);
@@ -246,16 +242,13 @@ class Auth_Driver_db extends Auth_Driver
 	public /*void*/ function login(User_Provider $user, $persistent=false, $fromToken=false)
 	{
 		// Create and set the session token.
-		$tokenSession = $this->generateToken();
-		$cookie = new Cookie('_auth', $tokenSession);
-		$this->response->cookies->add($cookie);
-		
-		$statement = $db->prepare("INSERT INTO `auth_sessions` (`userid`, `token_hash`, `expires`) VALUES (?, ?, ?);");
+		$tokenSession = $this->generateToken();		
+		$statement = $this->db->prepare("INSERT INTO `auth_sessions` (`userid`, `token_hash`, `expires`) VALUES (?, ?, ?);");
 		$statement->execute(array($user->id(), hash('sha512',$tokenSession), time()+1209600));
 				
 		// If the login is from a token, invalidate the old token.
 		if($fromToken) {
-			$statement = $db->prepare("DELETE FROM `auth_tokens` WHERE `userid` = ? AND `token_hash` = ?;");
+			$statement = $this->db->prepare("DELETE FROM `auth_tokens` WHERE `userid` = ? AND `token_hash` = ?;");
 			$statement->execute(array($user->id(), hash('sha512',$this->request->cookies['_auth_token']->value)));
 		}
 				
@@ -265,7 +258,7 @@ class Auth_Driver_db extends Auth_Driver
 			$cookie = new Cookie('_auth_token', $token);
 			$this->response->cookies->add($cookie);
 			
-			$statement = $db->prepare("INSERT INTO `auth_tokens` (`userid`, `token_hash`, `expires`) VALUES (?, ?, ?);");
+			$statement = $this->db->prepare("INSERT INTO `auth_tokens` (`userid`, `token_hash`, `expires`) VALUES (?, ?, ?);");
 			$statement->execute(array($user->id(), hash('sha512',$token), time()+1209600));
 		}
 		
@@ -315,9 +308,9 @@ class Auth_Driver_db extends Auth_Driver
 		// Throttle Based on IP
 		$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `ipaddress` = ? AND `timestamp` >= ? AND `successful` = 0;");
 		$query = $statement->execute(array($this->request->ip, time()-1800));
-		$delay = $query['count'] > sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query['count']];
+		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
-		if($delay > 0 && $query['last'] + $delay > time()) {
+		if($delay > 0 && $query->row['last'] + $delay > time()) {
 			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "Login attempts have been throttled. Try again later.");
 			return false;
 		}
@@ -334,9 +327,9 @@ class Auth_Driver_db extends Auth_Driver
 		
 		$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `userid` = ? AND `timestamp` >= ? AND `successful` = 0;");
 		$query = $statement->execute(array($throttleuser->id(), time()-1800));
-		$delay = $query['count'] > sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query['count']];
+		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
-		if($delay > 0 && $query['last'] + $delay > time()) {
+		if($delay > 0 && $query->row['last'] + $delay > time()) {
 			throw new AuthException("CHECK_FAILED_THROTTLING_USER", "Login attempts have been throttled. Try again later.");
 			return false;
 		}
@@ -346,7 +339,7 @@ class Auth_Driver_db extends Auth_Driver
 		
 		// If the login failed, lets throw an error and register a failed attempt.
 		if($user === null) {	
-			$this->registerLoginAttempt($user, 0);
+			$this->registerLoginAttempt($username, 0);
 			throw new AuthException("LOGIN_FAILED_INVALID_PASSWORD", "Invalid Username/Password Combination");
 			return false;
 		}
@@ -381,9 +374,9 @@ class Auth_Driver_db extends Auth_Driver
 		// Throttle Based on IP
 		$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `ipaddress` = ? AND `timestamp` >= ? AND `successful` = 0;");
 		$query = $statement->execute(array($this->request->ip, time()-1800));
-		$delay = $query['count'] > sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query['count']];
+		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
-		if($delay > 0 && $query['last'] + $delay > time()) {
+		if($delay > 0 && $query->row['last'] + $delay > time()) {
 			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "Login attempts have been throttled. Try again later.");
 			return false;
 		}
@@ -402,14 +395,12 @@ class Auth_Driver_db extends Auth_Driver
 	
 	/* Called automatically when the driver is instantiated. Check for persistent tokens or existing session here. */
 	protected $throttle = array(0,0,0,2,4,8,16,30,60,120,300);
-	public /*void*/ function load()
+	
+	protected function validateLogin()
 	{
-		$this->db =& App::getDatabase();
-		$this->request =& App::getRequest();
-		$this->response =& App::getResponse();
-		
 		// According to our local session, is the user already logged in?
 		if(isset($this->session['_auth_userid']) && isset($this->session['_auth_active']) && isset($this->session['_auth_session'])) {
+			
 			// Has the session expired?
 			if(time() - $this->session['_auth_active'] > 3600) {
 				$this->logout(false);
@@ -417,49 +408,65 @@ class Auth_Driver_db extends Auth_Driver
 			}
 			
 			// Has the token been revoked?
-			$statement = $db->prepare("SELECT * FROM `auth_sessions` WHERE `token_hash` = ? AND `userid` = ? AND `expires` < ?;");
+			$statement = $this->db->prepare("SELECT * FROM `auth_sessions` WHERE `token_hash` = ? AND `userid` = ? AND `expires` > ?;");
 			$query = $statement->execute(array( $this->session['_auth_session'], $this->session['_auth_userid'], time() ));
 			
 			if(len($query) != 1) {
 				$this->logout(false);
 				return;
 			}
-			
+						
 			// Otherwise, the session is valid.
 			$this->user = $this->userService->load($this->session['_auth_userid']);
 			$this->session['_auth_active'] = time();
 		}
-		
+	}
+	
+	protected function validateToken()
+	{
 		// If the user is not logged in, check for a persistent login token.
 		if(!$this->loggedIn() && isset($this->request->cookie['_auth_token'])) {
-				// Throttle By IP
-				$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `ipaddress` = ? AND `timestamp` >= ? AND `successful` = 0;");
-				$query = $statement->execute(array($this->request->ip, time()-1800));
-				$delay = $query['count'] > sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query['count']];
+			/// Throttle By IP
+			$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `ipaddress` = ? AND `timestamp` >= ? AND `successful` = 0;");
+			$query = $statement->execute(array($this->request->ip, time()-1800));
+			$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
+	
+			if($delay > 0 && $query->row['last'] + $delay > time()) {
+				return;
+			}
+			
+			// Check that the token exists and has not expired. If so, log the user in.
+			$statement = $this->db->prepare("SELECT * FROM `auth_tokens` WHERE `token_hash` = ? AND `expires` > ?;");
+			$query = $statement->execute(array(hash('sha512', $this->request->cookie['_auth_token']->value), time()));
+			
+			if(len($query) != 1) {
+				// Log the failed attempt to prevent brute forcing.
+				$this->registerLoginAttempt(null, 0);
 				
-				if($delay > 0 && $query['last'] + $delay > time()) {
-					return;
-				}
-				
-				// Check that the token exists and has not expired. If so, log the user in.
-				$statement = $this->db->prepare("SELECT * FROM `auth_tokens` WHERE `hash_token` = ? AND `expires` < ?;");
-				$query = $statement->execute(array(hash('sha512', $this->request->cookie['_auth_token']->value), time()));
-				
-				if(len($query) != 1) {
-					// Log the failed attempt to prevent brute forcing.
-					$this->registerLoginAttempt(null, 0);
-					
-					// Invalidate the cookie.
-					Cookies::delete('_auth_token');
-					return;
-				}
-				
-				// Otherwise, log the user in.
-				$user = $this->userService->load($query['userid']);
-				
-				if($user !== null)
-					$this->login($user, true, true);
+				// Invalidate the cookie.
+				Cookies::delete('_auth_token');
+				return;
+			}
+			
+			// Otherwise, log the user in.
+			$user = $this->userService->load($query['userid']);
+			
+			if($user !== null) {
+				$this->login($user, true, true);
+			}
 		}
+	}
+	
+	public /*void*/ function load()
+	{
+		$this->db =& App::getDatabase();
+		$this->request =& App::getRequest();
+		$this->response =& App::getResponse();
+		
+		// Check for existing sessions.
+		$this->validateLogin();
+		
+		$this->validateToken();
 		
 		// Make sure the account is not banned.
 		if($this->loggedIn() && $this->user->banned())

@@ -73,7 +73,6 @@ class Session_Driver_cache extends Session_Driver
 		return array(
 			'origin_ip' => App::getRequest()->ip,
 			'fingerprint' => md5(App::getRequest()->server['HTTP_USER_AGENT']),
-			'login_state' => $this->auth()->loggedIn(),
 			'is_https' => App::getRequest()->secure,
 			'last_regenerate' => time()
 		);

@@ -1,4 +1,12 @@
 <?php
+/**************************************
+ * User Service Provider
+ **************************************
+ 
+ This file defines the public API for user services.
+ 
+*/
+
 class UserServiceException extends Exception
 {
 	protected $publicErrorMessage;
@@ -35,7 +43,7 @@ abstract class User_Service_Provider
 	public abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username) /*throws UserServiceException*/;
 	
 	private static $restricted = array('admin','root','user','username','account','email');
-	public /*bool*/ function passwordMeetsConstraints($username, $password)
+	public /*bool*/ function passwordMeetsConstraints($username, $password) /*throws UserServiceException*/
 	{
 		if(!$this->usernameMeetsConstraints($username))
 			return false;

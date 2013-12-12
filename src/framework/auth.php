@@ -32,7 +32,7 @@ class Auth
 	protected $driver;
 	protected static $driver_class;
 	
-	public function __construct(Session_Driver $session, $driver=null)
+	public function __construct($session = null, $driver=null)
 	{
 		if(is_null($driver)) {
 			$driver = Config::get('auth.driver', function(){
@@ -178,12 +178,12 @@ abstract class Auth_Driver
 		
 	// -------------- Instance Methods
 	protected /*Session_Driver*/ $session;
-	protected /*User_Service_Provider*/ $userservice;
-	protected /*Group_Service_Provider */$groupservice;
+	protected /*User_Service_Provider*/ $userService;
+	protected /*Group_Service_Provider */$groupService;
 	
 	public final function __construct(Session_Driver $session)
 	{
-		$this->userService =& App::getUserService();
+	    $this->userService =& App::getUserService();
 		$this->groupService =& App::getGroupService();
 		$this->session =& $session;
 		$this->load();

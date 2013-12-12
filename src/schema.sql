@@ -1,46 +1,74 @@
-auth_tokens {
-	userid,
-	token_hash,
-	expires
-}
+/* Auth-DB Driver */
+DROP TABLE IF EXISTS `auth_tokens`;
+DROP TABLE IF EXISTS `auth_attempts`;
+DROP TABLE IF EXISTS `auth_sessions`;
 
-auth_attempts {
-	ipaddress,
-	userid,
-	timestamp,
-	successful,
-	fraudulent
-}
+CREATE TABLE `auth_tokens` (
+  `userid` int(64) UNSIGNED NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `expires` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`userid`, `token_hash`)
+);
 
-auth_sessions {
-	userid,
-	token_hash,
-	expires
-}
+CREATE TABLE `auth_sessions` (
+  `userid` int(64) UNSIGNED NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `expires` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`userid`, `token_hash`)
+);
 
-users {
-	userid
-	username
-	email
-	banned
-	password_cost
-	password_salt
-	password_hash
-	properties
-}
+CREATE TABLE `auth_attempts` (
+  `ipaddress` varchar(40) NOT NULL,
+  `userid` int(64) UNSIGNED NOT NULL,
+  `timestamp` int(64) UNSIGNED NOT NULL,
+  `successful` tinyint(1) UNSIGNED NOT NULL,
+  `fraudulent` tinyint(1) UNSIGNED NOT NULL
+);
 
-user_privelages {
-	userid, privelageid
-}
+CREATE INDEX `auth_attempts_ipaddress` ON `auth_attempts` (`ipaddress`);
+CREATE INDEX `auth_attempts_userid` ON `auth_attempts` (`userid`);
 
-group_membership {
-	userid, groupid
-}
+/* UserService-DB Driver */
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `user_privelages`;
 
-groups {
-	groupid, name
-}
+CREATE TABLE `users` (
+  `userid` int(64) UNSIGNED NOT NULL auto_increment,
+  `username` varchar(32) NOT NULL,
+  `email` varchar(64) NOT NULL,
+  `banned` int(64) UNSIGNED NOT NULL DEFAULT '0',
+  `password_cost` int(64) UNSIGNED NOT NULL,
+  `password_salt` varchar(64) NOT NULL,
+  `password_hash` varchar(128) NOT NULL,
+  `properties` text NOT NULL DEFAULT '',
+  PRIMARY KEY  (`userid`)
+);
 
-group_privelages {
-	groupid, privelageid
-}
+CREATE TABLE `user_privelages` (
+  `userid` int(64) UNSIGNED NOT NULL,
+  `privelageid` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`userid`, `privelageid`)
+);
+
+/* GroupService-DB Driver */
+DROP TABLE IF EXISTS `groups`;
+DROP TABLE IF EXISTS `group_membership`;
+DROP TABLE IF EXISTS `group_privelages`;
+
+CREATE TABLE `groups` (
+  `groupid` int(64) UNSIGNED NOT NULL auto_increment,
+  `name` varchar(64) NOT NULL,
+  PRIMARY KEY  (`groupid`)
+);
+
+CREATE TABLE `group_membership` (
+  `groupid` int(64) UNSIGNED NOT NULL,
+  `userid` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`groupid`, `userid`)
+);
+
+CREATE TABLE `group_privelages` (
+  `groupid` int(64) UNSIGNED NOT NULL,
+  `privelageid` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`groupid`, `privelageid`)
+);

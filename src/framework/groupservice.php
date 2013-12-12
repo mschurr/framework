@@ -1,4 +1,11 @@
 <?php
+/**************************************
+ * Group Service Provider
+ **************************************
+ 
+ This file defines the public API for group services.
+ 
+*/
 
 abstract class Group_Service_Provider
 {
