@@ -3,30 +3,42 @@
  * Authentication Library
  ************************************************
  
- You will need to implement:
+ You will need to implement (using the Auth API):
  	* Route, controller, and view for logins.
 	* Route, controller for logouts.
 	
- We recommend implementing:
-	* A system to notify users of failed logins.
-	* A system to notify users of their last login, and to report it fraudulent.
-	* Restricted access to certain features based on whether or not the user has entered their password this session or was logged in via persistent tokens.
+ We recommend implementing (using the Auth API):
+	* A place to notify users of failed logins.
+	* A place to notify users of their last login(s), and to report them fraudulent.
+	* Restricted access to certain features based on whether or not the user has entered their password this session.
  
- The Authentication library draws user and group information from the configured User Service and Group Service Providers.
+ The Authentication library draws user and group information from the configured User Service and Group Service.
  
  Class methods act independently of the user viewing the page (these should be used primarily for administrative purposes). These are not subject to security measures.
  
- Instance methods act on the session of the user viewing the page (these should be used when performing an action specific to the current user). These are subject to security
+ Instance methods act on the session of the user viewing the page (these should be used when performing an action specific to the current user's session). These are subject to security
  measures on the current user's session (e.g. throttling) and may modify the current user's session when called.
  
  Recommended Driver Implementation Details:
  	* Throttling should occur at the rate (for each failed attempt, in seconds): 0 0 0 2 4 8 16 30 60 60 60....
 	* Throttling should occur both on the current client and the user account in question.
 	* Error messages should not give potential attackers any useful information.
-	* We recommend fingerprinting the user's browser in some way to limit usefulness of intercepted cookies.
- 
+	
+ As you implement user-interface controllers, keep these things in mind:
+ 	* Don't use secret questions.
+	* Make sure the user driver enforces good password practices.
+	* Password recovery tokens should be stored as hashes. Don't reset; prompt the user to change their password. Throttle attempts.
+	* You may wish to never use persistent logins depending on your application's security requirements.
+	* Protect registration process against bots and brute force username guessing.
+	* Warn users about using persistent logins on public computers. Persistent logins should be opt-in.
+	
+ Possible extensions:
+ 	* Two-factor authentication.
 */
 
+/**
+ * The Auth class. This class does not contain any implementation; all calls (both static and instance) are passed to the implementing Auth_Driver.
+ */
 class Auth
 {
 	protected $driver;
@@ -111,7 +123,7 @@ class AuthException extends Exception
 }
 
 /**
- * A wrapper class for details about an authentication attempt. Utilized by the Auth driver API.
+ * A wrapper interface for details about an authentication attempt. Utilized by the Auth driver API.
  */
 abstract class Auth_Attempt implements ArrayAccess
 {	
@@ -153,6 +165,34 @@ abstract class Auth_Attempt implements ArrayAccess
 	public abstract /*bool*/ function successful();
 	public abstract /*bool*/ function fraudulent();
 }
+
+/**
+ * A simple implementation of the Auth_Attempt interface. Implementing drivers may choose to use a different approach.
+ */
+class Auth_Attempt_Standard extends Auth_Attempt
+{
+	protected $ipaddress;
+	protected $userid;
+	protected $timestamp;
+	protected $successful;
+	protected $fraudulent;
+	
+	public function __construct($ipaddress,$userid,$timestamp,$successful,$fraudulent)
+	{
+		$this->ipaddress = $ipaddress;
+		$this->userid = (int) $userid;
+		$this->timestamp = (int) $timestamp;
+		$this->successful = (bool) $successful;
+		$this->fraudulent = (bool) $fraudulent;
+	}
+	
+	public /*string*/ function ipaddress() { return $this->ipaddress; }
+	public /*int*/ function userid() { return $this->userid; }
+	public /*int*/ function timestamp() { return $this->timestamp; }
+	public /*bool*/ function successful() { return $this->successful; }
+	public /*bool*/ function fraudulent() { return $this->fraudulent; }
+}
+
 
 /**
  * The interface that all authentication drivers must implement.

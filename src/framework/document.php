@@ -1,4 +1,63 @@
 <?php
+class HTMLDocumentNew implements ArrayAccess
+{
+	protected /*String*/ $title;
+	protected /*array*/ $meta = array(
+		'content-type' => 'text/html; charset=utf-8',
+		'keywords' =>	 '',
+		'description' => '',
+		'viewport' => 'width=device-width, initial-scale=1.0'
+	);
+	protected /*array*/ $links = array();
+	protected /*array*/ $scripts = array();
+	protected /*String*/ $body = '';
+	protected /*String*/ $head = '';
+	protected /*array*/ $bodyAttributes = array();
+	
+	public /*void*/ function __construct()
+	{
+	}
+	
+	public function getContent()
+	{
+	}	
+	
+	// ------ Array Access
+	public function offsetExists($offset)
+	{
+	}
+	
+	public function offsetSet($offset, $value)
+	{
+	}
+	
+	public function offsetGet($offset)
+	{
+	}
+	
+	public function offsetUnset($offset)
+	{
+	}
+	
+	// ------ Magic Methods	
+	public function __get($key)
+	{
+	}
+	
+	public function __set($key, $value)
+	{
+	}
+	
+	public function __isset($key)
+	{
+	}
+	
+	public function __unset($key)
+	{
+	}
+}
+
+
 class HTMLDocument // implements ArrayAccess
 {
 	protected $title = 'Untitled Page';

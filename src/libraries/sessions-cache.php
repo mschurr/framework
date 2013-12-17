@@ -74,7 +74,7 @@ class Session_Driver_cache extends Session_Driver
 			'origin_ip' => App::getRequest()->ip,
 			'fingerprint' => md5(App::getRequest()->server['HTTP_USER_AGENT']),
 			'is_https' => App::getRequest()->secure,
-			'last_regenerate' => time()
+			'last_regenerate' => 0 // Force regeneration on creation to prevent fixation.
 		);
 	}
 	

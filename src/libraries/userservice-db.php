@@ -161,10 +161,10 @@ class User_Provider_db extends User_Provider
 		// TODO
 	}
 	
-	public /*bool*/ function checkPassword(/*String*/$input)
+	public /*bool*/ function checkPassword(/*String*/$password)
 	{
 		// TODO
-		return $input === $this->data['password_hash'];
+		return $password === $this->data['password_hash'];
 	}
 	
 	public /*void*/ function __destruct()
@@ -186,16 +186,16 @@ class User_Provider_db extends User_Provider
 	public /*void*/ function deleteProperty(/*string*/$name)
 	{
 	}
-	public /*array<int>*/ function _privelages()
+	public /*array<int>*/ function _privileges()
 	{
 	}
-	public /*void*/ function _hasPrivelage(/*int*/$id)
+	public /*void*/ function _hasprivilege(/*int*/$id)
 	{
 	}
-	public /*void*/ function _addPrivelage(/*int*/$id)
+	public /*void*/ function _addprivilege(/*int*/$id)
 	{
 	}
-	public /*void*/ function _removePrivelage(/*int*/$id) /*throws Exception*/
+	public /*void*/ function _removeprivilege(/*int*/$id) /*throws Exception*/
 	{
 	}
 }

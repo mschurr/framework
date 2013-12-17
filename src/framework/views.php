@@ -24,11 +24,11 @@ class View
 		return self::$shared;
 	}
 	
-	/* Makes a BladeView with the provided data, pushes it to the response object, and returns the view object.*/
-	public static function show($name, $data=array())
+	/* (DEPRECATED) Makes a BladeView with the provided data, pushes it to the response object, and returns the view object.*/
+	/*public static function show($name, $data=array())
 	{
 		$view = self::make($name, $data);
 		App::getResponse()->with($view);
 		return $view;
-	}
+	}*/
 }

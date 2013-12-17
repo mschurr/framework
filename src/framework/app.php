@@ -15,8 +15,6 @@
 	groupservice-db
 	
 	initialize, errors (currently always shown)
-	userservice-cas
-	groupservice-cas
 */
 
 class App

@@ -82,48 +82,48 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 	public abstract /*void*/ function setProperty(/*string*/$name, /*mixed*/$value);
 	public abstract /*bool*/ function hasProperty(/*string*/$name);
 	public abstract /*void*/ function deleteProperty(/*string*/$name);
-	public abstract /*array<int>*/ function _privelages();
-	public abstract /*void*/ function _hasPrivelage(/*int*/$id);
-	public abstract /*void*/ function _addPrivelage(/*int*/$id);
-	public abstract /*void*/ function _removePrivelage(/*int*/$id) /*throws Exception*/;
+	public abstract /*array<int>*/ function _privileges();
+	public abstract /*void*/ function _hasprivilege(/*int*/$id);
+	public abstract /*void*/ function _addprivilege(/*int*/$id);
+	public abstract /*void*/ function _removeprivilege(/*int*/$id) /*throws Exception*/;
 	
 	// -------------------------------------------------------------------------
 	
-	public /*array<int>*/ function privelages()
+	public /*array<int>*/ function privileges()
 	{
-		$privelages = $this->_privelages();
+		$privileges = $this->_privileges();
 		
 		foreach($this->groups() as $group) {
-			$privelages = array_merge($privelages, $group->privelages());
+			$privileges = array_merge($privileges, $group->privileges());
 		}
 		
-		return array_unique($privelages, SORT_NUMERIC);
+		return array_unique($privileges, SORT_NUMERIC);
 	}
 	
-	public /*void*/ function hasPrivelage(/*int*/$id)
+	public /*void*/ function hasprivilege(/*int*/$id)
 	{
-		if( $this->_hasPrivelage($id) )
+		if( $this->_hasprivilege($id) )
 			return true;
 			
 		foreach($this->groups() as $group) {
-			if($group->hasPrivelage($id))
+			if($group->hasprivilege($id))
 				return true;
 		}
 		
 		return false;
 	}
 	
-	public /*void*/ function addPrivelage(/*int*/$id)
+	public /*void*/ function addprivilege(/*int*/$id)
 	{
-		$this->_addPrivelage($id);	
+		$this->_addprivilege($id);	
 	}
 	
-	public /*void*/ function removePrivelage(/*int*/$id) /*throws Exception*/
+	public /*void*/ function removeprivilege(/*int*/$id) /*throws Exception*/
 	{
-		$this->_removePrivelage($id);
+		$this->_removeprivilege($id);
 		
-		if($this->hasPrivelage($id)) {
-			throw new Exception("Removal failed, user inherits privelage from group.");
+		if($this->hasprivilege($id)) {
+			throw new Exception("Removal failed, user inherits privilege from group.");
 		}
 	}
 	
@@ -132,10 +132,10 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 		return App::getGroupService()->groupsForUser($this);
 	}
 		
-	public /*void*/ function hasPrivelages(/*array<int>*/$ids)
+	public /*void*/ function hasprivileges(/*array<int>*/$ids)
 	{
 		foreach($ids as $id) {
-			if(!$this->hasPrivelage($id))
+			if(!$this->hasprivilege($id))
 				return false;
 		}
 		
@@ -143,19 +143,24 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 	}
 	
 	
-	public /*void*/ function addPrivelages(/*array<int>*/$ids)
+	public /*void*/ function addprivileges(/*array<int>*/$ids)
 	{
 		foreach($ids as $id) {
-			$this->addPrivelage($id);
+			$this->addprivilege($id);
 		}
 	}
 	
 	
-	public /*void*/ function removePrivelages(/*array<int>*/$ids) /*throws Exception*/
+	public /*void*/ function removeprivileges(/*array<int>*/$ids) /*throws Exception*/
 	{
 		foreach($ids as $id) {
-			$this->removePrivelage($id);
+			$this->removeprivilege($id);
 		}
+	}
+	
+	public /*string*/ function __toString()
+	{
+		return $this->username();
 	}
 	
 	/* Iterator */
@@ -186,7 +191,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 		if($property == 'email') return $this->email();
 		if($property == 'username') return $this->username();
 		if($property == 'banned') return $this->banned();
-		if($property == 'privelages') return $this->privelages();
+		if($property == 'privileges') return $this->privileges();
 		if($property == 'groups') return $this->groups();
 		if($property == 'properties') return $this->properties();
 		return $this->getProperty($property);
@@ -205,7 +210,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 			|| $property == 'id'
 			|| $property == 'username'
 			|| $property == 'banned'
-			|| $property == 'privelages'
+			|| $property == 'privileges'
 			|| $property == 'groups'
 			|| $property == 'properties');
 	}

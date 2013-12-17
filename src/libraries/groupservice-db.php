@@ -107,47 +107,47 @@ class Group_Provider_db extends Group_Provider
 		$statement->execute($name, $this->id);
 	}
 	
-	protected $privelages;
-	public /*array<int>*/ function privelages()
+	protected $privileges;
+	public /*array<int>*/ function privileges()
 	{
-		if($this->privelages === null) {
-			$statement = $this->db->prepare("SELECT `privelageid` FROM `group_privelages` WHERE `groupid` = ?;");
+		if($this->privileges === null) {
+			$statement = $this->db->prepare("SELECT `privilegeid` FROM `group_privileges` WHERE `groupid` = ?;");
 			$query = $statement->execute($this->id);
 			
-			$this->privelages = array();
+			$this->privileges = array();
 			
 			foreach($query as $row) {
-				$this->privelages[] = (int) $row['privelageid'];
+				$this->privileges[] = (int) $row['privilegeid'];
 			}
 		}
 		
-		return $this->privelages;
+		return $this->privileges;
 	}
 
-	public /*bool*/ function hasPrivelage(/*int*/$id)
+	public /*bool*/ function hasprivilege(/*int*/$id)
 	{
-		return in_array($id, $this->privelages());
+		return in_array($id, $this->privileges());
 	}
 	
-	public /*void*/ function addPrivelage(/*int*/$id)
+	public /*void*/ function addprivilege(/*int*/$id)
 	{
-		if($this->hasPrivelage($id))
+		if($this->hasprivilege($id))
 			return;
 			
-		$this->privelages[] = (int) $id;
+		$this->privileges[] = (int) $id;
 		
-		$statement = $this->db->prepare("INSERT INTO `group_privelages` (`groupid`, `privelageid`) VALUES (?, ?);");
+		$statement = $this->db->prepare("INSERT INTO `group_privileges` (`groupid`, `privilegeid`) VALUES (?, ?);");
 		$statement->execute($this->id, $id);
 	}
 	
-	public /*void*/ function removePrivelage(/*int*/$id)
+	public /*void*/ function removeprivilege(/*int*/$id)
 	{
-		if(!$this->hasPrivelage($id))
+		if(!$this->hasprivilege($id))
 			return;
 			
-		$this->privelages = array_diff($this->privelages, array($id));
+		$this->privileges = array_diff($this->privileges, array($id));
 					
-		$statement = $this->db->prepare("DELETE FROM `group_privelages` WHERE `groupid` = ? AND `privelageid` = ?;");
+		$statement = $this->db->prepare("DELETE FROM `group_privileges` WHERE `groupid` = ? AND `privilegeid` = ?;");
 		$statement->execute($this->id, $id);
 	}
 		

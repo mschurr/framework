@@ -103,7 +103,9 @@ class RegistryObject implements Iterator, ArrayAccess, Countable
 	
 	public function __get($k)
 	{
-		return isset($this->data[$k]) ? $this->data[$k] : null;
+		if( isset($this->data[$k]) )
+			return $this->data[$k];
+		throw new Exception("Access to undefined property: ".$k);
 	}
 	
 	public function __invoke()

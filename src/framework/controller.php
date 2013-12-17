@@ -63,9 +63,29 @@ abstract class Controller
 			$this->_database = $v;
 	}
 	
+	private $__reference;
+	public function __registerRoutingReference($s)
+	{
+		$this->__reference = $s;
+	}
+	public function __getRoutingReference()
+	{
+		return $this->__reference;
+	}
+	
 	/*public function __toString()
 	{
-		return get_class($this);
+		// Get the class of the object.
+		$class = get_class($this);
+		
+		// Remove namespacing.
+		if(str_contains($class, "\\"))
+			$class = substr($class, strrpos($class, "\\")+1);
+		
+		// Account for file path.
+		
+		// Return the path.
+		return $class;
 	}*/
 }
 

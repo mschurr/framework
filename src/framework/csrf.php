@@ -4,7 +4,14 @@ class CSRF
 {
 	public static function driver()
 	{
-		return Config::get('csrf.driver', 'cookies');
+		return Config::get('csrf.driver', 'session');
+	}
+	
+	public static function enforce($name, $value)
+	{
+		if(self::check($name,$value))
+			return true;
+		throw new Exception("CSRF Attack Intercepted");
 	}
 	
 	public static function make($name, $ignore=true)
@@ -47,16 +54,21 @@ class CSRF
 		$key = '_csrf_'.md5($name);
 		
 		if(self::driver() == 'cookies') {
-			if(Cookies::has($key) && Cookies::get($key)->value === $value)
+			if(Cookies::has($key) && Cookies::get($key)->value === $value) {
+				self::reset($name);
 				return true;
+			}
 		}
 		else {
 			$session =& App::getSession();
 			
-			if($session->has($key) && $session[$key] === $value)
+			if($session->has($key) && $session[$key] === $value) {
+				self::reset($name);
 				return true;
+			}
 		}
 		
+		self::reset($name);
 		return false;
 	}
 	

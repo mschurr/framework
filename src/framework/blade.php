@@ -128,7 +128,8 @@ abstract class BladeParser
 	
 	public function __construct($name)
 	{
-		$this->blade_name = trim(str_replace(".", "/", strtolower($name)),'/');	
+		$this->controller =& Route::__getActiveController();
+		$this->blade_name = trim(str_replace(".", "/", $name),'/');	
 		$this->blade_file = FILE_ROOT.'/'.($this->is('view') ? 'views' : 'layouts').'/'.$this->blade_name.'.blade.php';
 		
 		$dir = Config::get('cache.directory', FILE_ROOT.'/cache');
@@ -497,6 +498,11 @@ abstract class BladeParser
 		
 		return $value;
 	}
+	
+	protected /*<Controller>*/ $controller;
+	public function getAssociatedController() {
+		return $this->controller;
+	}
 }
 
 class BladeLayout extends BladeParser
@@ -562,7 +568,6 @@ class BladeLayout extends BladeParser
 		$this->sections[$name] = $blade;
 		return $this;
 	}
-	
 }
 
 class BladeView extends BladeParser

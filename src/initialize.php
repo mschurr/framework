@@ -60,6 +60,7 @@ require(FRAMEWORK_ROOT.'/framework/sessions.php');
 require(FRAMEWORK_ROOT.'/framework/auth.php');
 require(FRAMEWORK_ROOT.'/framework/userservice.php');
 require(FRAMEWORK_ROOT.'/framework/groupservice.php');
+require(FRAMEWORK_ROOT.'/framework/csrf.php');
 
 require(FILE_ROOT.'/webapp.php');
 App::run();

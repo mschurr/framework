@@ -55,9 +55,10 @@ class Route
 		$method = (strpos($target,"@") !== false ? substr($target,strpos($target,"@")+1) : strtolower($request->method));
 		$controller_path = (strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target);
 		$controller_path = str_replace(".","/",$controller_path);
+		$controller_namespace_path = str_replace("/","\\",$controller_path);
 		$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
-		$controller_file = FILE_ROOT.'/controllers/'.strtolower($controller_path).'.php';
-	
+		$controller_file = FILE_ROOT.'/controllers/'.$controller_path.'.php';
+		
 		if(!class_exists($controller)) {
 			if(!file_exists($controller_file)) {
 				$response->error(500, 'The controller could not be found for "'.$target.'".');
@@ -66,14 +67,21 @@ class Route
 			
 			require_once($controller_file);
 			
-			if(!class_exists($controller)) {
+			if(class_exists($controller)) { $controller_class = $controller; }
+			elseif(class_exists('Controllers\\'.$controller_namespace_path)) { $controller_class = 'Controllers\\'.$controller_namespace_path; }
+			else {
 				$response->error(500, 'The controller could not be found for "'.$target.'".');
 				return;
 			}
 		}
 		
+		$handler = new $controller_class($request, $response);
 		
-		$handler = new $controller($request, $response);
+		// Register the fact that this controller is active so that it can process View URLs.
+		self::__registerActiveController($handler);
+		
+		// Remember the reference used to access this controller so we can make URLs to it.
+		$handler->__registerRoutingReference((strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target));
 			
 			
 		if(!is_subclass_of($handler,'RequestHandler')) {
@@ -93,7 +101,25 @@ class Route
 			$result = $handler->$method();
 		}
 	
+		self::__activeControllerDidResign();
 		self::processControllerCallback($request, $response, $result);
+	}
+	
+	protected static /*Controller*/ $activeController;
+	
+	public static function __registerActiveController(Controller $controller)
+	{
+		self::$activeController = $controller;
+	}
+	
+	public static function __getActiveController()
+	{
+		return self::$activeController;
+	}
+	
+	public static function __activeControllerDidResign()
+	{
+		self::$activeController = null;
 	}
 	
 	/**
@@ -311,6 +337,7 @@ class Route
 	}
 	
 	protected static $routes = array();
+	protected static $inverseRoutes = array();
 	protected static $group = false;
 	protected static $sort = false;
 	protected static $groupopts;
@@ -368,9 +395,49 @@ class Route
 			self::$routes[$uri_match] = $options;
 		}
 		
+		// Create an inversion entry for URL creation.
+		if(is_string($target)) {
+			if(strpos($target, "@") !== false) {
+				$inverseTarget = substr($target, 0, strpos($target, "@"));
+			}
+			else {
+				$inverseTarget = $target;
+			}
+		}
+		else
+			$inverseTarget = $target;
+				
+		if(isset(self::$inverseRoutes[$inverseTarget]))
+			self::$inverseRoutes[$inverseTarget][] = $uri_match;
+		else
+			self::$inverseRoutes[$inverseTarget] = array($uri_match);
+		
 		// Return Helper Object
 		$rh = new RouteHelper($uri_match);
 		return $rh;
+	}
+	
+	public static function __getRoutingOptionsForTarget($target)
+	{
+		if(!isset(self::$inverseRoutes[$target]))
+			return null;
+			
+		$result = array();
+		
+		foreach(self::$inverseRoutes[$target] as $uri) {
+			if(!isset(self::$routes[$uri]))
+				continue;
+				
+			$result[] = array(
+				'target' => self::$routes[$uri]['target'],
+				'secure' => self::$routes[$uri]['secure'],
+				'method' => self::$routes[$uri]['method'],
+				'domain' => self::$routes[$uri]['domain'],
+				'uri' => $uri
+			);
+		}
+				
+		return $result;
 	}
 	
 	public static function _updateroute($route, $key, $value)

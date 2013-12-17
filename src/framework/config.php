@@ -1,20 +1,52 @@
 <?php
-
+/**************************************************
+ * Configuration Library
+ **************************************************
+ 
+ You can use this class to store values (all primitive types and arrays) that persist through page views
+ across all nodes for all users forever.
+ 
+ This class is best used for storing small, configuration values; do not store large amounts of data. You 
+ will significantly hinder application performance. To store large amounts of data, use the Storage class.
+ 
+ There are two types of configuration variables: hard-coded and on-the-fly. Hard-coded values can not be
+ overwritten from within the application runtime and may only be defined in webapp.php.
+ 
+ Configuration values will have an effect on the behavior of various framework components. Here is a list 
+ of all configuration values that have significance in the framework:
+ 
+ 	NAME					ACCEPTED VALUES							DEFAULT					DESCRIPTION
+ 	config.driver		
+	cache.driver			filesystem,memcached,apc,array,redis	filesystem				Determines the Cache driver to load.
+	cache.file				<path>									~/cache/cache.dat		A storage location for the Cache file for certain drivers. Okay to use a RAMDISK location.
+	cache.directory			<path>									~/cache					A storage location for Cache files for certain drivers. Okay to use a RAMDISK.								
+	cookies.secretKey		<string>														Used to validate cookies with HMAC hashing. Throws an error if not set and you attempt to use cookies.
+	csrf.driver				cookies|session							session					Determines where to store CSRF tokens.
+	locale.default			<string>								"en"					Determines the default locale.
+	users.driver			db																Determines the User Services driver to load.
+	groups.driver			db																Determines the Group Services driver to load.
+	auth.driver				db																Determines the Auth driver to load.
+	auth.cas.port			<int>															For CAS Auth Driver: the server port
+	auth.cas.host			<string>														For CAS Auth Driver: the server host name
+	auth.cas.path			<string>														For CAS Auth Driver: the server path
+	auth.cas.cert			<path>															For CAS Auth Driver: the location of server certificate on disk
+	document.titlesuffix	<string>								""						The suffix to append to all HTML document titles.
+	database.driver			mysql									mysql					Determines the Database driver to load.
+	database.user			<string>														The database username.
+	database.pass			<string>														The database password.
+	database.host			<string>														The database hostname or ipaddress.
+	database.port			<int>															The database server port.
+	database.name			<string>														The name of database to use.
+	
+*/
 
 /*
 	Useful Configuration Values:
-		config.driver	 	= 	filesystem|memcached|database
-		cache.driver 		= 	filesystem|memcached "file", "database", "apc", "memcached", "redis", "array"
-		cache.file
 		cache.connection
-		cache.table
 		cache.prefix
 		cache.memcached		=   array(array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100))
-		cache.directory		--  a location on the file system. this location does not need to be nonvolatile storage, so it is okay to use a ramdisk
 		captcha.driver 		= 	cookies|session|recaptcha
 		database.default
-		groups.driver
-		users.driver
 		database.connections = 
 		'sqlite' => array(
 			'driver'   => 'sqlite',
@@ -54,29 +86,14 @@
 		),
 		crypt.key
 		time.zone
-		locale.default
 		app.debug
 		app.url
-		auth.driver
-		auth.model
-		auth.table
-		auth.remindertemplate
-		auth.remindertable
-		auth.cookie
-		auth.driver
-		auth.timeout
-		auth.cas.port
-		auth.cas.host
-		auth.cas.path
-		auth.cas.cert
-		cookies.secretKey
 		crypt.defaultkey
 		session.driver		mysql|cache|file
 		session.cache		true|false (does not work if the driver is "cache")
 		session.cookie
 		session.cryptkey			(encryption key)
-		document.titlesuffix
-		csrf.driver			session|cookies(default)
+		
 */
 
 class Config

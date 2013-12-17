@@ -30,7 +30,7 @@ CREATE INDEX `auth_attempts_userid` ON `auth_attempts` (`userid`);
 
 /* UserService-DB Driver */
 DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `user_privelages`;
+DROP TABLE IF EXISTS `user_privileges`;
 
 CREATE TABLE `users` (
   `userid` int(64) UNSIGNED NOT NULL auto_increment,
@@ -44,16 +44,16 @@ CREATE TABLE `users` (
   PRIMARY KEY  (`userid`)
 );
 
-CREATE TABLE `user_privelages` (
+CREATE TABLE `user_privileges` (
   `userid` int(64) UNSIGNED NOT NULL,
-  `privelageid` int(64) UNSIGNED NOT NULL,
-  PRIMARY KEY  (`userid`, `privelageid`)
+  `privilegeid` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`userid`, `privilegeid`)
 );
 
 /* GroupService-DB Driver */
 DROP TABLE IF EXISTS `groups`;
 DROP TABLE IF EXISTS `group_membership`;
-DROP TABLE IF EXISTS `group_privelages`;
+DROP TABLE IF EXISTS `group_privileges`;
 
 CREATE TABLE `groups` (
   `groupid` int(64) UNSIGNED NOT NULL auto_increment,
@@ -67,8 +67,8 @@ CREATE TABLE `group_membership` (
   PRIMARY KEY  (`groupid`, `userid`)
 );
 
-CREATE TABLE `group_privelages` (
+CREATE TABLE `group_privileges` (
   `groupid` int(64) UNSIGNED NOT NULL,
-  `privelageid` int(64) UNSIGNED NOT NULL,
-  PRIMARY KEY  (`groupid`, `privelageid`)
+  `privilegeid` int(64) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`groupid`, `privilegeid`)
 );

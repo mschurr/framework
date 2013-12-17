@@ -32,6 +32,18 @@ class URL
 			return $object;
 		}
 		
+		// For views and layouts, return a URL to the active controller.
+		if($object instanceof BladeView || $object instanceof BladeLayout) {
+			return self::to($object->getAssociatedController(), $action);
+		}
+		
+		// For controllers, pass in the controller reference string.
+		if($object instanceof Controller) {
+			if($action !== null)
+				return self::to($object->__getRoutingReference().'@'.$action);
+			return self::to($object->__getRoutingReference());
+		}
+		
 		// Otherwise, instantiate a new URL object.
 		$url = new URL($object, $action);
 		
@@ -50,8 +62,6 @@ class URL
 	protected $_valid = false;
 	protected $_url = "";
 	
-	// account for domain in routing
-	
 	public function __construct($object, $action=null)
 	{
 		if($object instanceof File) {
@@ -63,31 +73,47 @@ class URL
 		if($object instanceof Closure) {
 		}
 		
-		if($object instanceof Controller) {
-			if($action === null) {
-			}
-			else {
-			}
-		}
 		
 		if(is_string($object)) {
+			// File URLs
 			if(str_startswith($object, 'file://')) {
 			}
+			// Emails
 			elseif(str_startswith($object, 'mailto:')) {
 			}
-			elseif(str_startswith($object, 'http://') || str_startswith($object, 'https://') || str_startswith($object, '//')) {
+			// Absolute Paths
+			elseif(str_contains($object, '://') || str_startswith($object, '//')) {
 				$this->_url = $object;
 				$this->_valid = true;
 			}
+			// Relative to Root Path
 			elseif(str_startswith($object, '/')) {
 				$this->_url = $object;
 				$this->_valid = true;
 			}
+			// Relative to Current Path
 			elseif(str_startswith($object, '.')) {
 			}
-			else { // Controller
+			// Controller String
+			else { 
+				$this->__determineUrlForControllerString($object);			
 			}
 		}
+	}
+	
+	protected function __determineUrlForControllerString($controller)
+	{
+		$possible = Route::__getRoutingOptionsForTarget($object);
+		/*
+			(IF ACTION SPECIFIED) TRY TO MATCH THE EXACT TARGET. IF SUCCESSFUL, THAT'S THE URL.
+			TRY TO MATCH THE TARGET WITHOUT @METHOD FOR GET REQUESTS. IF SUCCESSFUL, THAT'S THE URL.
+			TRY TO MATCH THE TARGET WITH ANY @METHOD FOR GET REQUESTS. IF SUCCESSFUL, THAT'S THE URL.
+			TRY TO MATCH THE TARGET WITHOUT @METHOD FOR ANY REQUEST. IF SUCCESSFUL, THAT'S THE URL.
+			TRY TO MATCH THE TARGET WITH ANY @METHOD FOR ANY REQUEST. IF SUCCESSFUL, THAT'S THE URL.
+			OTHERWISE: NO URL FOUND
+			
+			keep track of secure, domain, uri; uris may have routing variables
+		*/
 	}
 	
 	public function valid()
@@ -157,6 +183,7 @@ class URL
 	
 	public function isInternal()
 	{
+		return true;
 	}
 }
 

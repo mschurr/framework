@@ -252,3 +252,9 @@ class Cache_Driver_filesystem extends Cache_Driver
 		$this->section_put($section, $key, $value);
 	}
 }
+
+/*
+CRON::register(function(){
+	// periodically purge old files
+});
+*/

@@ -1,29 +1,5 @@
 <?php
 
-class Auth_Attempt_db extends Auth_Attempt
-{
-	protected $ipaddress;
-	protected $userid;
-	protected $timestamp;
-	protected $successful;
-	protected $fraudulent;
-	
-	public function __construct($ipaddress,$userid,$timestamp,$successful,$fraudulent)
-	{
-		$this->ipaddress = $ipaddress;
-		$this->userid = (int) $userid;
-		$this->timestamp = (int) $timestamp;
-		$this->successful = (bool) $successful;
-		$this->fraudulent = (bool) $fraudulent;
-	}
-	
-	public /*string*/ function ipaddress() { return $this->ipaddress; }
-	public /*int*/ function userid() { return $this->userid; }
-	public /*int*/ function timestamp() { return $this->timestamp; }
-	public /*bool*/ function successful() { return $this->successful; }
-	public /*bool*/ function fraudulent() { return $this->fraudulent; }
-}
-
 class Auth_Driver_db extends Auth_Driver
 {
 	protected $user;
@@ -59,7 +35,7 @@ class Auth_Driver_db extends Auth_Driver
 		$result = array();
 		
 		foreach($query as $row) {
-			$attempt = new Auth_Attempt_db($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
+			$attempt = new Auth_Attempt_Standard($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
 			$result[] = $attempt;
 		}
 				
@@ -82,7 +58,7 @@ class Auth_Driver_db extends Auth_Driver
 		$result = array();
 		
 		foreach($query as $row) {
-			$attempt = new Auth_Attempt_db($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
+			$attempt = new Auth_Attempt_Standard($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
 			$result[] = $attempt;
 		}
 				
@@ -105,7 +81,7 @@ class Auth_Driver_db extends Auth_Driver
 		$result = array();
 		
 		foreach($query as $row) {
-			$attempt = new Auth_Attempt_db($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
+			$attempt = new Auth_Attempt_Standard($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
 			$result[] = $attempt;
 		}
 				
@@ -128,7 +104,7 @@ class Auth_Driver_db extends Auth_Driver
 		$result = array();
 		
 		foreach($query as $row) {
-			$attempt = new Auth_Attempt_db($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
+			$attempt = new Auth_Attempt_Standard($row['ipaddress'],$row['userid'],$row['timestamp'],$row['successful'],$row['fraudulent']);
 			$result[] = $attempt;
 		}
 				
@@ -311,7 +287,7 @@ class Auth_Driver_db extends Auth_Driver
 		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
 		if($delay > 0 && $query->row['last'] + $delay > time()) {
-			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "Login attempts have been throttled. Try again later.");
+			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "You must wait before trying again.");
 			return false;
 		}
 		
@@ -321,7 +297,7 @@ class Auth_Driver_db extends Auth_Driver
 		if($throttleuser === null) {
 			// If the user does not exist, throw an error and register a failed attempt.
 			$this->registerLoginAttempt($throttleuser, 0);
-			throw new AuthException("LOGIN_FAILED_INVALID_USERNAME", "Invalid Username/Password Combination");
+			throw new AuthException("LOGIN_FAILED_INVALID_USERNAME", "You entered an invalid username/password combination.");
 			return false;
 		}
 		
@@ -330,7 +306,7 @@ class Auth_Driver_db extends Auth_Driver
 		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
 		if($delay > 0 && $query->row['last'] + $delay > time()) {
-			throw new AuthException("CHECK_FAILED_THROTTLING_USER", "Login attempts have been throttled. Try again later.");
+			throw new AuthException("CHECK_FAILED_THROTTLING_USER", "You must wait before trying again.");
 			return false;
 		}
 		
@@ -340,14 +316,14 @@ class Auth_Driver_db extends Auth_Driver
 		// If the login failed, lets throw an error and register a failed attempt.
 		if($user === null) {	
 			$this->registerLoginAttempt($username, 0);
-			throw new AuthException("LOGIN_FAILED_INVALID_PASSWORD", "Invalid Username/Password Combination");
+			throw new AuthException("LOGIN_FAILED_INVALID_PASSWORD", "You entered an invalid username/password combination.");
 			return false;
 		}
 		
 		// Make sure the user is not banned.
 		if($user->banned()) {
 			$this->registerLoginAttempt($user, 0);
-			throw new AuthException("LOGIN_FAILED_BANNED", "That account is banned.");
+			throw new AuthException("LOGIN_FAILED_BANNED", "You cannot log into a banned account.");
 			return false;
 		}
 		
@@ -377,14 +353,14 @@ class Auth_Driver_db extends Auth_Driver
 		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
 		
 		if($delay > 0 && $query->row['last'] + $delay > time()) {
-			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "Login attempts have been throttled. Try again later.");
+			throw new AuthException("CHECK_FAILED_THROTTLING_IP", "You must wait before trying again.");
 			return false;
 		}
 		
 		// Check password.
 		if(!$this->user->checkPassword($password)) {
 			$this->registerLoginAttempt($this->user, 0);
-			throw new AuthException("CHECK_FAILED_INVALID_PASSWORD", "Incorrect Password");
+			throw new AuthException("CHECK_FAILED_INVALID_PASSWORD", "You entered an incorrect password.");
 			return false;
 		}
 		
@@ -473,3 +449,9 @@ class Auth_Driver_db extends Auth_Driver
 			$this->logout();
 	}
 }
+
+/*
+CRON::register(function(){
+	// periodically purge old/unused identifiers to keep table size low
+});
+*/
