@@ -12,8 +12,10 @@ if (version_compare(phpversion(), '5.3.0', '<') == true) {
 	die('You must install PHP >= 5.3.0 in order to use this framework.');
 }
 
-define('FILE_ROOT', str_replace("/index.php","",$_SERVER['SCRIPT_FILENAME']));
+define('FILE_ROOT', str_replace("/index.php","",str_replace("\\index.php", "", $_SERVER['SCRIPT_FILENAME'])));
 define('FRAMEWORK_ROOT', FILE_ROOT.'/vendor/mschurr/framework/src');
+date_default_timezone_set('UTC');
+
 define('EOL', PHP_EOL);
 require(FRAMEWORK_ROOT.'/framework/errors.php');
 

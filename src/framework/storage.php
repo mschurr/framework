@@ -14,10 +14,10 @@
  *    - Storing user-uploaded photos
  
  * If the files stored by the driver are automatically made available publicly on your content delivery network, StorageFile->url should return that URL.
- * Otherwise, a URL will be generated and returned that proxies the file through the app server node.
+ * Otherwise, a URL will be generated and returned that proxies the file through an app server node.
  *
  * NOTE: This storage system does not provide any sort of access control. All files are assumed publicly accessible. If this is undesired behavior, subclass the driver of your choice
- *  and override access($hash, $session). You will not be able to use a CDN if you do this; all requests must be proxied through the app server.
+ *  and override "access". You will not be able to use a CDN if you do this; all requests must be proxied through the app server for the access function to be honored.
  *
  * Drivers:
  *    MongoDB
@@ -40,7 +40,7 @@ interface StorageSection
 interface Storage extends StorageSection
 {
 	public /*StorageSection*/ function section(/*string*/$name);
-	public /*bool*/ function access(/*string*/$hash, /*Session*/$session);
+	public /*bool*/ function access(/*string*/$hash, /*string*/$section, /*Session*/$session);
 }
 
 interface StorageFile // should just extend File for the most parts

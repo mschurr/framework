@@ -128,7 +128,7 @@ abstract class BladeParser
 	
 	public function __construct($name)
 	{
-		$this->controller =& Route::__getActiveController();
+		$this->controller = Route::__getActiveController();
 		$this->blade_name = trim(str_replace(".", "/", $name),'/');	
 		$this->blade_file = FILE_ROOT.'/'.($this->is('view') ? 'views' : 'layouts').'/'.$this->blade_name.'.blade.php';
 		

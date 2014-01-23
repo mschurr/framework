@@ -59,7 +59,7 @@ class RegistryObject implements Iterator, ArrayAccess, Countable
 	
 	public function __construct($data, $allow_modify=false)
 	{
-		$this->data = $data;
+		$this->data = $data;		
 		$this->allow_modify = $allow_modify;
 	}
 	
@@ -145,12 +145,16 @@ class RegistryObject implements Iterator, ArrayAccess, Countable
 		return $this->__set($offset, $value);
 	}
 	
-	public function offsetExists($offset) {
-		return $this->__isset($offset);
+	public function offsetExists($k) {
+		$k = str_replace("-","_",$k);
+		return isset($this->data[$k]);
 	}
 	
-	public function offsetGet($offset) {
-		return $this->__get($offset);
+	public function offsetGet($k) {
+		$k = str_replace("-","_",$k);
+		if( isset($this->data[$k]) )
+			return $this->data[$k];
+		throw new Exception("Access to undefined property: ".$k);
 	}
 	
 	public function offsetUnset($offset) {
@@ -181,5 +185,13 @@ class RegistryObject implements Iterator, ArrayAccess, Countable
 	public function valid() {
 		$keys = array_keys($this->data);
 		return isset($keys[$this->__position]) && isset($this->data[$keys[$this->__position]]);
+	}
+	
+	public function dump() {
+		return print_r($this->data, true);	
+	}
+	
+	public function toArray() {
+		return $this->data;	
 	}
 }

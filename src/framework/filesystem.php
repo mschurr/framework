@@ -1,76 +1,101 @@
 <?php
 /*
-	This library aims to rewrite the default PHP filesystem functions into an Object-Oriented library that makes more sense.
+	This library aims to rewrite the default PHP filesystem functions into an Object-Oriented library that makes sense
+    and is more intuitive and feature-filled than SPLFileObject/SPLFileInfo.
 	
 	Usage:
+		// We can represent a file as an object.
 		$file = new File(FILE_ROOT.'/file.txt');
 		
-		Directories are also files.
-			$dir = new File(FILE_ROOT);
-			$dir = new File(FILE_ROOT.'/');
+		// Directories are also files.
+		$dir = new File(FILE_ROOT);
+		$dir = new File(FILE_ROOT.'/');
 		
-		Providing the trailing "/" for directories is optional - however, if the file does not exist and you call a function the creates the file, it will 
-		only be created as directory if the trailing "/" is provided. Otherwise, it will be created as a file with no extension.
+		Providing the trailing "/" for directories is optional - however, if the file does not exist and you call a f
+		unction the creates the file, it will only be created as directory if the trailing "/" is provided. Otherwise, 
+		it will be created as a file with no extension.
 		
-		Each file has properties. These properties can be accessed using $file->property or $file['property'].
+		Each File has properties. These properties can be accessed using $file->property or $file['property'].
 			e.g. $file['name'] or $file->name
 			
-		All properties are LAZY LOADED. No hits will occur to the filesystem until a property is actually accessed. Properties are calculated once and cached.
-		Creating a new File object does not access the disk at all - it incurs only the overhead required to create the object.
+		All properties are LAZY LOADED. No hits will occur to the filesystem until a property is actually accessed. Properties 
+		are calculated once and cached. Creating a new File object does not access the disk at all - it incurs only the overhead
+		required to instantiate the object.
 		
 		Available Properties:
-			path				- the file (or directory)'s absolute path
+			path				- the file (or directory)'s absolute path.
 			directory			- the absolute path of the file (or directory)'s parent directory
-			name				- the file (or directory)'s name
+			name				- the file (or directory)'s name (including extension)
+			fileName			- the file (or directory)'s name (excluding extension)
 			exists				- whether or not the file (or directory) exists
-			mime				- (For Files Only)the file's mime type
-			extension			- (For Files Only)the file's extension
-			content				- (For Files Only) the file's content
-			json				- (For Files Only) the file's content, decoded from json
+			mime				- (for files only) the file's mime type. defaults to application/octet-stream (binary) if unknown.
+			extension			- (for files only) the file's extension
+			content				- (for files only) the file's content
+			json				- (for files only) the file's content, decoded from json into a native array
+			serial				- (for files only) the file's content, decoded from serialization into a native object/array
 			size				- the file (or directory)'s size in bytes
 			lastModified		- the unix timestamp of last modification to the file (or directory)
+			lastAccessed		- the unix timestamp of last access to the file (or directory)
 			isDirectory			- whether or not the object is a directory
 			isFile				- whether or not the object is a file
+			isLink				- whether or not the file is a symlink
+			target				- (for symlinks only) returns a File object pointing to the target of the link
 			isReadable			- whether or not the file (or directory) is readable
 			isWriteable			- whether or not the file (or directory) is writeable
-			files				- (For Directories Only) an array of <File> objects representing files in the directory
+			files				- (for directories only) an array of <File> objects representing files in the directory (non-recursive)
 			empty				- whether or not the file (or directory) is empty
 			temporary			- whether or not the file (or directory) is temporary
-			hex					- hexadecimal string representing value of file contents
+			hex					- hexadecimal string representing value of file contents (useful for SQL BLOB queries)
 			md5					- md5 hash of file contents
 			sha1				- sha1 hash of file contents
+			parent				- a File object pointing to the current File's parent directory
+			uploaded			- whether or not the file was uploaded
+			uploadedName		- the name provided for the file at upload (includes extension). use with caution.
+			uploadedExtension	- the extension provided for the file at upload. use with caution.
+			uploadedMime		- the mime provided for the file at upload. use with caution.
 				
-		It is possible to modify file properties directly. These will perform an action on the file.
+		It is possible to modify certain file properties directly. Modifying a property will make changes on disk.
 			e.g. $file['name'] = 'newname.log';
 			e.g. $file->name = 'newname.log';
 				
 		Modifiable Properties:
-			path			- moves/renames the file to locate it at the new path
-			directory		- moves the file to the new directory
-			name			- renames the file
-			extension		- changes the file's extension (aliases: type, ext)
-			content			- writes to the file. overwrites existing content. creates file if needed. (aliases: contents)
-			                  NOTE: it is possible to append ($file->content .= morecontent), but using the ->append(content) method is more efficient because it does not require existing file content to be loaded to memory 
+			path			- moves/renames the file to locate it at the new path. the new value should include both name and extension.
+			directory		- moves the file to the new directory. name and extension are preserved.
+			name			- renames the file within its current directory. the new value should include both name and extension.
+			fileName		- renames the file within its current directory. the new value should include only name; extension is preserved.
+			extension		- changes the file's extension. base name and parent directory are preserved.
+			content			- writes to the file, overwriting existing content. creates file if needed.
+			                  NOTE: it is possible to append ($file->content .= morecontent), but using the ->append(content) method is more efficient
+							   because it does not require existing file content to be loaded to memory (this is a limitation of PHP)
 			json			- writes a php object to the file as json. overwrites existing content.  creates file if needed.
 			serial			- writes a php object to the file using serialize(). overwrites existing content. creates file if needed.
 			
-		File objects can be iterated over, provided the object represents a directory (equivalent to saying foreach($dir->files)).
+		Direct children of file objects can be iterated over, provided the object represents a directory (equivalent to saying foreach($dir->files)).
 			foreach($dir as $file_object)
 				echo $file_object->path;
+				
+		You can iterate over the lines in a file efficiently:
+			foreach($file->lines as $line) {}
+			len($file->lines) -- Total number of lines.
+			$file->lines[0] -- Direct access to line 0.
+	
+		You can iterate over a file in chunks of a given size efficiently:
+			foreach($file->chunk($bytes) as $chunk) {}
+			len($file->chunks) -- Total number of chunks.
+			$file->chunks[0] -- Direct access to chunk 0.
 		
 		Casting a file as a string will yield the file's contents.
 			$contents = (str) $file;
-			$response->write($file);
 			
 		Files also have actions:
 			touch()
 				- updates access and modify time of the file to now. creates the file if it doesnt exist.
 			
 			copyTo(path)
-				- creates a copy of the file at the provided path
+				- creates a copy of the file at the provided path. for directories, recursively copies the directory and all contents.
 			
 			delete()
-				- removes the file from the system
+				- removes the file from the system. for directories, recursively deletes the directory and all contents.
 				
 			put(content)
 				- writes content to the file. creates file if needed. existing content is overwritten.
@@ -87,10 +112,6 @@
 			make() ~ aliases: create()
 				- makes the file if it does not exist (as an empty directory or empty file).
 			
-			assetURL()
-				- attempts to make a URL to this file (if it's in the static directory) or returns null.
-				- DEPRECATED - USE URL::to(File $file) instead.
-			
 	-----------
 	
 	This library also provides access to more general file system functions.
@@ -105,7 +126,392 @@
 		- Returns a human readable size for the provided bytes (e.g. 5.2 MB).
 		
 	// TODO: allow size comparison in HR format... eg file->sizeCompare('10M')
+	
+	TODO: Add the following
+	
+	You can iterate over the direct children of a directory (non-recursive), optionally filtered:
+		foreach($file->children as $file) { }
+		foreach($file->children($filter) as $file) { }
+		len($file->children) -- Total number of children.
+		len($file->children($filter)) -- Total number of children matching filter.
+	
+	You can iterate over all descendants of a directory (recursively), optionally filtered:
+		foreach($file->descendants as $file) {}
+		foreach($file->descendants($filter) as $file) {}
+		len($file->descendants) -- Total number of descendants.
+		len($file->descendants($filter)) -- Total number of descendants matching filter.
+		
+	A filter is a closure that accepts a File object as input and returns true (if the file should be included in iteration) and false otherwise.
+		$filter = function(File $file) {
+			// We only want to iterate over directories.
+			return $file->isDirectory;
+		};
+		
+	
+	always absolute path for ->path
+	->copyTo should assume recursive for directories
+	remove ->files and repurpose it
+	add ->toArray() to all the iterators
+	error andling with exceptions
+	->make() and create() should accept initial content
+		
+		->lock()
+		->release()
+		->passthrough()
+		->truncate(bytes)
+		->canonicalPath (resolves links, absolute path)
+		->target
+		->formattedSize
+		->delete(recursive, preserve)
+		->chmod(mode)
+		->chown(owner)
+		->group
+		->inode
+		->permissions
+		->owner
+		->isImage
+		->isOfType($extensionsarray)
+		
+		::open(path)
+		::link(src,dest)
+		::symlink(src, dest)
+		::uploadedFiles
+		
+		$files = array();
+				if(len($_FILES) > 0) {
+					
+					foreach($_FILES as $name => $info) {
+						if($info['error'] === UPLOAD_ERR_OK) {
+							$files[$name] = with(new File($info['tmp_name']))->withUploadInfo($info);
+						}
+					}
+				}
+				$this->_file = new RegistryObject($files);
 */
+
+class FileException extends Exception {}
+
+class FileLocalization
+{
+	/**
+	 * Creates a language string from template.
+	 * @param String $key
+	 * [[@param mixed $printfparameter], ...]
+	 */
+	public static function make()
+	{
+		if(self::$language === null)
+			self::load();
+			
+		$args = func_get_args();
+		
+		if(sizeof($args) < 1)
+			throw new InvalidArgumentException();
+			
+		// TODO: USE STRINGS AND PRINTF
+		return $args[0];
+	}
+	
+	/**
+	 * Initializes the localizer with a provided language code.
+	 * If make() is called before load(), assumes 'en'.
+	 */
+	public static function load($language='en')
+	{
+		self::$language = $language;
+		
+		// TODO: LOAD STRINGS
+	}
+	
+	protected static $language;
+	protected static $strings;
+}
+
+
+class RecursiveFileStructureIterator implements Iterator, Countable
+{
+	protected $_file;
+	protected $_filter;
+	
+	public function __construct(File &$file, Closure &$filter)
+	{
+		$this->_file =& $file;
+		$this->_filter =& $filter;
+	}
+	
+	// Countable
+	public /*int*/ function count()
+	{
+	}
+	
+	// Iterator
+	public /*mixed*/ function current()
+	{
+	}
+	
+	public /*scalar*/ function key()
+	{
+	}
+	
+	public /*void*/ function rewind()
+	{
+	}
+	
+	public /*void*/ function next()
+	{
+	}
+	
+	public /*boolean*/ function valid()
+	{
+	}
+}
+
+class FileStructureIterator implements Iterator, Countable
+{
+	protected $_file;
+	protected $_filter;
+	
+	public function __construct(File &$file, Closure &$filter)
+	{
+		$this->_file =& $file;
+		$this->_filter =& $filter;
+	}
+	
+	// Countable
+	public /*int*/ function count()
+	{
+		
+	}
+	
+	// Iterator
+	public /*mixed*/ function current()
+	{
+	}
+	
+	public /*scalar*/ function key()
+	{
+	}
+	
+	public /*void*/ function rewind()
+	{
+	}
+	
+	public /*void*/ function next()
+	{
+	}
+	
+	public /*boolean*/ function valid()
+	{
+	}
+}
+
+class FileChunksIterator implements Iterator, ArrayAccess, Countable
+{
+	protected $_file;
+	protected $_bytes;
+	
+	public function __construct(File &$file, /*int*/ $bytes)
+	{
+		$this->_file =& $file;
+		$this->_bytes = $bytes;
+	}
+	
+	// Countable
+	public /*int*/ function count()
+	{
+		return ceil($this->_file->size / $this->_bytes);
+	}
+	
+	// ArrayAccess
+	public /*void*/ function offsetUnset($offset)
+	{
+		throw new BadMethodCallException();
+	}
+	
+	public /*boolean*/ function offsetExists($offset)
+	{
+		return $offset < $this->count();
+	}
+	
+	public /*mixed*/ function offsetGet($offset)
+	{
+		$h = fopen($this->_file->path, 'r');
+		
+		if(!fseek($h, $offset * $this->_bytes, SEEK_SET))
+			return null;
+		
+		if(feof($h))
+			return null;
+			
+		$data = fread($h, $this->_bytes);
+		
+		fclose($h);
+		
+		return $data;
+	}
+	
+	public /*void*/ function offsetSet($offset, $value)
+	{
+		throw new BadMethodCallException();
+	}
+	
+	// Iterator
+	protected $_handle;
+	protected $_key;
+	
+	public /*mixed*/ function current()
+	{
+		return fread($this->_handle, $this->_bytes);
+	}
+	
+	public /*scalar*/ function key()
+	{
+		return $this->_key;
+	}
+	
+	public /*void*/ function rewind()
+	{
+		if($this->_handle) {
+			fclose($this->_handle);
+		}
+		
+		$this->_handle = fopen($this->_file->path, 'r');
+		$this->_key = 0;
+	}
+	
+	public /*void*/ function next()
+	{
+		$this->_key++;
+	}
+	
+	public /*boolean*/ function valid()
+	{
+		return !feof($this->_handle);
+	}
+	
+	public /*void*/ function __destruct()
+	{
+		if($this->_handle) {
+			fclose($this->_handle);
+		}
+	}
+}
+
+class FileLinesIterator implements Iterator, ArrayAccess, Countable
+{
+	protected $_file;
+	
+	public function __construct(File &$file)
+	{
+		$this->_file =& $file;
+	}
+	
+	// Countable
+	protected $_count = null;
+	public /*int*/ function count()
+	{
+		if(is_null($this->_count) && $this->_file->exists && !$this->_file->isDirectory) {
+			$this->_count = 0;
+			
+			$h = fopen($this->_file->path, 'r');
+			
+			while(!feof($h)) {
+				$content = fgets($handle, 4096);
+				$this->_count += 1;	
+			}
+			
+			fclose($h);
+		}
+		
+		return $this->_count;
+	}
+	
+	// ArrayAccess
+	public /*void*/ function offsetUnset($offset)
+	{
+		throw new BadMethodCallException();
+	}
+	
+	public /*boolean*/ function offsetExists($offset)
+	{
+		return $offset < $this->count();
+	}
+	
+	/**
+	 * This is currently very slow... can speed it up by building an index when we calculate count() mapping lineOffset => bytesOffset for every $kth line.
+	 * Recommend basing the number of indexes off of file size (or total number of lines).
+	 * Can then scan from the closest index to find a given line $n in O($k).
+	 */
+	public /*mixed*/ function offsetGet($offset)
+	{
+		if($this->_file->exists && !$this->_file->isDirectory) {
+			$line = 0;
+			
+			$h = fopen($this->_file->path, 'r');
+			
+			while(!feof($h)) {
+				$content = fgets($handle, 4096);
+				
+				if($line === $offset) {
+					return 	$content;
+				}
+				
+				$line += 1;	
+			}
+			
+			fclose($h);
+		}
+		
+		return null;
+	}
+	
+	public /*void*/ function offsetSet($offset, $value)
+	{
+		throw new BadMethodCallException();
+	}
+	
+	// Iterator
+	protected $_handle;
+	protected $_key;
+	
+	public /*mixed*/ function current()
+	{
+		return fgets($this->_handle, 4096);
+	}
+	
+	public /*scalar*/ function key()
+	{
+		return $this->_key;
+	}
+	
+	public /*void*/ function rewind()
+	{
+		if($this->_handle) {
+			fclose($this->_handle);
+			$this->_handle = null;	
+		}
+		
+		$this->_handle = fopen($this->_file->path, 'r');
+		$this->_key = 0;
+	}
+	
+	public /*void*/ function next()
+	{
+		$this->_key++;
+	}
+	
+	public /*boolean*/ function valid()
+	{
+		return !feof($this->_handle);
+	}
+	
+	public /*void*/ function __destruct()
+	{
+		if($this->_handle) {
+			fclose($this->_handle);	
+		}
+	}
+}
 
 class File implements Iterator, ArrayAccess, Countable
 {
@@ -120,23 +526,77 @@ class File implements Iterator, ArrayAccess, Countable
 		$this->path = rtrim($path,'/');
 	}
 	
+	public static function open($path)
+	{
+		return new File($path);
+	}
+	
 	public function withUploadInfo($file_info)
 	{
 		$this->cache['temporary'] = true;
-		$this->cache['name'] = $file_info['name'];
-		$this->cache['mime'] = $file_info['mime'];
-		$this->cache['extension'] = pathinfo($file_info['name'], PATHINFO_EXTENSION);
+		$this->cache['uploaded'] = true;
+		$this->cache['uploadedName'] = $file_info['name'];
+		$this->cache['uploadedMime'] = $file_info['mime'];
+		$this->cache['uploadedExtension'] = pathinfo($file_info['name'], PATHINFO_EXTENSION);
 		return $this;
+	}
+	
+	// Iterators
+	
+	/**
+	 * Returns a file structure iterator in the directory represented by $this object.
+	 * Usage: foreach( $folder->descendants as File $file) { }
+	 *
+	 * The optional parameter $filter may be a closure that accepts a File object as input and
+	 *  returns true or false whether or not the file should be included in iteration.
+	 */
+	public function children(Closure $filter=null)
+	{
+		return new FileStructureIterator($this, $filter);
+	}
+	
+	/**
+	 * Returns a recursive file structure iterator.
+	 * Usage: foreach( $folder->descendants as File $file) { }
+	 *
+	 * The optional parameter $filter may be a closure that accepts a File object as input and
+	 *  returns true or false whether or not the file should be included in iteration.
+	 */
+	public function descendants(Closure $filter=null)
+	{
+		return new RecursiveFileStructureIterator($this, $filter);
+	}
+	
+	/**
+	 * Reads a file one line at a time; the result is iterable.
+	 * Usage: foreach( $file->lines as $line ) { }
+	 * $lines supports array access; to access line $n use $file->lines[$n-1].
+	 * sizeof($lines) will return the number of lines.
+	 */
+	public function lines()
+	{
+		return new FileLinesIterator($this);
+	}
+	
+	/**
+	 * Reads a file in chunks of $bytes; the result is iterable.
+	 * Usage: foreach ( $file->chunk(1024) as $chunk ) { }
+	 * $chunks supports array access; to access the data at offset $n*$bytes - $n*$bytes+$bytes use $chunks[$n-1].
+	 * sizeof($chunks) will return the number of chunks.
+	 */
+	public function chunk(/*int*/$bytes)
+	{
+		return new FileChunksIterator($this, $bytes);
 	}
 	
 	// On-Demand Values
 	protected $cache = array();
 	protected $alias = array(
-		'parent  ' => 'directory',
-		'ext'      => 'extension',
-		'type'     => 'extension',
-		'writable' => 'writeable',
-		'contents' => 'content'
+		'ext'     		=> 'extension',
+		'type'    		=> 'extension',
+		'writable' 		=> 'writeable',
+		'contents' 		=> 'content',
+		'destination' 	=> 'target'
 	);
 	
 	public function resetCache()
@@ -184,6 +644,11 @@ class File implements Iterator, ArrayAccess, Countable
 			$this->rename($name.'.'.$v); 
 		}
 		
+		// Handle fileName (rename).
+		elseif($k == 'fileName') {
+			$this->rename($v.'.'.$this->extension);	
+		}
+		
 		// Handle Content (write)
 		elseif($k == 'content')
 			$this->put($v);
@@ -229,10 +694,23 @@ class File implements Iterator, ArrayAccess, Countable
 		elseif($k == 'serial') {
 			$value = ($this->exists) ? unserialize($this->content) : array();
 		}
+		elseif($k == 'parent') {
+			$value = new File($this->directory);
+		}
+		elseif($k == 'children')
+			return $this->children();
+		elseif($k == 'descendants')
+			return $this->descendants();
+		elseif($k == 'lines')
+			return $this->lines();
 		elseif($k == 'size')
 			$value = ($this->exists) ? (($this->isDirectory) ? FileSystem::diskUsage($this->path) : filesize($this->path)) : null;
 		elseif($k == 'lastModified')
 			$value = ($this->exists) ? filemtime($this->path) : null;
+		elseif($k == 'lastAccessed')
+			$value = ($this->exists) ? fileatime($this->path) : null;
+		elseif($k == 'fileName')
+			$value = pathinfo($this->path, PATHINFO_FILENAME);
 		elseif($k == 'isDirectory')
 			$value = ($this->exists && is_dir($this->path));
 		elseif($k == 'isWriteable')
@@ -241,6 +719,10 @@ class File implements Iterator, ArrayAccess, Countable
 			$value = ($this->exists && is_readable($this->path));
 		elseif($k == 'isFile')
 			$value = ($this->exists && !is_dir($this->path));
+		elseif($k == 'isLink')
+			$value = ($this->exists && is_link($this->path));
+		elseif($k == 'target')
+			$value = ($this->isLink) ? new File(readlink($this->path)) : null;
 		elseif($k == 'files') {
 			if($this->isDirectory) {
 				$value = array();
@@ -331,11 +813,6 @@ class File implements Iterator, ArrayAccess, Countable
 			return true;
 		}
 		return false;
-	}
-	
-	public function assetURL()
-	{
-		return URL::to($this);
 	}
 	
 	public function make()
@@ -550,7 +1027,7 @@ class FileSystem
 	
 	public function move($path,$target,$mkdir=false); //, use is_uploaded_file move_uploaded_file
 	public function delete($path);
-	public function copy($path, $path2);
+	public function copy($path, $path2); -- should be recursive for directories
 	public function extension($path);
 	public function touch($path);
 	public function rename($path, $new_name)

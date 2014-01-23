@@ -435,9 +435,9 @@ class Auth_Driver_db extends Auth_Driver
 	
 	public /*void*/ function load()
 	{
-		$this->db =& App::getDatabase();
-		$this->request =& App::getRequest();
-		$this->response =& App::getResponse();
+		$this->db = App::getDatabase();
+		$this->request = App::getRequest();
+		$this->response = App::getResponse();
 		
 		// Check for existing sessions.
 		$this->validateLogin();

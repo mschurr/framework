@@ -11,6 +11,9 @@
 	Route::currentRouteName()
 	
 	filters should either return true/false OR perform some termination action (showing a view, redirecting, etc.) OR reference another controller
+
+	routing with wildcard subdomains?
+	using route parameters in target string
 */
 
 /*
@@ -58,7 +61,7 @@ class Route
 		$controller_namespace_path = str_replace("/","\\",$controller_path);
 		$controller = (strpos($controller_path,"/") !== false ? substr($controller_path,strrpos($controller_path,"/")+1) : $controller_path);
 		$controller_file = FILE_ROOT.'/controllers/'.$controller_path.'.php';
-		
+		$controller_class = $controller;
 		if(!class_exists($controller)) {
 			if(!file_exists($controller_file)) {
 				$response->error(500, 'The controller could not be found for "'.$target.'".');
@@ -167,7 +170,8 @@ class Route
 		
 		// The controller returned a file;
 		if($value instanceof File) {
-			$response->error(500, 'A controller returned File, but these are not implemented.');
+			$response->out->pass($value);
+			//$response->error(500, 'A controller returned File, but these are not implemented.');
 			return;
 		}
 		
@@ -403,14 +407,12 @@ class Route
 			else {
 				$inverseTarget = $target;
 			}
+			
+			if(isset(self::$inverseRoutes[$inverseTarget]))
+				self::$inverseRoutes[$inverseTarget][] = $uri_match;
+			else
+				self::$inverseRoutes[$inverseTarget] = array($uri_match);
 		}
-		else
-			$inverseTarget = $target;
-				
-		if(isset(self::$inverseRoutes[$inverseTarget]))
-			self::$inverseRoutes[$inverseTarget][] = $uri_match;
-		else
-			self::$inverseRoutes[$inverseTarget] = array($uri_match);
 		
 		// Return Helper Object
 		$rh = new RouteHelper($uri_match);

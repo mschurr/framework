@@ -202,19 +202,19 @@ abstract class Auth_Driver
 	// -------------- Class Methods Requiring Implementation
 	
 	/* Terminate all persistent and active sessions for a given user. */
-	public static abstract /*void*/ function terminateAllSessionsForUser(User_Provider $user);
+	public static /*void*/ function terminateAllSessionsForUser(User_Provider $user) { throw new AuthException("NOT_IMPLEMENTED"); }
 	
 	/* Returns the failed login attempts for a given user since a unix timestamp. */
-	public static abstract /*int*/ function countFailedLoginsForUserSince(User_Provider $user, $time=0);
-	public static abstract /*array<Auth_Attempt>*/ function failedLoginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0);
+	public static /*int*/ function countFailedLoginsForUserSince(User_Provider $user, $time=0) { throw new AuthException("NOT_IMPLEMENTED"); }
+	public static /*array<Auth_Attempt>*/ function failedLoginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0) { throw new AuthException("NOT_IMPLEMENTED"); }
 	
 	/* Returns the all login attempts for a given user since a unix timestamp. */
-	public static abstract /*int*/ function countLoginsForUserSince(User_Provider $user, $time=0);
-	public static abstract /*array<Auth_Attempt>*/ function loginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0);
+	public static /*int*/ function countLoginsForUserSince(User_Provider $user, $time=0) { throw new AuthException("NOT_IMPLEMENTED"); }
+	public static /*array<Auth_Attempt>*/ function loginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0) { throw new AuthException("NOT_IMPLEMENTED"); }
 	
 	/* Returns the login attempts reported fradulent for a given user since a unix timestamp. */
-	public static abstract /*int*/ function countFraudulentLoginsForUserSince(User_Provider $user, $time=0);
-	public static abstract /*array<Auth_Attempt>*/ function fraudulentLoginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0);
+	public static /*int*/ function countFraudulentLoginsForUserSince(User_Provider $user, $time=0) { throw new AuthException("NOT_IMPLEMENTED"); }
+	public static /*array<Auth_Attempt>*/ function fraudulentLoginsForUserSince(User_Provider $user, $time=0, $limit=50, $offset=0) { throw new AuthException("NOT_IMPLEMENTED"); }
 		
 	// -------------- Instance Methods
 	protected /*Session_Driver*/ $session;

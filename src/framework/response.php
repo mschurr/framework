@@ -9,6 +9,7 @@ class Response
 	);
 	public $status = 200;
 	public $autoflush = false;
+	public $startedWriting = false;
 	
 	public function __construct()
 	{
@@ -32,15 +33,22 @@ class Response
 	
 	public function send()
 	{
-		if(!headers_sent()) {
-			header('HTTP/1.1 '.$this->status.' '.$this->status_text[$this->status], true);
-			
-			foreach($this->headers as $k => $v) {
-				header($k.':'. $v, true);
+		if(!$this->startedWriting) {
+			if(!headers_sent()) {
+				header('HTTP/1.1 '.$this->status.' '.$this->status_text[$this->status], true);
+				
+				foreach($this->headers as $k => $v) {
+					header($k.':'. $v, true);
+				}
 			}
+			
+			Cookies::writePendingToBrowser();
+			
+			$this->startedWriting = true;
+			
+			
+			
 		}
-		
-		Cookies::writePendingToBrowser();
 		
 		$this->out->send();
 	}
@@ -89,9 +97,6 @@ class Response
 	public function pass($path, $name=null, $extra_headers=array())
 	{
 		throw new Exception("File passing is not implemented.");
-		// Passes a file through to the end-user, allowing them to download it.
-		// $path can also be instance of file
-		// Supports HTTP Range headers, allowing clients to pause and resume downloads.
 	}
 	
 	public function dump()

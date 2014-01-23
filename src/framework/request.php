@@ -1,4 +1,8 @@
 <?php
+/*
+	NOTE: request->ip and request->secure are unreliable for now because if the server is not behind a load balancer they can be spoofed
+*/
+
 class Request
 {	
 	// Calculate Information
@@ -25,7 +29,7 @@ class Request
 	{
 		$request = $this->server['SERVER_PROTOCOL']." ".$this->method." ".$this->server['REQUEST_URI'].PHP_EOL;
 		foreach($this->headers as $k => $v) {
-			$request .= $k.": ".$v.PHP_EOL;
+			$request .= str_replace("_","-",$k).": ".$v.PHP_EOL;
 		}
 		
 			foreach($this->post as $k => $v) {
@@ -33,6 +37,9 @@ class Request
 					$request .= $k.'='.print_r($v,true).EOL;
 				else
 					$request .= $k.'='.urlencode($v).''.EOL;
+			}
+			foreach($this->files as $k => $v) {
+				$request .= $k.'=(File)';	
 			}
 			$request = substr($request,0,-1).PHP_EOL;
 				
@@ -125,10 +132,49 @@ class Request
 		elseif($k == 'headers' || $k == 'header') {
 			if(!$this->_headers instanceof RegistryObject) {
 				if(function_exists('getallheaders')) {
-					$this->_headers = new RegistryObject(getallheaders());
+					/*
+						So apparently this is perfectly valid:
+							$array = array(
+								"something-with-a-dash" => "value"
+							)
+						But:
+							isset($array['something-with-a-dash']) returns false
+							$array['something-with-a-dash'] throws an access error
+						However this will print something:
+							foreach($array as $k => $v)
+								if($k === 'something-with-a-dash')
+									echo $v;
+							
+						Really PHP?
+					*/
+					$data = array();
+		
+					foreach(getallheaders() as $k => $v) {
+						$data[str_replace("-","_",$k)] = $v;	
+					}
+					
+					$this->_headers = new RegistryObject($data);
+					//$this->_headers = new RegistryObject(getallheaders());
 				}
 				else {
-					$this->_headers = new RegistryObject(array());
+					// Provide emulated support for getallheaders() if PHP < 5.5.7
+					$data = array();
+					foreach($_SERVER as $k => $v) { 
+						if(substr($k, 0, 5) == 'HTTP_') {
+							$k = strtolower(substr($k, 5));
+							$segs = explode("_", $k);
+							$key = "";
+
+							for($i = 0; $i < sizeof($segs); $i++) {
+								$key .= ucfirst($segs[$i]);
+								if($i < sizeof($segs)-1)
+									$key .= '_';
+							}
+
+							$data[$key] = $v;
+						}
+					}
+					$this->_headers = new RegistryObject($data);
 				}
 			}
 			return $this->_headers;
