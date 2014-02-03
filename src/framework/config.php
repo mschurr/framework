@@ -36,7 +36,8 @@
 	database.pass			<string>														The database password.
 	database.host			<string>														The database hostname or ipaddress.
 	database.port			<int>															The database server port.
-	database.name			<string>														The name of database to use.
+	database.name			<string>														The name of database to use
+	http.loadbalanced		<bool>									false					Whether or not the server is behind a load balancer and should pull IP/PROTO from X-Forwarded-Proto and X-Forwarded-For headers.
 	
 */
 
