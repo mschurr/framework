@@ -10,7 +10,12 @@ class Request
 	{	
 		$this->_method = (isset($this->server['REQUEST_METHOD'])) ? $this->server['REQUEST_METHOD'] : 'GET';
 		$this->_uri    = $this->server['REQUEST_URI'];
+		
 		$this->_path   = '/'.trim( (strpos($this->server['REQUEST_URI'],"?") === false ? $this->server['REQUEST_URI'] : substr($this->server['REQUEST_URI'], 0, strrpos($this->server['REQUEST_URI'],"?")))  ,'/\\');
+		if($this->_path == '/index.php')
+			$this->_path = '/';
+		elseif(str_startswith($this->_path, "/index.php"))
+			$this->_path = substr($this->_path, strlen("/index.php"));
 		$this->_secure = (isset($this->server['https']) && $this->server['https'] == 'on');
 		$this->_secure = $this->_secure || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https');
 		$this->_ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
