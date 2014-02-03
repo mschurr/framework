@@ -246,7 +246,7 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 		$this->params = $params;
 		
 		if($success === false && $driver->inTransaction() === false)
-			throw new DatabaseException("A database query failed: ".$this->error);
+			throw new DatabaseException("A database query failed: ".$this->text." : ".$this->error);
 	}
 	
 	public function __len()

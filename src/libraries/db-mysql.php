@@ -25,7 +25,7 @@ class DB_Driver_mysql extends DB_Driver
 			return true;
 	
 		try {
-			$this->link = new PDO('mysql:host='.$this->host.':'.$this->port.';dbname='.$this->name, $this->user, $this->pass);
+			$this->link = new PDO('mysql:host='.$this->host.';port='.$this->port.';dbname='.$this->name, $this->user, $this->pass);
 		}
 		catch (PDOException $e) {
 			trigger_error('Database Connection Failed: '.nl2br($e->getMessage()));

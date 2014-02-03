@@ -4,7 +4,7 @@
 	/app
 	/config
 	/document
-	/filesystem
+	/filesystem/File
 	/models
 	/output
 	/response
@@ -15,6 +15,8 @@
 	groupservice-db
 	
 	initialize, errors (currently always shown)
+	routing through /index.php for HHVM
+	allow something like: Route::get('/', fn) Route::post('/', fn)
 */
 
 class App

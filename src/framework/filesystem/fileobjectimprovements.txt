@@ -1,0 +1,1 @@
+File.properties holds a copy of the array for every instance? that is dumb

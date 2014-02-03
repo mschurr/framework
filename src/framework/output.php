@@ -52,7 +52,7 @@ class Output
 				
 		// Calculate and send the headers.
 		$response->headers['Cache-Control'] = 'public, max-age=3600, must-revalidate';
-		$response->headers['Content-Disposition'] = 'inline; filename="'.$file->name.'"'; // also: attachment
+		//$response->headers['Content-Disposition'] = 'inline; filename="'.$file->name.'"'; // also: attachment
 		$response->headers['Etag'] = md5($file->lastModified);
 		$response->headers['Last-Modified'] = $file->lastModified;
 		$response->headers['Expires'] = gmdate("D, d M Y H:i:s", $file->lastModified).' GMT';
