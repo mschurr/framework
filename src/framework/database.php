@@ -339,17 +339,17 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 	}
 	
 	public function offsetExists($offset) {
-		if($offset == 0 || $offset == 1) // For backwards compatability.
+		if($offset === 0 || $offset === 1) // For backwards compatability.
 			return true;
-		return isset($this->row[$offset]);
+		return isset($this->rows[0][$offset]);
 	}
 	
 	public function offsetGet($offset) {
-		if($offset == 0) // For backwards compatability.
+		if($offset === 0) // For backwards compatability.
 			return $this->size;
-		if($offset == 1) // For backwards compatability.
+		if($offset === 1) // For backwards compatability.
 			return $this->rows;
-		return isset($this->row[$offset]) ? $this->row[$offset] : null;
+		return isset($this->rows[0][$offset]) ? $this->rows[0][$offset] : null;
 	}
 	
 	public function offsetUnset($offset) {

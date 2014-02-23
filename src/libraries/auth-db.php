@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Database Authentication Driver
+ * @author Matthew Schurr
+ *
+ * This class implements an authentication driver using a SQL relational database system.
+ */
 class Auth_Driver_db extends Auth_Driver
 {
 	protected $user;

@@ -38,7 +38,19 @@
 	database.port			<int>															The database server port.
 	database.name			<string>														The name of database to use
 	http.loadbalanced		<bool>									false					Whether or not the server is behind a load balancer and should pull IP/PROTO from X-Forwarded-Proto and X-Forwarded-For headers.
-	
+	app.development			<bool>									true 					Whether or not to use development mode (displays pretty stack traces)
+
+TODO: 
+	persistance, hard coding not overwritable
+	'mailer.name'       => 'crush@riceapps.org',
+	'mailer.email'      => 'crush@riceapps.org',
+	'mailer.host'       => '.hostmonster.com',
+	'mailer.port'       => '465',
+	'mailer.user'       => 'crush@riceapps.org',
+	'mailer.pass'       => '',
+	'mailer.crypt'      => 'ssl',
+	'recaptcha.publicKey' => '',
+	'recaptcha.privateKey' => ''
 */
 
 /*

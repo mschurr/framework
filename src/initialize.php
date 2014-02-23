@@ -1,24 +1,38 @@
 <?php
-/*
-	Basic PHP Web Framework
-	@author Matthew Schurr
-*/
+/**
+ *	Foundation Web Framework
+ *	@author Matthew Schurr
+ *
+ * This file loads and initalizes all of the libraries essential to framework operation.
+ */
 
+/**
+ * This function always returns true; it can be used to check if a file was included.
+ */
 function included() {
 	return true;
 }
 
+// This framework only supports PHP versions >= 5.3.0.
 if (version_compare(phpversion(), '5.3.0', '<') == true) {
 	die('You must install PHP >= 5.3.0 in order to use this framework.');
 }
 
+// Establish directory root constants.
 define('FILE_ROOT', str_replace("/index.php","",str_replace("\\index.php", "", $_SERVER['SCRIPT_FILENAME'])));
 define('FRAMEWORK_ROOT', FILE_ROOT.'/vendor/mschurr/framework/src');
+
+// Establish a default time zone (may be overridden later by user configuration).
 date_default_timezone_set('UTC');
 
+// Establish other useful constants.
 define('EOL', PHP_EOL);
-require(FRAMEWORK_ROOT.'/framework/errors.php');
 
+// Load the error handling module.
+require(FRAMEWORK_ROOT.'/framework/errors.php');
+ErrorManager::engageDevelopmentHandler();
+
+// Set PHP configuration values to optimize framework performance.
 ini_set('expose_php',false);
 ini_set('magic_quotes_gpc','Off');
 ini_set('register_globals','Off');
@@ -32,7 +46,7 @@ ini_set('max_file_uploads', 10);
 ini_set('safe_mode','Off');
 ini_set('allow_url_fopen','Off');
 
-
+// Load the framework modules.
 require(FRAMEWORK_ROOT.'/framework/utility.php');
 require(FRAMEWORK_ROOT.'/framework/timer.php');
 require(FRAMEWORK_ROOT.'/framework/registry.php');
@@ -50,6 +64,7 @@ require(FRAMEWORK_ROOT.'/framework/app.php');
 require(FRAMEWORK_ROOT.'/framework/controller.php');
 require(FRAMEWORK_ROOT.'/framework/route.php');
 require(FRAMEWORK_ROOT.'/framework/url.php');
+require(FRAMEWORK_ROOT.'/framework/html.php');
 require(FRAMEWORK_ROOT.'/framework/redirect.php');
 require(FRAMEWORK_ROOT.'/framework/cookies.php');
 require(FRAMEWORK_ROOT.'/framework/models.php');
@@ -64,5 +79,19 @@ require(FRAMEWORK_ROOT.'/framework/userservice.php');
 require(FRAMEWORK_ROOT.'/framework/groupservice.php');
 require(FRAMEWORK_ROOT.'/framework/csrf.php');
 
+// Load the user's application.
+if(!file_exists(FILE_ROOT.'/config.php'))
+	throw new Exception('You must define a configuration file. To do this, rename the provided "config-template.php" file to "config.php".');
+
+require(FILE_ROOT.'/config.php');
+
+// Determine whether or not errors should be suppressed.
+if(Config::get('app.development', true) === false) {
+	ErrorManager::disengageDevelopmentHandler();
+	ErrorManager::engageProductionHandler();
+}
+
 require(FILE_ROOT.'/webapp.php');
+
+// Run the user's application.
 App::run();

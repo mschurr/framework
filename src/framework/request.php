@@ -104,12 +104,12 @@ class Request
 		}
 		elseif($k == 'get') {
 			if(!$this->_get instanceof RegistryObject)
-				$this->_get = new RegistryObject($_GET);
+				$this->_get = new RegistryObject($_GET,true);
 			return $this->_get;
 		}
 		elseif($k == 'post' || $k == 'data') {
 			if(!$this->_post instanceof RegistryObject)
-				$this->_post = new RegistryObject($_POST);
+				$this->_post = new RegistryObject($_POST,true);
 			return $this->_post;
 		}
 		elseif($k == 'file' || $k == 'files') {

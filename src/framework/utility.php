@@ -1,37 +1,40 @@
 <?php
-
-function import($lib) {
-	/* Imports a library. */
+/**
+ * Explicitly loads a library contained in the framework, drivers, or helper directories.
+ */
+/*void*/ function import(/*string*/ $lib) {
 	Framework::import($lib);
 }
 
-function client_ip() {
-	/* Returns the HTTP client's Internet Protocol address. */
-	return $_SERVER['REMOTE_ADDR'];
-}
-
-function server_ip() {
-	/* Returns the HTTP server's Internet Protocol address. */
-	return $_SERVER['SERVER_ADDR'];
-}
-
-function escape_html($s) {
-	/* Converts HTML code so that it will be rendered as text, not HTML. */
+/**
+ * Escapes HTML code so that it will be rendered as text, not HTML.
+ */
+/*String*/ function escape_html(/*String*/ $s) {
 	return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
 
-function unescape_html($s) {
-	/* Converts escaped HTML code from text into valid markup. */
+/**
+ * Converts escaped HTML code back into valid markup.
+ */
+/*String*/ function unescape_html(/*String*/ $s) {
 	return htmlspecialchars_decode($s, ENT_QUOTES);
 }
 
-function to_json($array) {
-	/* Converts a PHP array to a JSON string. */
-	return json_encode($array);
+/**
+ * Converts a PHP array into JSON.
+ * Returns null on failure.
+ */
+/*String*/ function to_json(/*array*/ $array) {
+	$json = json_encode($array);
+	if($json === false) return null;
+	return $json;
 }
 
-function from_json($string) {
-	/* Converts a JSON string to a PHP array. */
+/**
+ * Converts a JSON string into a native PHP array.
+ * Returns null on failure.
+ */
+/*array*/ function from_json(/*String*/ $string) {
 	$native = json_decode($string, true);
 	
 	if(json_last_error() == JSON_ERROR_NONE)
@@ -39,8 +42,29 @@ function from_json($string) {
 	return null;
 }
 
-function &model($string) {
-	/* Loads a model. */
+/**
+ * Generates a random string of provided length.
+ */
+/*string*/ function str_random($length) {
+	static $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
+
+	// Seed the random number generator.
+	mt_srand(microtime(true) * 1000000);
+	
+	// Create a unique session identifier.
+	$id = "";
+	
+	while(strlen($id) < $length) {
+		$id .= substr($chars, mt_rand(0, strlen($chars)-1), 1);
+	}
+	
+	return $id;
+}
+
+/**
+ * Instantiates a new Model of the provided type using any additional provided arguments.
+ */
+/*Model*/ function &model(/*String*/ $string /*, ...array $options*/) {
 	return call_user_func_array('Model::make', func_get_args());
 }
 

@@ -3,128 +3,76 @@ use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
 use Exception as BaseException;
 
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL);
 ini_set('error_log', FILE_ROOT.'/webapp.log');
 ini_set('log_errors', true);
+ini_set('display_errors', false);
 
-if(true) {
-	$run = new Run;
-	$handler = new PrettyPageHandler;
-	
-	$handler->addDataTable('Framework Data', array(
-		/*'version' => 'dev-master'*/
-	));
-	
-	$run->pushHandler($handler);
-	$run->register();
-}
-else {
-	set_error_handler("ErrorHandler::fire");
-}
-
-class ErrorHandler
+class ErrorManager
 {
-	public static function fire($level,$message,$file,$line,$context,$backtrace=true)
+	protected static $run;
+
+	public static function engageDevelopmentHandler()
 	{
-		// Log Error
-		Log::write("PHP Runtime error: ".$message." in ".$file." on line ".$line."");
-		
-		// Build Report
-		$report = 'A critical server-side script execution error has occured.<br />
-		<br />
-		<style type="text/css">td { vertical-align: top; padding: 5px;}</style>
-		<fieldset>
-			<legend>Report</legend>
-			
-			<table width="100%" border="0">
-				<tr>
-					<td width="150">TIME</td>
-					<td>'.date("m/d/y h:i:s A").'<br /><br /></td>
-				</tr>
-				<tr>
-					<td valign="top">OFFENDING FILE</td>
-					<td>~'.str_replace(str_replace('/','\\',FILE_ROOT),"",str_replace(FILE_ROOT,"",$file)).':'.$line.'<br /><br /></td>
-				</tr>
-				<tr>
-					<td>ERROR</td>
-					<td>'.$message.'<br /><br /></td>
-				</tr>
-				
-				<tr>
-					<td valign="top">BACK TRACE</td>
-					<td>';
-					
-						ob_start();
-						debug_print_backtrace();
-						$report .= nl2br(ob_get_contents());				
-						ob_end_clean();
-					
-					$report .= '<br /><br /></td>
-				</tr>
-				<tr>
-					<td valign="top">FILE TRACE</td>
-					<td>';
-					
-					foreach(get_included_files() as $key => $file)
-					{
-						$s = str_replace(FILE_ROOT,"",$file);
-						$s = str_replace(str_replace('/','\\',FILE_ROOT),"",$s);
-						$report .= '~'.$s.'<br />';
-					}
-					
-					$report .= '<br /></td>
-				</tr>
-				
-			</table>
-			
-		</fieldset>
-		<br />
-		';
-		
-		// Display Report
-		$response = new Response();
-		$response->error(500, (App::getErrorMode() === true ? $report : null), true);
+		static::$run = new Run;
+		$handler = new PrettyPageHandler;
+
+		$handler->addDataTable('Framework Data', array(
+
+		));
+
+		static::$run->pushHandler($handler);
+		static::$run->register();
 	}
-	
-	public static function backtrace($traces_to_ignore = 2)
+
+	public static function disengageDevelopmentHandler()
 	{
-		$traces = debug_backtrace();
-		$ret = array();
-		foreach($traces as $i => $call){
-			if ($i < $traces_to_ignore ) {
-				continue;
-			}
-	
-			$object = '';
-			if (isset($call['class'])) {
-				$object = $call['class'].$call['type'];
-				if (is_array($call['args'])) {
-					foreach ($call['args'] as &$arg) {
-						self::backtrace_get_arg($arg);
-					}
-				}
-			}       
-		
-			$ret[] = '#'.str_pad($i - $traces_to_ignore, 3, ' ')
-			.$object.$call['function'].'('.(is_array($call['args']) ? implode(', ', $call['args']) : '')
-			.') called at ['.$call['file'].':'.$call['line'].']';
-		}
-	
-		return implode("<br />\n",$ret);
+		static::$run->unregister();
 	}
-	
-	public static function backtrace_get_arg(&$arg) {
-		if (is_object($arg)) {
-			$arr = (array)$arg;
-			$args = array();
-			foreach($arr as $key => $value) {
-				if (strpos($key, chr(0)) !== false) {
-					$key = '';    // Private variable found
-				}
-				$args[] =  '['.$key.'] => '.self::backtrace_get_arg($value);
-			}
-	
-			$arg = get_class($arg) . ' Object ('.implode(',', $args).')';
+
+	public static function engageProductionHandler()
+	{
+		set_error_handler('ErrorManager::productionHandleError');
+        set_exception_handler('ErrorManager::productionHandleException');
+        register_shutdown_function('ErrorManager::productionHandleShutdown');
+	}
+
+	public static function productionHandleError($level, $message, $file = null, $line = null)
+	{
+		try {
+			$response = new Response();
+			Route::doRouteError(new Request(), $response, 500);
+			$response->send();
+			die();
 		}
+		catch(Exception $e) {
+			echo '500 Internal Server Error';
+			die();
+		}
+	}
+
+	public static function productionHandleException(Exception $e)
+	{
+		try {
+			$response = new Response();
+			Route::doRouteError(new Request(), $response, 500);
+			$response->send();
+			die();
+		}
+		catch(Exception $e) {
+			echo '500 Internal Server Error';
+			die();
+		}
+	}
+
+	public static function productionHandleShutdown()
+	{
+		if($error = error_get_last())
+			return static::productionHandleError(
+				$error['type'],
+                $error['message'],
+                $error['file'],
+                $error['line']
+            );
 	}
 }

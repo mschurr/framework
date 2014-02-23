@@ -1,22 +1,5 @@
 <?php
 
-/*
-	/app
-	/config
-	/document
-	/filesystem/File
-	/models
-	/output
-	/response
-	/storage
-	/url
-	/useragent
-	userservice-db
-	groupservice-db
-	
-	initialize, errors (currently always shown)
-	allow something like: Route::get('/', fn) Route::post('/', fn)
-*/
 
 class App
 {

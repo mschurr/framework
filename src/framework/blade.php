@@ -169,7 +169,8 @@ abstract class BladeParser
 			include($this->blade_file_cache);
 		}
 		catch (Exception $e) {
-			throw new Exception('The"'.$this->blade_file.'" blade file contains errors and could not be parsed.');
+			throw $e;
+			//throw new Exception('The"'.$this->blade_file.'" blade file contains errors and could not be parsed: '.$e->getMessage().'.');
 			//ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file contains errors and could not be parsed.',$this->blade_file, 0,'',false);
 		}
 		$content = ob_get_contents();				

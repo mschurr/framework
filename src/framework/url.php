@@ -52,6 +52,11 @@ class URL
 		return null;
 	}
 	
+	public static function route($name /*,...$opts*/)
+	{
+		throw new Exception("NOT IMPLEMENTED");
+	}
+
 	public static function asset($path)
 	{
 		return new URL('/static/'.$path);

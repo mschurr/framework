@@ -118,12 +118,12 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		'inode', 'mime', 'size', 'path', 'extension', 'childFiles',
 		'childDirectories', 'descendantDirectories', 'files', 
 		'descendantFiles', 'isWriteable', 'lines', 'canonicalPath',
-		'subdirectories', 'fileName', 'name', 'ext'
+		'subdirectories', 'fileName', 'name', 'ext', 'content'
 
 		/*
 		'', 'group', 'owner',
 		'permissions', '', 'directory', 'parent', '',
-		 'content', 'json', 'serial',
+		 '', 'json', 'serial',
 
 		properties needing write access:
 			extension
@@ -147,6 +147,31 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	// #########################################################
 	// # Instance Methods
 	// #########################################################
+
+	public /*bytes*/ function getContent()
+	{
+		if(!$file->exists)
+			throw new FileDoesNotExistException;
+		if(!$file->isReadable)
+			throw new FileNotReadableException;
+
+		$content = file_get_contents($this->path);
+
+		if($content === false)
+			throw new FileException("Unknown read error");
+
+		return $content;
+	}
+
+	public /*void*/ function setContent($data)
+	{
+		if(!$file->isWritable)
+			throw new FileNotWritableException;
+
+		$set = file_put_contents($this->path, $data);
+		if($set === false)
+			throw new FileException("Unknown write error");
+	}
 
 	public /*String*/ function serialize()
 	{
