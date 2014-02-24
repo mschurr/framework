@@ -34,6 +34,8 @@ Options:
 	filters => array(var => regex, closure ..+)				-- closure filters return true, false or a status code (if false, it just skips the route; if status code, it will error)
 */
 
+class RoutingException extends Exception {}
+
 class Route
 {
 	/**
@@ -64,7 +66,7 @@ class Route
 		$controller_class = $controller;
 		if(!class_exists($controller)) {
 			if(!file_exists($controller_file)) {
-				$response->error(500, 'The controller could not be found for "'.$target.'".');
+				throw new RoutingException('The controller class could not be found for "'.$target.'".');
 				return;
 			}
 			
@@ -73,12 +75,17 @@ class Route
 			if(class_exists($controller)) { $controller_class = $controller; }
 			elseif(class_exists('Controllers\\'.$controller_namespace_path)) { $controller_class = 'Controllers\\'.$controller_namespace_path; }
 			else {
-				$response->error(500, 'The controller could not be found for "'.$target.'".');
+				throw new RoutingException('The controller class could not be found for "'.$target.'".');
 				return;
 			}
 		}
 		
 		$handler = new $controller_class($request, $response);
+
+		if(!is_subclass_of($handler,'Controller')) {
+			throw new RoutingException('The controller "'.$target.'" must be a subclass of Controller.');
+			return;
+		}
 		
 		// Register the fact that this controller is active so that it can process View URLs.
 		self::__registerActiveController($handler);
@@ -86,12 +93,6 @@ class Route
 		// Remember the reference used to access this controller so we can make URLs to it.
 		$handler->__registerRoutingReference((strpos($target,"@") !== false ? substr($target,0,strpos($target,"@")) : $target));
 			
-			
-		if(!is_subclass_of($handler,'RequestHandler')) {
-			$response->error(500, 'The controller "'.$target.'" must extend RequestHandler.');
-			return;
-		}
-		
 		if(!method_exists($handler, $method)) {
 			self::doRouteError($request, $response, 405);
 			return;
@@ -171,18 +172,19 @@ class Route
 		// The controller returned a file;
 		if($value instanceof File) {
 			$response->out->pass($value);
-			//$response->error(500, 'A controller returned File, but these are not implemented.');
 			return;
 		}
 		
 		// The  controller returned a storage file.
 		if($value instanceof StorageFile) {
-			$response->error(500, 'A controller returned StorageFile, but these are not implemented.');
+			throw new RoutingException("A controller returned StorageFile, but these are not implemented.");
 			return;
 		}
+
+		// The controller returned a Response.
 		
 		// Otherwise, we must throw an error.
-		$response->error(500, 'A controller returned an unexpected object or value.');
+		throw new RoutingException("A controller returned an unexpected object.");
 		return;
 	}
 	

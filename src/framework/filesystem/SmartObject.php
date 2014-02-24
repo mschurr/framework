@@ -141,7 +141,7 @@ abstract class SmartObject implements ArrayAccess
 	public /*mixed*/ function __get(/*scalar*/ $key)
 	{
 		if(!isset($this->_propertyKeys[$key]))
-			throw new BadAccessException;
+			throw new BadAccessException($key);
 		if(method_exists($this, 'get'.ucfirst($key)))
 			return call_user_func_array(array($this, 'get'.ucfirst($key)), array());
 		if(isset($this->_properties[$key]))
@@ -163,13 +163,13 @@ abstract class SmartObject implements ArrayAccess
 	public /*void*/ function __set(/*scalar*/ $key, /*mixed*/ $value)
 	{
 		if(!isset($this->_propertyKeys[$key]))
-			throw new BadAccessException;
+			throw new BadAccessException($key);
 		if(method_exists($this, 'set'.ucfirst($key))) {
 			call_user_func_array(array($this, 'set'.ucfirst($key)), array($value));
 			return;
 		}
 		if($this->_defaultReadonly === true)
-			throw new BadAccessException;
+			throw new BadAccessException($key);
 		$this->_properties[$key] = $value;
 	}
 

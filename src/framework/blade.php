@@ -102,8 +102,10 @@
 abstract class BladeParser
 {
 	public $blade_file;
+	public $php_file;
 	protected $blade_file_cache;
 	protected $blade_name;
+	public $template_type = 'blade';
 	protected $errors = array();
 	protected $nests = array();
 	protected $echoTags = array('{{','}}');
@@ -131,6 +133,7 @@ abstract class BladeParser
 		$this->controller = Route::__getActiveController();
 		$this->blade_name = trim(str_replace(".", "/", $name),'/');	
 		$this->blade_file = FILE_ROOT.'/'.($this->is('view') ? 'views' : 'layouts').'/'.$this->blade_name.'.blade.php';
+		$this->php_file = FILE_ROOT.'/'.($this->is('view') ? 'views' : 'layouts').'/'.$this->blade_name.'.php';
 		
 		$dir = Config::get('cache.directory', FILE_ROOT.'/cache');
 		
@@ -165,14 +168,8 @@ abstract class BladeParser
 		$data = array_merge($this->render_data, $data);
 		extract($data);
 		ob_start();
-		try {
-			include($this->blade_file_cache);
-		}
-		catch (Exception $e) {
-			throw $e;
-			//throw new Exception('The"'.$this->blade_file.'" blade file contains errors and could not be parsed: '.$e->getMessage().'.');
-			//ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file contains errors and could not be parsed.',$this->blade_file, 0,'',false);
-		}
+		$file = $this->template_type === 'blade' ? $this->blade_file_cache : $this->php_file;
+		include($file);
 		$content = ob_get_contents();				
 		ob_end_clean();
 		return $content;
@@ -212,6 +209,11 @@ abstract class BladeParser
 	{
 		// Check Existence
 		if(!file_exists($this->blade_file)) {
+			if(file_exists($this->php_file)) {
+				$this->template_type = 'php';
+				return $this;
+			}
+
 			throw new Exception('The "'.$this->blade_file.'" blade file does not exist.');
 			//return ErrorHandler::fire(1,'The &quot;'.$this->blade_file.'&quot; blade file does not exist.',$this->blade_file, 0,'',false);
 		}

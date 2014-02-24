@@ -28,7 +28,7 @@ class Cache_Driver_filesystem extends Cache_Driver
 		if($section !== false && !isset($this->section_exists[$section])) {
 			$f = new File($this->storage.'/'.$section.'/');
 			if(!$f->exists)
-				$f->make();
+				$f->create();
 			$this->section_exists[$section] = true;
 		}
 		

@@ -3,26 +3,44 @@
  * User Service Provider
  **************************************
  
- This file defines the public API for user services.
- 
+ This API provides a system of managing user accounts.
+
+ To get a reference to user services:
+ 	App::getUserService()
+ 	$this->users on a Controller 
 */
 
+/**
+ * An exception that will be thrown by user services.
+ * This exception contains both a public message and a private message.
+ * The public message can be safely displayed to the end user.
+ * The private message is solely for the developer's use.
+ */
 class UserServiceException extends Exception
 {
 	protected $publicErrorMessage;
 	
-	public function __construct($message = null, $publicErrorMessage = null, $code = 0, Exception $previous = null)
+	/**
+	 * Instantiates the exception.
+	 */
+	public /*void*/ function __construct($message = null, $publicErrorMessage = null, $code = 0, Exception $previous = null)
 	{
 		parent::__construct($message, $code, $previous);
 		$this->publicErrorMessage = $publicErrorMessage;
 	}
 	
-	public function __toString()
+	/**
+	 * Converts the exception to a string.
+	 */
+	public /*String*/ function __toString()
 	{
 		return $this->publicErrorMessage;
 	}
 	
-	public function getErrorMessage()
+	/**
+	 * Returns the public error message.
+	 */
+	public /*String*/ function getErrorMessage()
 	{
 		return $this->publicErrorMessage;
 	}
@@ -31,19 +49,62 @@ class UserServiceException extends Exception
 
 abstract class User_Service_Provider
 {
+	/**
+	 * Returns the user with the given id.
+	 */
 	public abstract /*User_Provider*/ function load(/*int*/$guid);
+
+	/**
+	 * Returns the user with the given name.
+	 */
 	public abstract /*User_Provider*/ function loadByName(/*String*/$name);
+
+	/**
+	 * Returns the user with the given email.
+	 */
 	public abstract /*User_Provider*/ function loadByEmail(/*String*/$email);
+
+	/**
+	 * Returns an array of up to $limit users starting at $offset.
+	 */
 	public abstract /*array<User_Provider>*/ function users(/*int*/ $offset=0, /*int*/$limit=null);
+
+	/**
+	 * Creates a user with the provided username and password and returns it.
+	 * Throws an exception on failure.
+	 */
 	public abstract /*User_Provider*/ function create(/*String*/$username, /*String*/$password) /*throws UserServiceException*/;
+	
+	/**
+	 * Deletes the provided user.
+	 */
 	public abstract /*void*/ function delete(/*User_Provider*/$user);
+
+	/**
+	 * Checks the provided login credentials; returns a user if successful or null on failure.
+	 */
 	public abstract /*User_Provider*/ function login(/*String*/$username, /*String*/$password);
+
+	/**
+	 * Notify the service provider that a user logged in succesfully.
+	 */
 	public abstract /*void*/ function userDidLogin(/*User_Provider*/$user);
+
+	/**
+	 * Notify the service provider that a user logged out.
+	 */
 	public abstract /*void*/ function logout(/*User_Provider*/ $user);
+
+	/**
+	 * Returns whether or not a provided username meets service provider constraints.
+	 */
 	public abstract /*bool*/ function usernameMeetsConstraints(/*String*/$username) /*throws UserServiceException*/;
 	
+	/**
+	 * Returns whether or not a provided username, password combination meets service provider constraints.
+	 */
 	private static $restricted = array('admin','root','user','username','account','email');
-	public /*bool*/ function passwordMeetsConstraints($username, $password) /*throws UserServiceException*/
+	public /*bool*/ function passwordMeetsConstraints(/*String*/$username, /*String*/$password) /*throws UserServiceException*/
 	{
 		if(!$this->usernameMeetsConstraints($username))
 			return false;
@@ -66,29 +127,115 @@ abstract class User_Service_Provider
 
 abstract class User_Provider implements ArrayAccess, Iterator, Countable
 {
+	/**
+	 * Instantiates a user object with the provided id.
+	 */
 	public abstract /*void*/ function __construct(/*int*/$id);
+
+	/**
+	 * Returns the user's unique id.
+	 */
 	public abstract /*int*/ function id();
+
+	/**
+	 * Returns the user's email address.
+	 */
 	public abstract /*String*/ function email();
+
+	/**
+	 * Sets the user's email address.
+	 */
 	public abstract /*void*/ function setEmail(/*String*/$email);
+
+	/**
+	 * Returns the user's username.
+	 */
 	public abstract /*String*/ function username();
+
+	/**
+	 * Sets the user's username.
+	 */
 	public abstract /*void*/ function setUsername(/*String*/$username);
+
+	/**
+	 * Returns whether or not the user is banned.
+	 */
 	public abstract /*bool*/ function banned();
+
+	/**
+	 * Sets the user to be banned until the provided unix timestamp.
+	 */
 	public abstract /*void*/ function setBanned(/*int*/$expireTime);
+
+	/**
+	 * Changes the user's password; the password parameter should be in plaintext.
+	 */
 	public abstract /*void*/ function setPassword(/*String*/$password);
+
+	/**
+	 * Returns whether or not a plaintext password matches the saved hash.
+	 */
 	public abstract /*bool*/ function checkPassword(/*String*/$input);
+
+	/**
+	 * Deallocates the object and cleans up any open resources.
+	 */
 	public abstract /*void*/ function __destruct();
+
+	/**
+	 * Returns an array map of all properties set for this user.
+	 */
 	public abstract /*array<string:mixed>*/ function properties();
-	public abstract /*mixed*/ function getProperty(/*string*/$name);
+
+	/**
+	 * Gets a property by its name. Throws an exception if the property is not set.
+	 */
+	public abstract /*mixed*/ function getProperty(/*string*/$name)/*throws Exception*/;
+
+	/**
+	 * Sets the property $name to $value for this user.
+	 */
 	public abstract /*void*/ function setProperty(/*string*/$name, /*mixed*/$value);
+
+	/**
+	 * Returns whether or not the property $name has been set for this user.
+	 */
 	public abstract /*bool*/ function hasProperty(/*string*/$name);
+
+	/**
+	 * Deletes a property from the provided user (if it exists).
+	 */
 	public abstract /*void*/ function deleteProperty(/*string*/$name);
+
+	/**
+	 * Returns a list of privileges bound to the user's account.
+	 * This does not include privileges inherited from groups.
+	 */
 	public abstract /*array<int>*/ function _privileges();
-	public abstract /*void*/ function _hasprivilege(/*int*/$id);
-	public abstract /*void*/ function _addprivilege(/*int*/$id);
-	public abstract /*void*/ function _removeprivilege(/*int*/$id) /*throws Exception*/;
+
+	/**
+	 * Returns whether or not a privilege has been granted to the user's account.
+	 * This does not include privileges inherited from groups.
+	 */
+	public abstract /*void*/ function _hasPrivilege(/*int*/$id);
+
+	/**
+	 * Grants a privilege to the user's account.
+	 */
+	public abstract /*void*/ function _addPrivilege(/*int*/$id);
+
+	/**
+	 * Removes a privilege from the user's account.
+	 * This will not remove privileges inherited from groups.
+	 */
+	public abstract /*void*/ function _removePrivilege(/*int*/$id);
 	
 	// -------------------------------------------------------------------------
 	
+	/**
+	 * Returns an array of all privileges granted to this user.
+	 * The user may have inherited some privileges from a group, or the privileges may be bound to the user.
+	 */
 	public /*array<int>*/ function privileges()
 	{
 		$privileges = $this->_privileges();
@@ -100,70 +247,95 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 		return array_unique($privileges, SORT_NUMERIC);
 	}
 	
-	public /*void*/ function hasprivilege(/*int*/$id)
+	/**
+	 * Returns whether or not the user has been granted a privilege.
+	 * The user may have inherited this privilege from a group, or it may be bound to the user.
+	 */
+	public /*void*/ function hasPrivilege(/*int*/$id)
 	{
-		if( $this->_hasprivilege($id) )
+		if( $this->_hasPrivilege($id) )
 			return true;
 			
 		foreach($this->groups() as $group) {
-			if($group->hasprivilege($id))
+			if($group->hasPrivilege($id))
 				return true;
 		}
 		
 		return false;
 	}
 	
-	public /*void*/ function addprivilege(/*int*/$id)
+	/**
+	 * Grants a privilege to the user.
+	 */
+	public /*void*/ function addPrivilege(/*int*/$id)
 	{
-		$this->_addprivilege($id);	
+		$this->_addPrivilege($id);	
 	}
 	
-	public /*void*/ function removeprivilege(/*int*/$id) /*throws Exception*/
+	/**
+	 * Revokes a privilage from the user.
+	 * Throws an exception if removal fails due to group inheritance.
+	 */
+	public /*void*/ function removePrivilege(/*int*/$id) /*throws Exception*/
 	{
-		$this->_removeprivilege($id);
+		$this->_removePrivilege($id);
 		
-		if($this->hasprivilege($id)) {
+		if($this->hasPrivilege($id)) {
 			throw new Exception("Removal failed, user inherits privilege from group.");
 		}
 	}
 	
+	/**
+	 * Returns an array of the groups that this user is a member of.
+	 */
 	public /*array<Group_Provider>*/ function groups()
 	{
 		return App::getGroupService()->groupsForUser($this);
 	}
 		
-	public /*void*/ function hasprivileges(/*array<int>*/$ids)
+	/**
+	 * Returns whether or not the user has all of the provided privileges.
+	 */
+	public /*void*/ function hasPrivileges(/*array<int>*/$ids)
 	{
 		foreach($ids as $id) {
-			if(!$this->hasprivilege($id))
+			if(!$this->hasPrivilege($id))
 				return false;
 		}
 		
 		return true;
 	}
 	
-	
-	public /*void*/ function addprivileges(/*array<int>*/$ids)
+	/**
+	 * Grants the provided privileges to the user.
+	 */
+	public /*void*/ function addPrivileges(/*array<int>*/$ids)
 	{
 		foreach($ids as $id) {
-			$this->addprivilege($id);
+			$this->addPrivilege($id);
 		}
 	}
 	
-	
-	public /*void*/ function removeprivileges(/*array<int>*/$ids) /*throws Exception*/
+	/**
+	 * Revokes the provided privileges from the user.
+	 * Throws an exception if the removal fails due to group inheritance.
+	 */
+	public /*void*/ function removePrivileges(/*array<int>*/$ids) /*throws Exception*/
 	{
 		foreach($ids as $id) {
-			$this->removeprivilege($id);
+			$this->removePrivilege($id);
 		}
 	}
 	
+	/**
+	 * Converts the object to a string.
+	 */
 	public /*string*/ function __toString()
 	{
 		return $this->username();
 	}
 	
-	/* Iterator */
+	/* Iterator - Allows the user to iterate over the user's properties. */
 	private $__position = 0;
 	private $__array;
 	private $__keys;
@@ -185,7 +357,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
         return isset($this->__keys[$this->__position]) && isset($this->__array[$this->__keys[$this->__position]]);
 	}
 
-	/* Magic Properties */
+	/* Magic Properties - Allows undefined properties to be accessed dynamically. */
 	public /*mixed*/ function __get(/*String*/$property) {
 		if($property == 'id') return $this->id();
 		if($property == 'email') return $this->email();
@@ -219,13 +391,13 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 		$this->deleteProperty($property);
 	}
 	
-	/* Array Access */
+	/* Array Access - Allows the object to be accessed like an array. */
 	public /*bool*/ function offsetExists(/*mixed*/$offset) { return $this->__isset($offset); }
 	public /*void*/ function offsetUnset(/*mixed*/$offset) { return $this->__unset($offset); }
 	public /*mixed*/ function offsetGet(/*mixed*/$offset) { return $this->__get($offset); }
 	public /*void*/ function offsetSet(/*mixed*/$offset, /*mixed*/$value) { return $this->__set($offset, $value);}
 	
-	/* Countable */
+	/* Countable - Allows the object to have a length. */
 	public /*int*/ function count() { return sizeof($this->properties()); }
 	
 	/* Constants */

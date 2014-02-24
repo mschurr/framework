@@ -78,12 +78,16 @@ require(FRAMEWORK_ROOT.'/framework/auth.php');
 require(FRAMEWORK_ROOT.'/framework/userservice.php');
 require(FRAMEWORK_ROOT.'/framework/groupservice.php');
 require(FRAMEWORK_ROOT.'/framework/csrf.php');
+require(FRAMEWORK_ROOT.'/framework/mail.php');
+require(FRAMEWORK_ROOT.'/framework/security-recaptcha.php');
+require(FRAMEWORK_ROOT.'/framework/security-captcha.php');
 
 // Load the user's application.
 if(!file_exists(FILE_ROOT.'/config.php'))
 	throw new Exception('You must define a configuration file. To do this, rename the provided "config-template.php" file to "config.php".');
 
 require(FILE_ROOT.'/config.php');
+Config::_load();
 
 // Determine whether or not errors should be suppressed.
 if(Config::get('app.development', true) === false) {
@@ -95,3 +99,4 @@ require(FILE_ROOT.'/webapp.php');
 
 // Run the user's application.
 App::run();
+Config::_save();

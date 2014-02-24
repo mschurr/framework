@@ -15,6 +15,7 @@ class Session_Driver_cache extends Session_Driver
 	protected $_flashwrite = array();
 	protected $_changed = false;
 	protected $_renewable = true;
+	protected $_regenerated = false;
 	
 	public function id()
 	{
@@ -28,7 +29,7 @@ class Session_Driver_cache extends Session_Driver
 		}
 		
 		// If we couldn't find it, let's generate a new one and set the cookie (encrypted, secure, httponly).
-		$this->regenerateID();
+		$this->regenerateID(false);
 		
 		// Return the identifier.
 		return $this->_id;
@@ -130,6 +131,7 @@ class Session_Driver_cache extends Session_Driver
 	{
 		if(!$this->_renewable)
 			return;
+			
 		Cache::section('session')->put( sha1($this->id()), array(
 			'vars' => $this->_vars,
 			'flash' => $this->_flashwrite
@@ -209,14 +211,18 @@ class Session_Driver_cache extends Session_Driver
 		}
 	}
 	
-	public function regenerate()
+	public function regenerate($saveExisting=true)
 	{
+		if($this->_regenerated === true)
+			return;
+
 		// Mark the session as invalid (in 60 seconds).
 		$this->_vars['renewable'] = false;
 		$this->_vars['expire'] = time() + 60;
 		
 		// We need to make sure to save.
-		$this->save();
+		if($saveExisting === true)
+			$this->save();
 		
 		// Let's mark the session as valid again.
 		unset($this->_vars['expire']);
@@ -229,6 +235,7 @@ class Session_Driver_cache extends Session_Driver
 		$this->_vars['last_regenerate'] = time();
 		
 		// Let's save changes.
+		$this->_regenerated = true;
 		$this->save();
 	}
 }

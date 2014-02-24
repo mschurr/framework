@@ -18,42 +18,46 @@ class HTMLDocumentNew implements ArrayAccess
 	{
 	}
 	
-	public function getContent()
-	{
-	}	
-	
 	// ------ Array Access
 	public function offsetExists($offset)
 	{
+		return method_exists($this, 'get'.ucfirst($key));
 	}
 	
 	public function offsetSet($offset, $value)
 	{
+		call_user_func_array(array($this, 'set'.ucfirst($offset)), array($value));
 	}
 	
 	public function offsetGet($offset)
 	{
+		return call_user_func_array(array($this, 'get'.ucfirst($offset)), array());
 	}
 	
 	public function offsetUnset($offset)
 	{
+		$this->__set($offset, null);
 	}
 	
 	// ------ Magic Methods	
 	public function __get($key)
 	{
+		return call_user_func_array(array($this, 'get'.ucfirst($key)), array());
 	}
 	
 	public function __set($key, $value)
 	{
+		call_user_func_array(array($this, 'set'.ucfirst($key)), array($value));
 	}
 	
 	public function __isset($key)
 	{
+		return method_exists($this, 'get'.ucfirst($key));
 	}
 	
 	public function __unset($key)
 	{
+		$this->__set($key, null);
 	}
 }
 

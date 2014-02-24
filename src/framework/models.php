@@ -4,31 +4,32 @@
 		MyFolder.MySubFolder.MyModel
 		
 	The class for the model must be named:
-		myfolder_mysubfolder_mymodel
+		MyFolder_MySubFolder_MyModel
 		
 	The file containing the model must be named:
-		FILE_ROOT/models/myfolder/mysubfolder/mymodel.php
+		FILE_ROOT/models/MyFolder/MySubFolder/MyModel.php
 		
 	All models must extend the Model class. The init() function will be called automatically.
 	
-	class myfolder_mysubfolder_mymodel extends Model
+	class MyFolder_MySubFolder_MyModel extends Model
 	{
 		public function init()
 		{
 		}
 	}
 	
-	If you construct the model using Model::make(path, ...args... ) then the arguments will be passed to init.
+	If you construct the model using Model::make(path, ...args) then the arguments will be passed to init.
 	
-	class anothermodel extends Model
+	class AnotherModel extends Model
 	{
 		public function init($arg1, $arg2) {
 			$this->db->query(...); // $this->db points to database object
 		}
-		protected function cleanup() // automatically called when no more references to the model remain
+
+		protected function cleanup(){} // automatically called when no more references to the model remain
 	}
 	
-	$model =& Model::make('AnotherModel', 'arg1', 'arg2');
+	$model = Model::make('AnotherModel', 'arg1', 'arg2');
 */
 
 class Model

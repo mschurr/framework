@@ -7,10 +7,10 @@
  across all nodes for all users forever.
  
  This class is best used for storing small, configuration values; do not store large amounts of data. You 
- will significantly hinder application performance. To store large amounts of data, use the Storage class.
+ will significantly hinder application performance. To store large amounts of data, use a different solution.
  
  There are two types of configuration variables: hard-coded and on-the-fly. Hard-coded values can not be
- overwritten from within the application runtime and may only be defined in webapp.php.
+ overwritten from within the application runtime and may only be defined in config.php.
  
  Configuration values will have an effect on the behavior of various framework components. Here is a list 
  of all configuration values that have significance in the framework:
@@ -112,26 +112,29 @@ TODO:
 class Config
 {
 	protected static $driver = 'filesystem';
-	protected static $vars = array();
+	protected static $staticVariables = array();
+	protected static $dynamicVariables = array();
+	protected static $dirty = false;
 	
-	/***
-	  * public static object get( string $key, object $default=null )
-	  * - returns the configuration variable $key or (on failure) the provided default value
-	  * - $default may be an object of any type (including closures)
-	  */
-	public static function get($key, $default=null)
+	/**
+	 * Returns the configuration value stored for $key.
+	 * If the value does not exist, returns $default instead. If $default is a closure, it will be evaluated.
+	 */
+	public static /*mixed*/ function get(/*string*/ $key, /*mixed*/ $default=null)
 	{
-		if(isset(self::$vars[$key]))
-			return self::$vars[$key];
+		if(isset(self::$staticVariables[$key]))
+			return self::$staticVariables[$key];
+		if(isset(self::$dynamicVariables[$key]))
+			return self::$dynamicVariables[$key];
 		return value($default);
 	}
 	
-	/***
-	 * public static void set( string $key, object $value )
-	 * - sets the configuration variable $key to $value
-	 * - $value may be an object of any type (including closures)
+	/**
+	 * Sets the configuration values stored for $key to $value.
+	 * If $value is a closure, it will be evaluated.
+	 * If $value is null, $key can be an array map of keys to values.
 	 */
-	public static function set($key, $value=null)
+	public static /*void*/ function set(/*mixed*/ $key, /*mixed*/ $value=null)
 	{
 		if(is_array($key) && $value === null) {
 			foreach($key as $k => $v)
@@ -139,28 +142,60 @@ class Config
 			return;
 		}
 		
-		self::$vars[$key] = value($value);
+		if(App::isRunning()) {
+			if(isset(self::$staticVariables[$key]))
+				throw new Exception("Error: Attempted to overwrite hard coded configuration value.");
+			else {
+				self::$dirty = true;
+				if($value === null)
+					unset(self::$dynamicVariables[$key]);
+				else
+					self::$dynamicVariables[$key] = $value;
+			}
+		}
+		else {
+			if($value === null)
+				unset(self::$staticVariables[$key]);
+			else
+				self::$staticVariables[$key] = $value;
+		}
 	}
 	
-	public static function has($key)
+	/** 
+	 * Returns whether or not any information is stored for $key.
+	 */
+	public /*bool*/ static function has(/*string*/ $key)
 	{
+		return isset(self::$staticVariables[$key]) || isset(self::$dynamicVariables[$key]);
 	}
 	
-	public static function remember($key, $closure)
+	/**
+	 * Forgets the stored configuration value for $key.
+	 */
+	public static /*void*/ function forget(/*string*/ $key)
 	{
+		self::set($key, null);
+	}
+
+	/**
+	 * Stores $value for $key if and only if a value does not already exist for $key.
+	 */
+	public static /*void*/ function remember(/*String*/ $key, /*mixed*/ $value)
+	{
+		if(self::has($key))
+			return;
+
+		self::set($key, $value);
+	}
+
+	public static function _load()
+	{
+		// note dont overwrite static variables
 	}
 	
-	public static function _restore($key, $object)
+	public static function _save()
 	{
-	}
-	
-	protected static function load()
-	{
-	}
-	
-	protected static function save()
-	{
-		// change behavior based on app::isRunning
+		// only save if dirty data
 	}
 }
 ?>

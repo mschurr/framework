@@ -108,7 +108,7 @@ class URL
 	
 	protected function __determineUrlForControllerString($controller)
 	{
-		$possible = Route::__getRoutingOptionsForTarget($object);
+		$possible = Route::__getRoutingOptionsForTarget($controller);
 		/*
 			(IF ACTION SPECIFIED) TRY TO MATCH THE EXACT TARGET. IF SUCCESSFUL, THAT'S THE URL.
 			TRY TO MATCH THE TARGET WITHOUT @METHOD FOR GET REQUESTS. IF SUCCESSFUL, THAT'S THE URL.

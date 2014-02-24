@@ -118,12 +118,13 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		'inode', 'mime', 'size', 'path', 'extension', 'childFiles',
 		'childDirectories', 'descendantDirectories', 'files', 
 		'descendantFiles', 'isWriteable', 'lines', 'canonicalPath',
-		'subdirectories', 'fileName', 'name', 'ext', 'content'
+		'subdirectories', 'fileName', 'name', 'ext', 'content',
+		'parent', 'serial'
 
 		/*
 		'', 'group', 'owner',
-		'permissions', '', 'directory', 'parent', '',
-		 '', 'json', 'serial',
+		'permissions', '', 'directory', '', '',
+		 '', 'json', '',
 
 		properties needing write access:
 			extension
@@ -148,11 +149,19 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	// # Instance Methods
 	// #########################################################
 
+	public /*File*/ function getParent()
+	{
+		if(is_null($this->_properties['parent']))
+			$this->_properties['parent'] = File::open(pathinfo($this->path, PATHINFO_DIRNAME));
+
+		return $this->_properties['parent'];
+	}
+
 	public /*bytes*/ function getContent()
 	{
-		if(!$file->exists)
+		if(!$this->exists)
 			throw new FileDoesNotExistException;
-		if(!$file->isReadable)
+		if(!$this->isReadable)
 			throw new FileNotReadableException;
 
 		$content = file_get_contents($this->path);
@@ -163,14 +172,22 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		return $content;
 	}
 
+	public /*mixed*/ function getSerial()
+	{
+		$v = unserialize($this->content);
+		if($v === false)
+			throw new FileOperationInvalidException;
+		return $v;
+	}
+
+	public /*void*/ function setSerial($data)
+	{
+		$this->put(serialize($data), true);
+	}
+
 	public /*void*/ function setContent($data)
 	{
-		if(!$file->isWritable)
-			throw new FileNotWritableException;
-
-		$set = file_put_contents($this->path, $data);
-		if($set === false)
-			throw new FileException("Unknown write error");
+		$this->put($data, true);
 	}
 
 	public /*String*/ function serialize()
@@ -717,7 +734,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 
 		if(!$this->exists) {
-			$file->create();
+			$this->create();
 		}
 		else {
 			if(!$this->isWritable)
@@ -750,8 +767,13 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	/**
 	 * Creates the file.
 	 */
-	public /*void*/ function create(/*binary*/$initialContent, /*bool*/$createParentDirectory=false) /*throws FileException*/
+	public /*void*/ function create(/*binary*/$initialContent=null, /*bool*/$createParentDirectory=false) /*throws FileException*/
 	{
+		if(substr($this->path, -1, 1) == '/') {
+			$this->createDirectory($createParentDirectory);
+			return;
+		}
+
 		if(!$this->parent->exists) {
 			if($createParentDirectory === true)
 				$this->parent->createDirectory(true);
@@ -793,7 +815,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			throw new FileNotReadableException;
 		if(!$this->isWritable)
 			throw new FileNotWritableException;
-		if($bytes > $file->size)
+		if($bytes > $this->size)
 			throw new InvalidArgumentException;
 
 		$this->lock();
@@ -872,9 +894,9 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	protected function invalidateCache()
 	{
-		$path =& $this->path;
+		$path = $this->path;
 		$this->_properties->clear();
-		$this->_properties['path'] =& $path;
+		$this->_properties['path'] = $path;
 		$this->updateCanonicalPath();
 	}
 
@@ -906,18 +928,31 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*void*/ function copyTo(/*String*/$path, /*bool*/$createDestination=false) /*throws FileException*/
 	{
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+		if(!$this->isReadable)
+			throw new FileNotReadableException;
+
 		throw new FileException("NOT IMPLEMENTED");
 	}
 
-
-	
-	
 	/**
 	 * Writes the provided content to the end of the file. Creates the file if it does not exist.
 	 */
-	public /*void*/ function append(/*binary*/$content) /*throws FileException*/
+	public /*void*/ function append(/*binary*/ $content) /*throws FileException*/
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+
+		if(!$this->isWritable)
+			throw new FileNotWritableException;
+
+		$result = file_put_contents($this->path, $content, FILE_APPEND);
+
+		if($result === false)
+			throw new FileOperationFailedException;
+
+		$this->invalidateCache();
 	}
 
 	/**
@@ -927,6 +962,22 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*void*/ function moveTo(/*String*/$path, /*bool*/$createDestination=false)
 	{
+		$newFile = File::open($path);
+
+		if($newFile->exists)
+			throw new FileAlreadyExistsException;
+
+		if(!$newFile->isWritable)
+			throw new FileNotWritableException;
+
+		if(!$newFile->directory->exists) {
+			if($createDestination === true) {
+				$newFile->directory->createDirectory(true);
+			} else {
+				throw new FileOperationFailedException;
+			}
+		}
+
 		throw new FileException("NOT IMPLEMENTED");
 	}
 
@@ -934,19 +985,29 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	/**
 	 * Renames the file, preserving its location within its parent directory.
 	 */
-	public /*void*/ function rename(/*String*/$newName) /*throws FileException*/
+	public /*void*/ function rename(/*String*/ $newName) /*throws FileException*/
 	{
 		throw new FileException("NOT IMPLEMENTED");
 	}
 
-	
-
 	/**
 	 *
 	 */
-	public /*void*/ function createDirectory(/*bool*/$createParentDirectory) /*throws FileException*/
+	public /*void*/ function createDirectory(/*bool*/$createParentDirectory=false) /*throws FileException*/
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		if(!$this->parent->exists) {
+			if($createParentDirectory === true) {
+				$this->parent->createDirectory(true);
+			}
+			else {
+				throw new FileOperationFailedException;
+			}
+		}
+
+		$res = mkdir($this->path, 0777, false);
+
+		if($res === false)
+			throw new FileOperationFailedException;
 	}
 
 	/**
@@ -954,7 +1015,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*void*/ function lock(/*bool*/ $autoRelease=false) /*throws FileException*/
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		//throw new FileException("NOT IMPLEMENTED");
 	}
 
 	/**
@@ -962,7 +1023,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*void*/ function release() /*throws FileException*/
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		//throw new FileException("NOT IMPLEMENTED");
 	}
 
 	/**
@@ -980,8 +1041,6 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		throw new FileException("NOT IMPLEMENTED");
 	}
-
-
 
 	/**
 	 *
@@ -1014,7 +1073,14 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 
 	public /*array<File>*/ function search(/*String*/$pattern, $recursive=true)
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		$filter = function(File $file) {
+			return preg_match('/^('.$pattern.')$/s', $file->canonicalPath);
+		};
+
+		if($recursive)
+			return $this->descendants($filter)->toArray();
+		else
+			return $this->children($filter)->toArray();
 	}
 
 	public /*array<File>*/ function searchInFiles(/*String*/$pattern, $recursive=true)

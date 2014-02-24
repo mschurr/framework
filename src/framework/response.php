@@ -57,7 +57,7 @@ class Response
 	{
 		$this->status = $code;
 		$this->out->clear();
-		$this->headers['Content-Type'] = 'text/html;charset=UTF-8';
+		$this->headers['Content-Type'] = 'text/html; charset=UTF-8';
 		
 		$this->out->write("
 		<!DOCTYPE HTML>
@@ -137,7 +137,8 @@ class Response
 	{
 		if($obj instanceof BladeView) {
 			$obj->prepare();
-			$tmp =& $this->out->document; // force creation of a document
+			if($obj->template_type === 'blade')
+				$tmp =& $this->out->document; // force creation of a document
 			$this->out->setView($obj);
 		}
 		if($obj instanceof Cookie) {

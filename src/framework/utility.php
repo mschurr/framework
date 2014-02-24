@@ -64,7 +64,7 @@
 /**
  * Instantiates a new Model of the provided type using any additional provided arguments.
  */
-/*Model*/ function &model(/*String*/ $string /*, ...array $options*/) {
+/*Model*/ function model(/*String*/ $string /*, ...array $options*/) {
 	return call_user_func_array('Model::make', func_get_args());
 }
 

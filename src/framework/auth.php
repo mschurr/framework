@@ -7,7 +7,7 @@
  	* Route, controller, and view for logins.
 	* Route, controller for logouts.
 	
- We recommend implementing (using the Auth API):
+ In your application, you should implement (using the Auth API):
 	* A place to notify users of failed logins.
 	* A place to notify users of their last login(s), and to report them fraudulent.
 	* Restricted access to certain features based on whether or not the user has entered their password this session.
@@ -22,18 +22,15 @@
  Recommended Driver Implementation Details:
  	* Throttling should occur at the rate (for each failed attempt, in seconds): 0 0 0 2 4 8 16 30 60 60 60....
 	* Throttling should occur both on the current client and the user account in question.
-	* Error messages should not give potential attackers any useful information.
+	* Error messages should not give potential attackers any useful information (use the public message on Exceptions).
 	
- As you implement user-interface controllers, keep these things in mind:
+ As you implement your controllers, keep these things in mind:
  	* Don't use secret questions.
-	* Make sure the user driver enforces good password practices.
+	* Make sure the user driver enforces good password entropy.
 	* Password recovery tokens should be stored as hashes. Don't reset; prompt the user to change their password. Throttle attempts.
 	* You may wish to never use persistent logins depending on your application's security requirements.
-	* Protect registration process against bots and brute force username guessing.
+	* Protect registration processes against bots and brute force username guessing.
 	* Warn users about using persistent logins on public computers. Persistent logins should be opt-in.
-	
- Possible extensions:
- 	* Two-factor authentication.
 */
 
 /**
@@ -123,7 +120,7 @@ class AuthException extends Exception
 }
 
 /**
- * A wrapper interface for details about an authentication attempt. Utilized by the Auth driver API.
+ * A wrapper interface for details about an authentication attempt. Utilized by the Auth Driver API.
  */
 abstract class Auth_Attempt implements ArrayAccess
 {	
