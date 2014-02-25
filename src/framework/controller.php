@@ -73,20 +73,10 @@ abstract class Controller
 		return $this->__reference;
 	}
 	
-	/*public function __toString()
+	public function __toString()
 	{
-		// Get the class of the object.
-		$class = get_class($this);
-		
-		// Remove namespacing.
-		if(str_contains($class, "\\"))
-			$class = substr($class, strrpos($class, "\\")+1);
-		
-		// Account for file path.
-		
-		// Return the path.
-		return $class;
-	}*/
+		return $this->__reference;
+	}
 }
 
 if(function_exists('class_alias'))

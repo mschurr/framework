@@ -47,5 +47,9 @@ class Redirect
 	{
 		$this->url =& $url;
 	}
+
+	public function getURL()
+	{
+		return $this->url;
+	}
 }
-?>
