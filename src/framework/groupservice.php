@@ -14,6 +14,8 @@
 
 */
 
+class GroupServiceException extends Exception {}
+
 /**
  * Provides an interface for interacting with groups.
  */

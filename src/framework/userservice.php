@@ -106,21 +106,25 @@ abstract class User_Service_Provider
 	private static $restricted = array('admin','root','user','username','account','email');
 	public /*bool*/ function passwordMeetsConstraints(/*String*/$username, /*String*/$password) /*throws UserServiceException*/
 	{
-		if(!$this->usernameMeetsConstraints($username))
-			return false;
-		
 		if(in_array(strtolower($username),self::$restricted))
-			return false;
+			throw new UserServiceException("PASSWORD_INVALID", "That username is reserved; please choose another one.");
 			
 		if(strtolower($username) == strtolower($password))
-			return false;
+			throw new UserServiceException("PASSWORD_INVALID", "You must choose a password different than your username.");
 			
 		if(strlen($password) < 10 || strlen($password) > 100)
-			return false;
+			throw new UserServiceException("PASSWORD_INVALID", "Your password must be between 10 and 100 characters in length.");
 			
 		// TODO: Commonly Used Passwords
 		// TODO: Entropy Calculation and Threshold
 		
+		return true;
+	}
+
+	public /*bool*/ function emailIsValid($email)/*throws UserServiceException*/
+	{
+		if(!filter_var($email, FILTER_VALIDATE_EMAIL))
+			throw new UserServiceException("INVALID_EMAIL", "You must enter a valid email address.");
 		return true;
 	}
 }
@@ -169,6 +173,7 @@ abstract class User_Provider implements ArrayAccess, Iterator, Countable
 
 	/**
 	 * Changes the user's password; the password parameter should be in plaintext.
+	 * Recommend calling Session->Auth->terminateAllOtherSessionsForCurrentUser after changing password.
 	 */
 	public abstract /*void*/ function setPassword(/*String*/$password);
 

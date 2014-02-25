@@ -14,8 +14,8 @@ function included() {
 }
 
 // This framework only supports PHP versions >= 5.3.0.
-if (version_compare(phpversion(), '5.3.0', '<') == true) {
-	die('You must install PHP >= 5.3.0 in order to use this framework.');
+if (version_compare(phpversion(), '5.5.0', '<') == true) {
+	die('You must install PHP >= 5.5.0 in order to use this framework.');
 }
 
 // Establish directory root constants.

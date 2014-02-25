@@ -1,5 +1,5 @@
 <?php
-/* This could really use some sort of caching. */
+/* This could really use some sort of memory caching... will add later. */
 
 class Group_Service_Provider_db extends Group_Service_Provider
 {	
@@ -102,6 +102,12 @@ class Group_Provider_db extends Group_Provider
 	
 	public /*void*/ function setName(/*string*/$name)
 	{
+		$statement = $this->db->prepare("SELECT `groupid` FROM `groups` WHERE `name` LIKE ? LIMIT 1;");
+		$query = $statement->execute($name);
+		
+		if(len($query) > 0)
+			throw new GroupServiceException("That name is already in use.");
+
 		$this->name = $name;
 		$statement = $this->db->prepare("UPDATE `groups` SET `name` = ? WHERE `groupid` = ?;");
 		$statement->execute($name, $this->id);
@@ -124,14 +130,14 @@ class Group_Provider_db extends Group_Provider
 		return $this->privileges;
 	}
 
-	public /*bool*/ function hasprivilege(/*int*/$id)
+	public /*bool*/ function hasPrivilege(/*int*/$id)
 	{
 		return in_array($id, $this->privileges());
 	}
 	
-	public /*void*/ function addprivilege(/*int*/$id)
+	public /*void*/ function addPrivilege(/*int*/$id)
 	{
-		if($this->hasprivilege($id))
+		if($this->hasPrivilege($id))
 			return;
 			
 		$this->privileges[] = (int) $id;
@@ -140,9 +146,9 @@ class Group_Provider_db extends Group_Provider
 		$statement->execute($this->id, $id);
 	}
 	
-	public /*void*/ function removeprivilege(/*int*/$id)
+	public /*void*/ function removePrivilege(/*int*/$id)
 	{
-		if(!$this->hasprivilege($id))
+		if(!$this->hasPrivilege($id))
 			return;
 			
 		$this->privileges = array_diff($this->privileges, array($id));

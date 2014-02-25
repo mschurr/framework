@@ -349,7 +349,9 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 			return $this->size;
 		if($offset === 1) // For backwards compatability.
 			return $this->rows;
-		return isset($this->rows[0][$offset]) ? $this->rows[0][$offset] : null;
+		if(isset($this->rows[0][$offset]))
+			return $this->rows[0][$offset];
+		throw new Exception("Access to undefined property ".$offset);
 	}
 	
 	public function offsetUnset($offset) {

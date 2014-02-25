@@ -157,5 +157,3 @@ class Output
 		return $this->buffer;
 	}
 }
-
-?>

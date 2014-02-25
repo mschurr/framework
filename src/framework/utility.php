@@ -30,6 +30,38 @@
 	return $json;
 }
 
+
+function sql_keys(/*array<string:mixed>*/ $array) {
+	$keys = '';
+
+	foreach($array as $field => $value)
+		$keys .= '`'.$field.'`,';
+
+	$keys = substr($keys, 0, -1);
+
+	return $keys;
+}
+
+function sql_values(/*array<string:mixed>*/ $array) {
+	$values = '';
+
+	foreach($array as $field => $value)
+		$values .= ':'.$field.',';
+
+	$values = substr($values, 0, -1);
+
+	return $values;
+}
+
+function sql_parameters(/*array<string:mixed*/ $array) {
+	$new = array();
+
+	foreach($array as $k => $v)
+		$new[':'.$k] = $v;
+
+	return $new;
+}
+
 /**
  * Converts a JSON string into a native PHP array.
  * Returns null on failure.

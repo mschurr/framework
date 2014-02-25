@@ -24,11 +24,13 @@ class Response
 	public function enableCaching($http=true, $content=true, $session_specific=false)
 	{
 		// Enables HTTP Caching, indicating the page's content is "static" in a sense. Can be combined with compression.
+		throw new Exception("Not implemented.");
 	}
 	
 	public function enableCompression()
 	{
 		// Enables HTTP Compression, saving server-side bandwidth at the cost of CPU cycles.
+		throw new Exception("Not implemented.");
 	}
 	
 	public function send()
