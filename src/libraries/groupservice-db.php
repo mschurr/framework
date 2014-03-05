@@ -190,3 +190,9 @@ class Group_Provider_db extends Group_Provider
 		$statement->execute($this->id, $user->id());
 	}
 }
+
+/*
+CRON::register('24h',function(){
+	// Clean up references to non-existant groups.
+})
+*/

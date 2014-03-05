@@ -63,7 +63,12 @@ class Cache_Driver_filesystem extends Cache_Driver
 		$lastClean = $this->get('__cacheCleanTime', 0);
 		
 		if( (time() - $lastClean) > 3600 ) {
-			$this->cleanExpired($f);
+			try {
+				$this->cleanExpired($f);
+			}
+			catch(FileDoesNotExistException $e) {
+				
+			}
 			$this->put('__cacheCleanTime', time());
 		}
 	}

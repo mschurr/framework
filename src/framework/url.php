@@ -185,7 +185,7 @@ class URL
 				$this->type = URLType::ABSOLUTE;
 			}
 			catch(Exception $e) {
-				throw new URLException($e);
+				throw new URLException($e->getMessage());
 			}		
 		}
 	}

@@ -17,7 +17,130 @@ class HTMLDocumentNew implements ArrayAccess
 	public /*void*/ function __construct()
 	{
 	}
-	
+
+	public /*String*/ function getContent()
+	{
+
+	}
+
+	public /*void*/ function setIcon($href)
+	{
+
+	}
+
+	public /*void*/ function setTitle($value)
+	{
+
+	}
+
+	public /*void*/ function setKeywords($value)
+	{
+
+	}
+
+	public /*void*/ function setDescription($value)
+	{
+
+	}
+
+	public /*void*/ function setMeta($key, $value)
+	{
+
+	}
+
+	public /*void*/ function addLink($rel, $type, $href, $media="screen,projection")
+	{
+
+	}
+
+	/**
+	 * Appends text to the document body.
+	 */
+	public /*void*/ function write(/*string*/ $html)
+	{
+
+	}
+
+	/**
+	 * Appends text to the document body.
+	 */
+	public /*void*/ function append(/*string*/ $html)
+	{
+
+	}
+
+	/**
+	 * Prepends text to the document body.
+	 */
+	public /*void*/ function prepend(/*string*/ $html)
+	{
+
+	}
+
+	/**
+	 * Clears all content written to the document body.
+	 */
+	public /*void*/ function clear()
+	{
+
+	}
+
+	/**
+	 * Adds a script to the document.
+	 */
+	public /*void*/ function addScript(/*string*/ $href)
+	{
+
+	}
+
+	/**
+	 * Removes a script previously added to the document.
+	 */
+	public /*void*/ function removeScript(/*string*/ $href)
+	{
+
+	}
+
+	/**
+	 * Adds a cascading stylesheet to the document.
+	 */
+	public /*void*/ function addStyle(/*string*/ $href)
+	{
+		$this->addLink('stylesheet', 'text/css', (string) $href, 'screen, projection');
+	}
+
+	/**
+	 * Removes a cascading stylesheet previously added to the document.
+	 */
+	public /*void*/ function removeStyle(/*string*/ $href)
+	{
+		
+	}
+
+	/**
+	 * Converts the object into a string returning the document content.
+	 */
+	public /*string*/ function __toString()
+	{
+		return $this->content;
+	}
+
+	/**
+	 * Appends text to the document head.
+	 */
+	public /*void*/ function appendToHead($html)
+	{
+
+	}
+
+	/**
+	 * Sets an attribute on the document body.
+	 */
+	public /*void*/ function setBody(/*string*/ $attribute, /*string*/ $value)
+	{
+
+	}
+
 	// ------ Array Access
 	public function offsetExists($offset)
 	{

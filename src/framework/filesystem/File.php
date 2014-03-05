@@ -760,15 +760,18 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*void*/ function moveToDirectory(/*String*/$path, /*bool*/$createDestination=false) /*throws FileException*/
 	{
-		$this->moveToDirectory($path.'/'.$this->name, $createDestination);
+		$this->moveTo($path.'/'.$this->name, $createDestination);
 		$this->invalidateCache();
 	}
 
 	/**
-	 * Creates the file.
+	 * Creates the file (or directory) if it does not exist.
 	 */
 	public /*void*/ function create(/*binary*/$initialContent=null, /*bool*/$createParentDirectory=false) /*throws FileException*/
 	{
+		if($this->exists)
+			throw new FileAlreadyExistsException;
+
 		if(substr($this->path, -1, 1) == '/') {
 			$this->createDirectory($createParentDirectory);
 			return;
@@ -827,7 +830,8 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Deletes all of the contents of the directory and (optionally) the directory itself.
+	 * Deletes all of the contents of the directory and the directory itself.
+	 * This function is named differently from delete() to prevent accidental calls.
 	 */
 	public /*void*/ function deleteDirectory(/*bool*/$preserveDirectory=false) /*throws FileException*/
 	{
@@ -866,7 +870,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		if(!$this->isWritable)
 			throw new FileNotWritableException;
 
-		unlink($this->path);
+		@unlink($this->path);
 
 		$this->invalidateCache();
 	}
@@ -916,26 +920,6 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		return new FileChunkIterator($this, $bytes);
 	}
 
-	// ---------------
-
-	
-	/**
-	 * Copies the file (or directory) to the provided destination path.
-	 * If this object represents a directory, the copy is recursive (contents are copied).
-	 * If the destination directory does not exist and $createDestination is false, an exception is thrown.
-	 * If the destination directory does not exist and $createDestination is true, the directory is created and copy occurs normally.
-	 * If a file already exists at that path, an exception is thrown.
-	 */
-	public /*void*/ function copyTo(/*String*/$path, /*bool*/$createDestination=false) /*throws FileException*/
-	{
-		if(!$this->exists)
-			throw new FileDoesNotExistException;
-		if(!$this->isReadable)
-			throw new FileNotReadableException;
-
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
 	/**
 	 * Writes the provided content to the end of the file. Creates the file if it does not exist.
 	 */
@@ -947,12 +931,32 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		if(!$this->isWritable)
 			throw new FileNotWritableException;
 
-		$result = file_put_contents($this->path, $content, FILE_APPEND);
+		$result = @file_put_contents($this->path, $content, FILE_APPEND);
 
-		if($result === false)
+		if($result !== true)
 			throw new FileOperationFailedException;
 
 		$this->invalidateCache();
+	}
+
+	/**
+	 *
+	 */
+	public /*void*/ function createDirectory(/*bool*/$createParentDirectory=false) /*throws FileException*/
+	{
+		if(!$this->parent->exists) {
+			if($createParentDirectory === true) {
+				$this->parent->createDirectory(true);
+			}
+			else {
+				throw new FileOperationFailedException;
+			}
+		}
+
+		$res = @mkdir($this->path, 0777, false);
+
+		if($res === false)
+			throw new FileOperationFailedException;
 	}
 
 	/**
@@ -978,101 +982,35 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			}
 		}
 
-		throw new FileException("NOT IMPLEMENTED");
-	}
+		if($this->_properties['uploaded'] === true) {
+			$result = @move_uploaded_file($this->path, $path);
 
-	
-	/**
-	 * Renames the file, preserving its location within its parent directory.
-	 */
-	public /*void*/ function rename(/*String*/ $newName) /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function createDirectory(/*bool*/$createParentDirectory=false) /*throws FileException*/
-	{
-		if(!$this->parent->exists) {
-			if($createParentDirectory === true) {
-				$this->parent->createDirectory(true);
-			}
-			else {
+			if($result !== true)
 				throw new FileOperationFailedException;
-			}
+
+			$this->invalidateCache();
+			return;
 		}
 
-		$res = mkdir($this->path, 0777, false);
+		$result = @rename($this->path, $path);
 
-		if($res === false)
+		if($result !== true)
 			throw new FileOperationFailedException;
+
+		$this->invalidateCache();
 	}
 
 	/**
-	 *
+	 * Searches for a regular expression pattern in file names of descendants of the current directory.
+	 * In order to work, this object must represent a directory.
 	 */
-	public /*void*/ function lock(/*bool*/ $autoRelease=false) /*throws FileException*/
-	{
-		//throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function release() /*throws FileException*/
-	{
-		//throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function __destruct()
-	{
-		// CHECK AUTO_RELEASE_LOCK
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function passthrough() /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function chmod(/*binary*/$mode) /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function chgrp(/*int*/$group) /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
-	/**
-	 *
-	 */
-	public /*void*/ function chown(/*int*/$owner) /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
-	public /*bool*/ function contains(/*String*/$pattern) /*throws FileException*/
-	{
-		throw new FileException("NOT IMPLEMENTED");
-	}
-
 	public /*array<File>*/ function search(/*String*/$pattern, $recursive=true)
 	{
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+		if(!$this->isDirectory)
+			throw new FileOperationInvalidException;
+
 		$filter = function(File $file) {
 			return preg_match('/^('.$pattern.')$/s', $file->canonicalPath);
 		};
@@ -1083,18 +1021,133 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			return $this->children($filter)->toArray();
 	}
 
+	// -------------------------------------------------------------------------------
+	// The functions below are not yet implemented.
+	// -------------------------------------------------------------------------------
+	
+	/**
+	 * Copies the file (or directory) to the provided destination path.
+	 * If this object represents a directory, the copy is recursive (contents are copied).
+	 * If the destination directory does not exist and $createDestination is false, an exception is thrown.
+	 * If the destination directory does not exist and $createDestination is true, the directory is created and copy occurs normally.
+	 * If a file already exists at that path, an exception is thrown.
+	 */
+	public /*void*/ function copyTo(/*String*/$path, /*bool*/$createDestination=false) /*throws FileException*/
+	{
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+		if(!$this->isReadable)
+			throw new FileNotReadableException;
+
+		throw new FileException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Renames the file, preserving its location within its parent directory.
+	 */
+	public /*void*/ function rename(/*String*/ $newName) /*throws FileException*/
+	{
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Locks the file to prevent writes from other sources.
+	 * The lock may be manually released using release(), or the lock will be 
+	 * auto-released when the object is deallocated.
+	 */
+	public /*void*/ function lock() /*throws FileException*/
+	{
+		//throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Releases a lock set on the file (if applicable).
+	 */
+	public /*void*/ function release() /*throws FileException*/
+	{
+		//throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Destroys any resources created by the object.
+	 */
+	public /*void*/ function __destruct()
+	{
+		// CHECK lock release
+	}
+
+	/**
+	 * Proxies the file through to the client browser and exits, optionally sending additional headers.
+	 */
+	public /*void*/ function passthrough($headers=array()) /*throws FileException*/
+	{
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Changes the file's permissions to $mode using chmod.
+	 */
+	public /*void*/ function chmod(/*binary*/$mode) /*throws FileException*/
+	{
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Changes the file's group to $group.
+	 */
+	public /*void*/ function chgrp(/*int*/$group) /*throws FileException*/
+	{
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Changes the file's owner to $owner.
+	 */
+	public /*void*/ function chown(/*int*/$owner) /*throws FileException*/
+	{
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Returns whether or not the file's contents match a regular expression pattern.
+	 */
+	public /*bool*/ function contains(/*String*/$pattern) /*throws FileException*/
+	{
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+		if(!$this->isFile)
+			throw new FileOperationInvalidException;
+
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
+	}
+
+	/**
+	 * Searchs for a regular expression pattern in file contents of descendants of the current directory.
+	 * In order to work, this object must represent a directory.
+	 */
 	public /*array<File>*/ function searchInFiles(/*String*/$pattern, $recursive=true)
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		if(!$this->exists)
+			throw new FileDoesNotExistException;
+		if(!$this->isDirectory)
+			throw new FileOperationInvalidException;
+
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
 	}
 
+	/**
+	 * Creates the file as a symlink to $path.
+	 */
 	public /*void*/ function symlinkTo(/*String*/$path)
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
 	}
 
+	/**
+	 * Creates the file as a hard link to $path.
+	 */
 	public /*void*/ function hardlinkTo(/*String*/$path)
 	{
-		throw new FileException("NOT IMPLEMENTED");
+		throw new FileOperationFailedException("NOT IMPLEMENTED");
 	}
 }

@@ -4,11 +4,17 @@ class Mail
 {
 	protected static $mailer = null;
 
+	/**
+	 * Enqueues a message to be sent at a later time; this should only be used on things that are not time-sensitive.
+	 */
 	public static function enqueue(Mail $message) /*throws MailException*/
 	{
 		self::send($message);
 	}
 
+	/**
+	 * Sends a message immediately.
+	 */
 	public static function send(Mail $message) /*throws MailException*/
 	{
 		if(static::$mailer === null) {

@@ -805,7 +805,8 @@ class RouteCollection implements \IteratorAggregate, \Countable
 
 	public /*void*/ function add(RouteObject $route)
 	{
-		$this->routes[$route->host.$route->uri] = $route;
+		//$this->routes[$route->host.$route->uri] = $route;
+		$this->routes[] = $route;
 
 		if(!is_null($route->name)) {
 			$this->nameList[$route->name] = $route;
@@ -825,13 +826,14 @@ class RouteCollection implements \IteratorAggregate, \Countable
 
 	public /*Route*/ function get(/*string*/ $name)
 	{
-		return isset($this->routes[$name]) ? $this->routes[$name] : null;
+		return $this->getByName($name);
 	}
 
 	public /*void*/ function remove(/*string|array<string>*/ $name)
 	{
-		foreach ((array) $name as $n) {
+		/*foreach ((array) $name as $n) {
             unset($this->routes[$n]);
-        }
+        }*/
+        throw new RoutingException("NOT IMPLEMENTED");
 	}
 }

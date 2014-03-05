@@ -194,6 +194,20 @@ abstract class DB_Driver
 	
 	/* Returns true if currently in a transaction and false otherwise. */
 	public abstract function inTransaction();
+
+	/* Performs the queries contained in the closure as a transaction. Throws an exception and rolls back changes if the transaction fails. */
+	public /*void*/ function transaction(Closure $transaction) /*throws DatabaseException*/
+	{
+		try {
+			$this->beginTransaction();
+			$transaction($this);
+			$this->commit();
+		}
+		catch(DatabaseException $e) {
+			$this->rollback();
+			throw $e;
+		}
+	}
 }
 
 class DB_PreparedStatement
@@ -264,16 +278,13 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 		if($key == 'row') {
 			if($this->size >= 1)
 				return $this->rows[0];
-			return array();
+			throw new RuntimeException("Access Violation: Access to 'row' failed; the query does not contain any data.");
 		}
-	
-		if($this->size == 0)
-			return null;
 			
 		if(isset($this->row[$key]))
 			return $this->row[$key];
 		
-		return null;
+		throw new RuntimeException("Access Violation: Access to '".$key."' failed because it does not exist.");
 	}
 	
 	public function __invoke()
@@ -330,12 +341,7 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 	
 	// -- ArrayAcess or ArrayObject Methods
 	public function offsetSet($offset, $value) {
-		/*if(is_null($offset)) {
-			$this->row[] = $value;
-		}
-		else {
-			$this->row[$offset] = $value;
-		}*/
+		throw new RuntimeException("Access Violation: You can not modify the result of a database query.");
 	}
 	
 	public function offsetExists($offset) {
@@ -351,30 +357,12 @@ class DB_Result implements Iterator, ArrayAccess, Countable
 			return $this->rows;
 		if(isset($this->rows[0][$offset]))
 			return $this->rows[0][$offset];
-		throw new Exception("Access to undefined property ".$offset);
+		throw new RuntimeException("Access Violation: You attempted to access an undefined property '".$offset."'.");
 	}
 	
 	public function offsetUnset($offset) {
-		//unset($this->row[$offset]);
+		throw new RuntimeException("Access Violation: You can not modify the result of a database query.");
 	}
-	
-	// For serialization.
-	/*protected $_serial;
-	public function __sleep()
-	{
-		$this->_serial = array();
-		return array('affected', 'insertId', 'text', 'success', 'rows', 'size', 'time', 'error', '_serial');
-	}
-	
-	public function __wakeup()
-	{
-		// Restore Driver
-		
-		// Unset Serial
-		unset($this->_serial);
-	}*/
 }
 
-class DB_Timer extends Timer {
-	
-}
+class DB_Timer extends Timer {}

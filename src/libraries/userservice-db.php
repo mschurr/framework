@@ -313,3 +313,9 @@ class User_Provider_db extends User_Provider
 		$this->_deleted = true;
 	}
 }
+
+/*
+CRON::register('24h',function(){
+	// Clean up references to non-existant users.
+})
+*/

@@ -12,14 +12,14 @@
  *
  * Example Uses:
  *    - Storing user-uploaded photos
- 
+ *
  * If the files stored by the driver are automatically made available publicly on your content delivery network, StorageFile->url should return that URL.
  * Otherwise, a URL will be generated and returned that proxies the file through an app server node.
  *
  * NOTE: This storage system does not provide any sort of access control. All files are assumed publicly accessible. If this is undesired behavior, subclass the driver of your choice
  *  and override "access". You will not be able to use a CDN if you do this; all requests must be proxied through the app server for the access function to be honored.
  *
- * Drivers:
+ * Suggested Drivers:
  *    MongoDB
  *    AmazonS3
  *    RelationalDB  		* Not recommended; storing binary files in relational databases is a significant performance hit.
@@ -28,22 +28,24 @@
  *
  **/
   
-interface StorageSection
+class StorageException extends Exception {}
+
+abstract class StorageSection
 {
-	public /*bool*/ function put(File $file, array $metadata, /*int*/ $expires=-1);
-	public /*bool*/ function has(/*string*/$hash);
-	public /*bool*/ function delete(/*string*/$hash);
-	public /*StorageFile*/ function get(/*string*/$hash);
-	public /*bool*/ function renew(/*string*/$hash, /*int*/$expires=-1);
+	public abstract /*void*/ function put(File $file, array $metadata, /*int*/ $expires=-1)/*throws StorageException*/;
+	public abstract /*bool*/ function has(/*string*/$hash);
+	public abstract /*void*/ function delete(/*string*/$hash)/*throws StorageException*/;
+	public abstract /*StorageFile*/ function get(/*string*/$hash)/*throws StorageException*/;
+	public abstract /*void*/ function renew(/*string*/$hash, /*int*/$expires=-1)/*throws StorageException*/;
 }
 
-interface Storage extends StorageSection
+abstract class Storage extends StorageSection
 {
-	public /*StorageSection*/ function section(/*string*/$name);
-	public /*bool*/ function access(/*string*/$hash, /*string*/$section, /*Session*/$session);
+	public abstract /*StorageSection*/ function section(/*string*/$name);
+	public abstract /*bool*/ function access(/*string*/$hash, /*string*/$section, /*Session*/$session);
 }
 
-interface StorageFile // should just extend File for the most parts
+abstract class StorageFile// implements ArrayAccess
 {
 	public $url;
 	public $section;
@@ -59,9 +61,12 @@ interface StorageFile // should just extend File for the most parts
 	public $sha1;
 	public $metadata;
 	public $contents;
-	public function copyToInstance($path);
-	public function passthrough(); // note operation will be expensive; essentially proxying file through server node
-}// return URL::to('StorageController')->withParameters($this->hash);
+	public abstract function copyToInstance($path);
+
+	public /*URL*/ function getUrl() {
+		return URL::to('StorageController', $this->hash);
+	}
+}
 
 /**
  * Handles routing for the storage driver; ensures that we can always return a valid URL to stored files.

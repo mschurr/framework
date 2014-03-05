@@ -39,74 +39,16 @@
 	database.name			<string>														The name of database to use
 	http.loadbalanced		<bool>									false					Whether or not the server is behind a load balancer and should pull IP/PROTO from X-Forwarded-Proto and X-Forwarded-For headers.
 	app.development			<bool>									true 					Whether or not to use development mode (displays pretty stack traces)
-
-TODO: 
-	persistance, hard coding not overwritable
-	'mailer.name'       => 'crush@riceapps.org',
-	'mailer.email'      => 'crush@riceapps.org',
-	'mailer.host'       => '.hostmonster.com',
-	'mailer.port'       => '465',
-	'mailer.user'       => 'crush@riceapps.org',
-	'mailer.pass'       => '',
-	'mailer.crypt'      => 'ssl',
-	'recaptcha.publicKey' => '',
-	'recaptcha.privateKey' => ''
-*/
-
-/*
-	Useful Configuration Values:
-		cache.connection
-		cache.prefix
-		cache.memcached		=   array(array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100))
-		captcha.driver 		= 	cookies|session|recaptcha
-		database.default
-		database.connections = 
-		'sqlite' => array(
-			'driver'   => 'sqlite',
-			'database' => __DIR__.'/../database/production.sqlite',
-			'prefix'   => '',
-		),
-
-		'mysql' => array(
-			'driver'    => 'mysql',
-			'host'      => 'localhost',
-			'database'  => 'database',
-			'username'  => 'root',
-			'password'  => '',
-			'charset'   => 'utf8',
-			'collation' => 'utf8_unicode_ci',
-			'prefix'    => '',
-		),
-
-		'pgsql' => array(
-			'driver'   => 'pgsql',
-			'host'     => 'localhost',
-			'database' => 'database',
-			'username' => 'root',
-			'password' => '',
-			'charset'  => 'utf8',
-			'prefix'   => '',
-			'schema'   => 'public',
-		),
-
-		'sqlsrv' => array(
-			'driver'   => 'sqlsrv',
-			'host'     => 'localhost',
-			'database' => 'database',
-			'username' => 'root',
-			'password' => '',
-			'prefix'   => '',
-		),
-		crypt.key
-		time.zone
-		app.debug
-		app.url
-		crypt.defaultkey
-		session.driver		mysql|cache|file
-		session.cache		true|false (does not work if the driver is "cache")
-		session.cookie
-		session.cryptkey			(encryption key)
-		
+	mailer.name
+	mailer.email
+	mailer.host
+	mailer.port
+	mailer.user
+	mailer.pass
+	mailer.crypt    		<string>														Example: 'ssl'
+	recaptcha.publicKey
+	recaptcha.privateKey
+	time.zone
 */
 
 class Config
