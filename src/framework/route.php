@@ -611,10 +611,12 @@ class Route
 		$active = null;
 
 		// Look through the routes for a match.
-		foreach(self::$routes as $route) {
-			if($route->matches($request)) {
-				$active = $route;
-				break;
+		if(isset(self::$routes)) {
+			foreach(self::$routes as $route) {
+				if($route->matches($request)) {
+					$active = $route;
+					break;
+				}
 			}
 		}
 
