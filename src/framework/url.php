@@ -23,21 +23,27 @@
 	
 		Returns a URL to a Route by its name. If the route has URL variables, they should be specified following the name.
 
-		e.g. URL::to('UserProfile', $userid)
+		e.g. Route::get('/profile/{userid}', 'ProfileController', array('name' => 'UserProfile'));
+			 URL::to('UserProfile', $userid)
 
 	URL::to(target, ...parameters)
 
 		Returns a URL to the provided target. If the target has URL variables, they should be specified following the name.
 
 		Valid Targets:
-			URL
-			Redirect
-			StorageFile - the file must exist
-			File - the file must exist in the static directory
-			BladeView - returns the URL to the active controller; accepts URL parameters
-			BladeLayout - returns the URL to the active controller; accepts URL parameters
-			RouteObject - returns the URL of a Route; accepts URL parameters
-			Controller - returns the URL of a Controller; accepts URL parameters
+			URL 			Returns $target.
+			Redirect 		Returns the URL that the Redirect points to.
+			StorageFile		Returns a URL to a StorageFile; if the file does not exist, an exception is thrown.
+			File 			Returns a URL to a File; the file must exist within the static directory or an exception is thrown.
+			BladeView 		Returns a URL to the active controller; accepts URL parameters. 
+							e.g. {{{ URL::to($this) }}} in a Blade View.
+			BladeLayout 	Returns a URL to the active controller; accepts URL parameters.
+							e.g. {{{ URL::to($this) }}} in a Blade Layout.
+			RouteObject		Returns the URL of a Route; accepts URL parameters.
+							e.g. $route = Route::get('/path', 'Controller');
+							     echo URL::to($route);
+			Controller 		Returns a URL to the provided Controller; accepts URL parameters.
+							e.g. URL::to($this) // Called within a Controller class method ($this is a subclass of Controller)
 			(string) any controller name (e.g. MyController or Path.Controller@method); accepts URL parameters
 			(string) any absolute path (e.g. /path/to/page)
 			(string) any absolute url (e.g. https://example.com or //example.com or ftp://ftp.com)

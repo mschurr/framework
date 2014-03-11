@@ -204,7 +204,7 @@ class Response
 			}
 			return $this->_cookie;
 		}
-		return null;
+		throw new RuntimeException("Access to undefined property: ".$s);
 	}
 	
 	public function __isset($s)

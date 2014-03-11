@@ -49,6 +49,14 @@
 		
 		if(!$db->commit())
 			$db->rollback();
+
+		Alternate syntax:
+
+		$db->transaction(function(){
+			// ...queries...
+		});
+
+		The database will automatically return to autocommit mode after a transaction ends.
 			
 		All query results have the following properties (DB_Result):
 			$result->affected			The number of rows affected.

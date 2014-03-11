@@ -1,86 +1,180 @@
 <?php
 class HTMLDocumentNew implements ArrayAccess
 {
-	protected /*String*/ $title;
-	protected /*array*/ $meta = array(
-		'content-type' => 'text/html; charset=utf-8',
-		'keywords' =>	 '',
-		'description' => '',
-		'viewport' => 'width=device-width, initial-scale=1.0'
-	);
-	protected /*array*/ $links = array();
-	protected /*array*/ $scripts = array();
-	protected /*String*/ $body = '';
-	protected /*String*/ $head = '';
-	protected /*array*/ $bodyAttributes = array();
-	
-	public /*void*/ function __construct()
+	protected /*string*/ $title;
+	protected /*array*/ $meta;
+	protected /*array*/ $links;
+	protected /*array*/ $scripts;
+	protected /*array*/ $styles;
+	protected /*String*/ $body;
+	protected /*String*/ $head;
+	protected /*array*/ $bodyAttributes;
+
+	/**
+	 * Throws a run-time exception.
+	 * This method is only implemented to provide compatability.
+	 */
+	public /*void*/ function setContent()
 	{
+		throw new RuntimeException("The content property cannot be mutated.");
 	}
 
-	public /*String*/ function getContent()
+	/**
+	 * Returns the document title.
+	 */
+	public /*string*/ function getTitle()
 	{
-
+		return $this->title;
 	}
 
-	public /*void*/ function setIcon($href)
-	{
-
-	}
-
+	/**
+	 * Sets the document title.
+	 */
 	public /*void*/ function setTitle($value)
 	{
-
+		$this->title = $value;
 	}
 
-	public /*void*/ function setKeywords($value)
+	/**
+	 * Returns the document meta keywords.
+	 */
+	public /*string*/ function getKeywords()
 	{
-
+		return $this->meta['keywords'];
 	}
 
-	public /*void*/ function setDescription($value)
+	/**
+	 * Sets the document meta keywords.
+	 */
+	public /*void*/ function setKeywords(/*string*/$value)
 	{
-
+		$this->meta['keywords'] = $value;
 	}
 
-	public /*void*/ function setMeta($key, $value)
+	/**
+	 * Returns the document meta description.
+	 */
+	public /*string*/ function getDescription()
 	{
-
+		return $this->meta['description'];
 	}
 
-	public /*void*/ function addLink($rel, $type, $href, $media="screen,projection")
+	/**
+	 * Sets the document meta description.
+	 */
+	public /*void*/ function setDescription(/*string*/$value)
 	{
-
+		$this->meta['description'] = $value;
 	}
 
 	/**
 	 * Appends text to the document body.
 	 */
-	public /*void*/ function write(/*string*/ $html)
+	public /*void*/ function write(/*string*/$html)
 	{
-
+		$this->body .= $html;
 	}
 
 	/**
 	 * Appends text to the document body.
 	 */
-	public /*void*/ function append(/*string*/ $html)
+	public /*void*/ function append(/*string*/$html)
 	{
-
+		$this->body .= $html;
 	}
 
 	/**
 	 * Prepends text to the document body.
 	 */
-	public /*void*/ function prepend(/*string*/ $html)
+	public /*void*/ function prepend(/*string*/$html)
+	{
+		$this->body = $html + $this->body;
+	}
+
+	/**
+	 * Converts the object into a string returning the document content.
+	 */
+	public /*string*/ function __toString()
+	{
+		return $this->content;
+	}
+
+	/**
+	 * Clears all content written to the document.
+	 */
+	public /*void*/ function clear()
+	{
+		$this->head = '';
+		$this->body = '';
+		$this->bodyAttributes = array();
+		$this->links = array();
+		$this->styles = array();
+		$this->scripts = array();
+		$this->title = '';
+		$this->meta = array(
+			'content-type' => 'text/html; charset=utf-8',
+			'keywords' =>	 '',
+			'description' => '',
+			'viewport' => 'width=device-width, initial-scale=1.0'
+		);
+	}
+
+	/**
+	 * Initializes the object.
+	 */
+	public /*void*/ function __construct()
+	{
+		$this->clear();
+	}
+
+	/**
+	 * Appends text to the document head.
+	 */
+	public /*void*/ function appendToHead($html)
+	{
+		$this->head .= $html;
+	}
+
+	/**
+	 * Sets an attribute on the document body.
+	 */
+	public /*void*/ function setBodyAttribute(/*string*/ $attribute, /*string*/ $value)
+	{
+		$this->bodyAttributes[$attribute] = $value;
+	}
+
+	/**
+	 * Gets an attribute on the document body or returns null.
+	 */
+	public /*string*/ function getBodyAttribute(/*string*/ $attribute)
+	{
+		if(isset($this->bodyAttributes[$attribute]))
+			return $this->bodyAttributes[$attribute];
+		return null;
+	}
+
+	// ----------------------------------
+
+	public /*String*/ function getContent()
+	{
+	}
+
+	public /*string*/ function getIcon()
 	{
 
 	}
 
-	/**
-	 * Clears all content written to the document body.
-	 */
-	public /*void*/ function clear()
+	public /*void*/ function setIcon(/*string*/$href)
+	{
+
+	}
+
+	public /*void*/ function addMeta($key, $value)
+	{
+
+	}
+
+	public /*void*/ function addLink($rel, $type, $href, $media="screen,projection")
 	{
 
 	}
@@ -117,31 +211,7 @@ class HTMLDocumentNew implements ArrayAccess
 		
 	}
 
-	/**
-	 * Converts the object into a string returning the document content.
-	 */
-	public /*string*/ function __toString()
-	{
-		return $this->content;
-	}
-
-	/**
-	 * Appends text to the document head.
-	 */
-	public /*void*/ function appendToHead($html)
-	{
-
-	}
-
-	/**
-	 * Sets an attribute on the document body.
-	 */
-	public /*void*/ function setBody(/*string*/ $attribute, /*string*/ $value)
-	{
-
-	}
-
-	// ------ Array Access
+// ------ Array Access
 	public function offsetExists($offset)
 	{
 		return method_exists($this, 'get'.ucfirst($key));
@@ -162,7 +232,7 @@ class HTMLDocumentNew implements ArrayAccess
 		$this->__set($offset, null);
 	}
 	
-	// ------ Magic Methods	
+// ------ Magic Methods
 	public function __get($key)
 	{
 		return call_user_func_array(array($this, 'get'.ucfirst($key)), array());
@@ -187,7 +257,7 @@ class HTMLDocumentNew implements ArrayAccess
 
 class HTMLDocument // implements ArrayAccess
 {
-	protected $title = 'Untitled Page';
+	protected $title = null;
 	protected $meta = array(
 		'content-type' => 'text/html;charset=utf-8',
 		'keywords' => '',
@@ -209,8 +279,10 @@ class HTMLDocument // implements ArrayAccess
 			<!--[if IE 8]><html class="no-js ie ie8 lte9 lte8"><![endif]-->
 			<!--[if IE 9]><html class="no-js ie ie9 lte9"><![endif]-->
 			<!--[if !IE]><!--><html class="no-js"><!--<![endif]-->
-				<head>
-					<title>'.escape_html($this->title. Config::get('document.titlesuffix', '')).'</title>';
+				<head>';
+
+					if($this->title !=== null)
+						$html .= '<title>'.escape_html($this->title. Config::get('document.titlesuffix', '')).'</title>';
 					
 					foreach($this->meta as $k => $v)
 						$html .= '<meta name="'.escape_html($k).'" http-equiv="'.escape_html($k).'" content="'.escape_html($v).'" /> ';
@@ -340,4 +412,3 @@ class HTMLDocument // implements ArrayAccess
 	public function es();
 	*/
 }
-?>

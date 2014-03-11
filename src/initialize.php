@@ -19,7 +19,7 @@ if (version_compare(phpversion(), '5.3.0', '<') == true) {
 }
 
 // Establish directory root constants.
-define('FILE_ROOT', str_replace("/index.php","",str_replace("\\index.php", "", $_SERVER['SCRIPT_FILENAME'])));
+define('FILE_ROOT', pathinfo($_SERVER['SCRIPT_FILENAME'], PATHINFO_DIRNAME));
 define('FRAMEWORK_ROOT', FILE_ROOT.'/vendor/mschurr/framework/src');
 
 // Establish a default time zone (may be overridden later by user configuration).
