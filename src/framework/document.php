@@ -281,7 +281,7 @@ class HTMLDocument // implements ArrayAccess
 			<!--[if !IE]><!--><html class="no-js"><!--<![endif]-->
 				<head>';
 
-					if($this->title !=== null)
+					if($this->title !== null)
 						$html .= '<title>'.escape_html($this->title. Config::get('document.titlesuffix', '')).'</title>';
 					
 					foreach($this->meta as $k => $v)
