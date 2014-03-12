@@ -151,6 +151,9 @@ abstract class Session_Driver implements ArrayAccess
 	
 	/* Calculates and sets a new session identifier. Useful for preventing session fixation. Occurs automatically on certain events and periodically to prevent fixation. */
 	public abstract function regenerate();
+
+	/* Forces an immediate save of the session. */
+	public abstract function save();
 	
 	// --- Magic Methods
 	public function __get($key)

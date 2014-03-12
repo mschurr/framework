@@ -25,6 +25,7 @@
 	locale.default			<string>								"en"					Determines the default locale.
 	users.driver			db																Determines the User Services driver to load.
 	groups.driver			db																Determines the Group Services driver to load.
+	session.driver 			cache
 	auth.driver				db																Determines the Auth driver to load.
 	auth.cas.port			<int>															For CAS Auth Driver: the server port
 	auth.cas.host			<string>														For CAS Auth Driver: the server host name

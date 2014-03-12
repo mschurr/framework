@@ -127,7 +127,7 @@ class Session_Driver_cache extends Session_Driver
 		}
 	}
 	
-	protected function save()
+	public function save()
 	{
 		if(!$this->_renewable)
 			return;

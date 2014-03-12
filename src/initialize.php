@@ -46,6 +46,10 @@ ini_set('max_file_uploads', 10);
 ini_set('safe_mode','Off');
 ini_set('allow_url_fopen','Off');
 
+// Rename the session cookie so that it does not expose PHP.
+// The framework does not use built-in sessions, but poorly written third party extensions might.
+ini_set('session.name', 'x-sessiond');
+
 // Load the framework modules.
 require(FRAMEWORK_ROOT.'/framework/utility.php');
 require(FRAMEWORK_ROOT.'/framework/timer.php');

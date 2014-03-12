@@ -117,6 +117,11 @@ class URL
 		return forward_static_call_array(array('URL', 'to'), array_merge(array($route), array_slice(func_get_args(), 1)));
 	}
 
+	public static /*URL*/ function current()
+	{
+		return URL::to(self::$base.$_SERVER['REQUEST_URI']);
+	}
+
 	/**
 	 * Returns the URL to a target.
 	 */
@@ -203,7 +208,7 @@ class URL
 
 	public function isInternal()
 	{
-		return false;
+		return true;
 	}
 }
 

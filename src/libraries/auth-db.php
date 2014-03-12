@@ -174,14 +174,17 @@ class Auth_Driver_db extends Auth_Driver
 		$statement = $this->db->prepare("DELETE FROM `auth_sessions` WHERE `userid` = ? AND `token_hash` = ?;");
 		$statement->execute(array($this->user->id(), hash('sha512', $this->session['_auth_session'])));
 		
-		// Tell the user service to initiate a logout.
-		$this->userService->logout($this->user);
-		
 		// Update the session.
-		$this->user = null;
 		unset($this->session['_auth_passwordentered']);
 		unset($this->session['_auth_userid']);
 		unset($this->session['_auth_active']);
+		$this->session->save();
+
+		// Tell the user service to initiate a logout.
+		$this->userService->logout($this->user);
+		
+		// Update local variables.
+		$this->user = null;
 	}
 	
 	/* Returns whether or not this session is current logged in. */
@@ -278,6 +281,27 @@ class Auth_Driver_db extends Auth_Driver
 		$statement = $this->db->prepare("INSERT INTO `auth_attempts` (`ipaddress`, `userid`, `timestamp`, `successful`, `fraudulent`) VALUES (?, ?, ?, ?, ?);");
 		$statement->execute(array($this->request->ip, $userid, time(), $successful, 0));
 	}
+
+	protected /*bool*/ function throttleByAccount($username)
+	{
+		$throttleuser = $this->userService->loadByName($username);
+		
+		if($throttleuser === null) {
+			// If the user does not exist, throw an error and register a failed attempt.
+			$this->registerLoginAttempt($throttleuser, 0);
+			throw new AuthException("LOGIN_FAILED_INVALID_USERNAME", "You entered an invalid username/password combination.");
+			return false;
+		}
+		
+		$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `userid` = ? AND `timestamp` >= ? AND `successful` = 0;");
+		$query = $statement->execute(array($throttleuser->id(), time()-1800));
+		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
+		
+		if($delay > 0 && $query->row['last'] + $delay > time()) {
+			throw new AuthException("CHECK_FAILED_THROTTLING_USER", "You must wait before trying again.");
+			return false;
+		}
+	}
 	
 	/* Attempts to log the client in to the user with the provided username and password. You may pass any extra information required by your driver into $extra.
 	   Returns true on success. If successful, modifies the current session to be logged in as the user and optionally sets persistent tokens.
@@ -297,23 +321,8 @@ class Auth_Driver_db extends Auth_Driver
 		}
 		
 		// Throttle by Account
-		$throttleuser = $this->userService->loadByName($username);
-		
-		if($throttleuser === null) {
-			// If the user does not exist, throw an error and register a failed attempt.
-			$this->registerLoginAttempt($throttleuser, 0);
-			throw new AuthException("LOGIN_FAILED_INVALID_USERNAME", "You entered an invalid username/password combination.");
+		if($this->throttleByAccount($username) === false)
 			return false;
-		}
-		
-		$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `userid` = ? AND `timestamp` >= ? AND `successful` = 0;");
-		$query = $statement->execute(array($throttleuser->id(), time()-1800));
-		$delay = $query->row['count'] >= sizeof($this->throttle) ? $this->throttle[sizeof($this->throttle)-1] : $this->throttle[$query->row['count']];
-		
-		if($delay > 0 && $query->row['last'] + $delay > time()) {
-			throw new AuthException("CHECK_FAILED_THROTTLING_USER", "You must wait before trying again.");
-			return false;
-		}
 		
 		// Tell the user service provider to attempt the login.
 		$user = $this->userService->login($username, $password);
