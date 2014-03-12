@@ -209,7 +209,7 @@ class DB_Driver_mysql extends DB_Driver
 			$res = $this->link->commit();
 		}
 		catch (PDOException $e) {
-			trigger_error('Database Commit Failed: '.nl2br($e->getMessage()));
+			throw new DatabaseException('Commit Failed: '.$e->getMessage());
 		}
 		
 		if($res === true) {

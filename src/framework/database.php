@@ -194,7 +194,7 @@ abstract class DB_Driver
 	public abstract function begin();
 	public function beginTransaction() { return $this->begin(); }
 	
-	/* Commit a transaction. Returns true on success or false on failure. Sets back to autocommit mode. */
+	/* Commit a transaction. Returns true on success or throws Exception on failure. Sets back to autocommit mode. */
 	public abstract function commit();
 	
 	/* Rolls back the last transaction. Returns true on success or false on failure. */
