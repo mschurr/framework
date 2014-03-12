@@ -190,14 +190,14 @@ abstract class DB_Driver
 	/* Execute a prepared procedure with parameters. Returns <DB_Result>($driver, $affected, $insert_id, $text, $row, $success, $rows, $size, $time, $error). */
 	public abstract function execute($statement, $params);
 	
-	/* Begins a transaction. Returns true if successful or false on failure. */
+	/* Begins a transaction. Returns true if successful or throws DatabaseException on failure. */
 	public abstract function begin();
 	public function beginTransaction() { return $this->begin(); }
 	
-	/* Commit a transaction. Returns true on success or throws Exception on failure. Sets back to autocommit mode. */
+	/* Commit a transaction. Returns true on success or throws DatabaseException on failure. Sets back to autocommit mode. */
 	public abstract function commit();
 	
-	/* Rolls back the last transaction. Returns true on success or false on failure. */
+	/* Rolls back the last transaction. Returns true on success or throws DatabaseException on failure. */
 	public abstract function rollback();
 	
 	/* Returns true if currently in a transaction and false otherwise. */

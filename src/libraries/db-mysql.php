@@ -188,7 +188,7 @@ class DB_Driver_mysql extends DB_Driver
 			$res = $this->link->beginTransaction();
 		}
 		catch (PDOException $e) {
-			trigger_error('Database Transaction Start Failed: '.nl2br($e->getMessage()));
+			throw new DatabaseException('Transaction Start Failed: '.($e->getMessage()));
 		}
 		
 		if($res === true) {
@@ -233,7 +233,7 @@ class DB_Driver_mysql extends DB_Driver
 			$this->link->rollBack();
 		}
 		catch (PDOException $e) {
-			trigger_error('Database Rollback Failed: '.nl2br($e->getMessage()));
+			throw new DatabaseException("Rollback Failed: ".$e->getMessage());
 			return false;
 		}
 		
