@@ -170,8 +170,8 @@ abstract class BladeParser
 		extract($data);
 
 		// Set Framework variables.
-		$_user = App::getSession()->auth->user;
-		$_loggedIn = App::getSession()->auth->loggedIn;
+		//$_user = App::getSession()->auth->user;
+		//$_loggedIn = App::getSession()->auth->loggedIn;
 
 		// Render
 		ob_start();
