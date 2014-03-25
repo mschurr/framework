@@ -158,8 +158,6 @@ class Config
 
 		// Don't do anything if no driver is configured.
 		if($driver_name === null) {
-			debug_print_backtrace(0);
-			die("driver not set");
 			return;
 		}	
 
