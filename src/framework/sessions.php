@@ -28,12 +28,6 @@ class Session implements ArrayAccess
 	
 	public function __get($key)
 	{
-		if($key == 'id')
-			return $this->driver->id();
-		if($key == 'auth')
-			return $this->driver->auth();
-		if($key == 'user')
-			return $this->driver->user();
 		return $this->driver->get($key);
 	}
 	
@@ -59,12 +53,6 @@ class Session implements ArrayAccess
 	
 	public function offsetGet($key)
 	{
-		if($key == 'id')
-			return $this->driver->id();
-		if($key == 'auth')
-			return $this->driver->auth();
-		if($key == 'user')
-			return $this->driver->user();
 		return $this->driver->get($key);
 	}
 	
@@ -164,6 +152,8 @@ abstract class Session_Driver implements ArrayAccess
 			return $this->auth();
 		if($key == 'user')
 			return $this->user();
+		if($key == 'loggedIn')
+			return $this->auth()->loggedIn();
 		return $this->get($key);
 	}
 	
@@ -174,6 +164,11 @@ abstract class Session_Driver implements ArrayAccess
 	
 	public function __isset($key)
 	{
+		if($key == 'id'
+		|| $key == 'auth'
+		|| $key == 'user'
+		|| $key == 'loggedIn')
+			return true;
 		return $this->has($key);
 	}
 	
@@ -184,6 +179,11 @@ abstract class Session_Driver implements ArrayAccess
 	
 	public function offsetExists($key)
 	{
+		if($key == 'id'
+		|| $key == 'auth'
+		|| $key == 'user'
+		|| $key == 'loggedIn')
+			return true;
 		return $this->has($key);
 	}
 	
@@ -195,6 +195,8 @@ abstract class Session_Driver implements ArrayAccess
 			return $this->auth();
 		if($key == 'user')
 			return $this->user();
+		if($key == 'loggedIn')
+			return $this->auth()->loggedIn();
 		return $this->get($key);
 	}
 	

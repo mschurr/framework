@@ -60,8 +60,10 @@ class Response
 		$this->status = $code;
 		$this->out->clear();
 		$this->headers['Content-Type'] = 'text/html; charset=UTF-8';
-		
-		$this->out->write("
+
+		include(FRAMEWORK_ROOT.'/views/GenericError.php');
+
+		/*$this->out->write("
 		<!DOCTYPE HTML>
 		<html>
 			<head>
@@ -72,7 +74,7 @@ class Response
 				".($message !== false ? $message : '')."
 			</body>
 		</html>
-		");
+		");*/
 		
 		if($critical === true) {
 			$this->send();

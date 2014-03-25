@@ -1,4 +1,6 @@
 <?php
+import('security-recaptcha');
+
 /**
  * Can be embedded in forms to detect whether or not the user is human. Useful for preventing spam and/or mass submissions.
  */

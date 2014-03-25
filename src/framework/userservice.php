@@ -46,7 +46,10 @@ class UserServiceException extends Exception
 	}
 }
 
-
+/**
+ * A generic user service provider interface. Application developers should use this interface when interacting
+ *  with users in aggregate to enable easy swapping of drivers.
+ */
 abstract class User_Service_Provider
 {
 	/**
@@ -121,6 +124,9 @@ abstract class User_Service_Provider
 		return true;
 	}
 
+	/**
+	 * Returns whether or not an email address is valid.
+	 */
 	public /*bool*/ function emailIsValid($email)/*throws UserServiceException*/
 	{
 		if(!filter_var($email, FILTER_VALIDATE_EMAIL))

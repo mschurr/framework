@@ -30,8 +30,24 @@
 	return $json;
 }
 
+/**
+ * Converts a JSON string into a native PHP array.
+ * Returns null on failure.
+ */
+/*array*/ function from_json(/*String*/ $string) {
+	$native = json_decode($string, true);
+	
+	if(json_last_error() === JSON_ERROR_NONE)
+		return $native;
+	return null;
+}
 
-function sql_keys(/*array<string:mixed>*/ $array) {
+/**
+ * Creates a list of SQL fields as a string for use in a query template based off of the keys in an array.
+ *
+ * e.g. sql_keys(array('name' => 'Matt', 'age' => 18)) --> "`name`, `age`"
+ */
+/*string*/ function sql_keys(/*array<string:mixed>*/ $array) {
 	$keys = '';
 
 	foreach($array as $field => $value)
@@ -42,7 +58,12 @@ function sql_keys(/*array<string:mixed>*/ $array) {
 	return $keys;
 }
 
-function sql_values(/*array<string:mixed>*/ $array) {
+/**
+ * Creates a list of SQL placeholders as a string for use in a query template based off of the keys in an array.
+ *
+ * e.g. sql_keys(array('name' => 'Matt', 'age' => 18)) --> ":name, :age"
+ */
+/*string*/ function sql_values(/*array<string:mixed>*/ $array) {
 	$values = '';
 
 	foreach($array as $field => $value)
@@ -53,7 +74,12 @@ function sql_values(/*array<string:mixed>*/ $array) {
 	return $values;
 }
 
-function sql_parameters(/*array<string:mixed*/ $array) {
+/** 
+ * Returns a new array map created by prepending ":" to each of the keys in the old map (associated values are preserved).
+ *
+ * e.g. sql_parameters(array('name' => 'Matt', 'age' => 18)) --> array(':name' => 'Matt', ':age' => 18)
+ */
+/*array<string:mixed>*/ function sql_parameters(/*array<string:mixed>*/ $array) {
 	$new = array();
 
 	foreach($array as $k => $v)
@@ -63,23 +89,10 @@ function sql_parameters(/*array<string:mixed*/ $array) {
 }
 
 /**
- * Converts a JSON string into a native PHP array.
- * Returns null on failure.
+ * Generates a random string of the given length.
+ * You may optionally specify a set of characters that can be included in the randomly generated string.
  */
-/*array*/ function from_json(/*String*/ $string) {
-	$native = json_decode($string, true);
-	
-	if(json_last_error() == JSON_ERROR_NONE)
-		return $native;
-	return null;
-}
-
-/**
- * Generates a random string of provided length.
- */
-/*string*/ function str_random($length) {
-	static $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
-
+/*string*/ function str_random(/*int*/ $length, /*string*/ $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_') {
 	// Seed the random number generator.
 	mt_srand(microtime(true) * 1000000);
 	
@@ -96,7 +109,7 @@ function sql_parameters(/*array<string:mixed*/ $array) {
 /**
  * Instantiates a new Model of the provided type using any additional provided arguments.
  */
-/*Model*/ function model(/*String*/ $string /*, ...array $options*/) {
+/*Model*/ function model(/*string*/ $model /*, ...array $options*/) {
 	return call_user_func_array('Model::make', func_get_args());
 }
 

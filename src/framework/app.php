@@ -151,5 +151,5 @@ class App
 		return self::$userService;
 	}
 }
-App::init();
+
 ?>

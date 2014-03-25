@@ -24,6 +24,9 @@
 	* You need to ensure that your backing data is always in-sync with the cached data. For example, if a user updates a record in the database, you need to update any records in the
 		cache that might be affected, too. You should always UPDATE the cache; do not clear cache keys and rely on them to be re-calculated by the next request (this will result in poor performance).
 		
+	* You may store any type of object in the Cache, provided that the object is serializable. The includes primitive data types, strings, arrays, and most objects by default.
+	  For certain objects, you may need to implement the Serializable interface.
+
 	The cache service provides the following API:
 	
 	$value = Cache::remember($key, $value, $minutes=60)

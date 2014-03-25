@@ -203,13 +203,16 @@ abstract class DB_Driver
 	/* Returns true if currently in a transaction and false otherwise. */
 	public abstract function inTransaction();
 
-	/* Performs the queries contained in the closure as a transaction. Throws an exception and rolls back changes if the transaction fails. */
-	public /*void*/ function transaction(Closure $transaction) /*throws DatabaseException*/
+	/* Performs the queries contained in the closure as a transaction. 
+	   Throws an exception and rolls back changes if the transaction fails.
+	   Returns the value returned from the closure (if any). */
+	public /*mixed*/ function transaction(Closure $transaction) /*throws DatabaseException*/
 	{
 		try {
 			$this->beginTransaction();
-			$transaction($this);
+			$result = $transaction($this);
 			$this->commit();
+			return $result;
 		}
 		catch(DatabaseException $e) {
 			$this->rollback();

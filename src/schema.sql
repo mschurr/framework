@@ -72,3 +72,12 @@ CREATE TABLE `group_privileges` (
   `privilegeid` int(64) UNSIGNED NOT NULL,
   PRIMARY KEY  (`groupid`, `privilegeid`)
 );
+
+/* Config-DB Driver */
+DROP TABLE IF EXISTS `config_data`;
+
+CREATE TABLE `config_data` (
+  `key` varchar(64) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY  (`key`)
+);

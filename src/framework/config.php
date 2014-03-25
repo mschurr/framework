@@ -11,12 +11,16 @@
  
  There are two types of configuration variables: hard-coded and on-the-fly. Hard-coded values can not be
  overwritten from within the application runtime and may only be defined in config.php.
+
+ You may store any type of serializable data in the configuration system. This includes all primitive data types,
+  strings, arrays, and most objects by default. In some cases, an object may need to implement the Serializable
+  interface in order to be stored.
  
  Configuration values will have an effect on the behavior of various framework components. Here is a list 
  of all configuration values that have significance in the framework:
  
  	NAME					ACCEPTED VALUES							DEFAULT					DESCRIPTION
- 	config.driver		
+ 	config.driver			db 										null
 	cache.driver			filesystem,memcached,apc,array,redis	filesystem				Determines the Cache driver to load.
 	cache.file				<path>									~/cache/cache.dat		A storage location for the Cache file for certain drivers. Okay to use a RAMDISK location.
 	cache.directory			<path>									~/cache					A storage location for Cache files for certain drivers. Okay to use a RAMDISK.								
@@ -54,10 +58,11 @@
 
 class Config
 {
-	protected static $driver = 'filesystem';
 	protected static $staticVariables = array();
 	protected static $dynamicVariables = array();
-	protected static $dirty = false;
+	protected static $dirtyVariables = array();
+	protected static $loaded = false;
+	protected static /*Config_Storage_Driver*/ $driver;
 	
 	/**
 	 * Returns the configuration value stored for $key.
@@ -67,6 +72,8 @@ class Config
 	{
 		if(isset(self::$staticVariables[$key]))
 			return self::$staticVariables[$key];
+		if(!self::$loaded)
+			self::_load();
 		if(isset(self::$dynamicVariables[$key]))
 			return self::$dynamicVariables[$key];
 		return value($default);
@@ -79,23 +86,29 @@ class Config
 	 */
 	public static /*void*/ function set(/*mixed*/ $key, /*mixed*/ $value=null)
 	{
+		// Handle updating an array of values.
 		if(is_array($key) && $value === null) {
 			foreach($key as $k => $v)
 				self::set($k, $v);
 			return;
 		}
 		
+		// Handle updating runtime variables.
 		if(App::isRunning()) {
 			if(isset(self::$staticVariables[$key]))
-				throw new Exception("Error: Attempted to overwrite hard coded configuration value.");
-			else {
-				self::$dirty = true;
-				if($value === null)
-					unset(self::$dynamicVariables[$key]);
-				else
-					self::$dynamicVariables[$key] = $value;
-			}
+				throw new RuntimeException("Attempted to overwrite hard coded configuration value at runtime.");
+			
+			if(!self::$loaded)
+				self::_load();
+
+			self::$dirtyVariables[$key] = true;
+
+			if($value === null)
+				unset(self::$dynamicVariables[$key]);
+			else
+				self::$dynamicVariables[$key] = $value;
 		}
+		// Handle updating hard-coded variables.
 		else {
 			if($value === null)
 				unset(self::$staticVariables[$key]);
@@ -109,7 +122,11 @@ class Config
 	 */
 	public /*bool*/ static function has(/*string*/ $key)
 	{
-		return isset(self::$staticVariables[$key]) || isset(self::$dynamicVariables[$key]);
+		if(isset(self::$staticVariables[$key]))
+			return true;
+		if(!self::$loaded)
+			self::_load();
+		return isset(self::$dynamicVariables[$key]);
 	}
 	
 	/**
@@ -131,14 +148,65 @@ class Config
 		self::set($key, $value);
 	}
 
-	public static function _load()
+	public static /*void*/ function _load()
 	{
-		// note dont overwrite static variables
+		// Configuration has been loaded.
+		self::$loaded = true;
+
+		// Figure out which driver to use.
+		$driver_name = self::get('config.driver', null);
+
+		// Don't do anything if no driver is configured.
+		if($driver_name === null) {
+			debug_print_backtrace(0);
+			die("driver not set");
+			return;
+		}	
+
+		// Attempt to instantiate the driver.
+		$driver_class = 'Config_Storage_Driver_'.$driver_name;
+
+		if(!class_exists($driver_class))
+			import('config-'.$driver_name);
+
+		self::$driver = new $driver_class();
+
+		// Load the configuration variables from the driver.
+		self::$dynamicVariables = self::$driver->load();
 	}
 	
-	public static function _save()
+	public static /*void*/ function _save()
 	{
-		// only save if dirty data
+		// If there are dirty variables that need saving, attempt a load.
+		if(count(self::$dirtyVariables) > 0 && !self::$loaded)
+			self::_load();
+
+		// If a driver does not exist, we can do nothing.
+		if(self::$driver === null) {
+			// Unless there are things that need to be saved, in which case this is an error.
+			if(count(self::$dirtyVariables) > 0) {
+				throw new RuntimeException("Attempted to save configuration values at runtime, but no driver installed. You must set [config.driver].");
+			}
+			return;
+		}
+
+		// Write the dirty information to persistant storage.
+		if(count(self::$dirtyVariables) > 0)
+			self::$driver->save(self::$dynamicVariables, self::$dirtyVariables);
 	}
 }
+
+abstract class Config_Storage_Driver
+{
+	/**
+	 * Writes configured values into a persistent data store.
+	 */
+	public abstract /*void*/ function save(/*array<string:mixed>*/ &$data, /*array<string:bool> modified*/ &$modified);
+
+	/**
+	 * Reads configured values from a persistent data store.
+	 */
+	public abstract /*array<string:mixed>*/ function load();
+}
+
 ?>

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Provides a simple interface for sending emails.
+ */
 class Mail
 {
 	protected static $mailer = null;

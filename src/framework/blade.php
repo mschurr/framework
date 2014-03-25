@@ -165,8 +165,15 @@ abstract class BladeParser
 	
 	public function render($data=array())
 	{
+		// Extract the provided view variables.
 		$data = array_merge($this->render_data, $data);
 		extract($data);
+
+		// Set Framework variables.
+		$_user = App::getSession()->auth->user;
+		$_loggedIn = App::getSession()->auth->loggedIn;
+
+		// Render
 		ob_start();
 		$file = $this->template_type === 'blade' ? $this->blade_file_cache : $this->php_file;
 		include($file);

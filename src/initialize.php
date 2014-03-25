@@ -91,7 +91,8 @@ if(!file_exists(FILE_ROOT.'/config.php'))
 	throw new Exception('You must define a configuration file. To do this, rename the provided "config-template.php" file to "config.php".');
 
 require(FILE_ROOT.'/config.php');
-Config::_load();
+
+App::init();
 
 // Determine whether or not errors should be suppressed.
 if(Config::get('app.development', true) === false) {
