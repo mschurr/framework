@@ -47,9 +47,6 @@ class Response
 			Cookies::writePendingToBrowser();
 			
 			$this->startedWriting = true;
-			
-			
-			
 		}
 		
 		$this->out->send();
@@ -57,11 +54,15 @@ class Response
 	
 	public function error($code, $message = false, $critical = false)
 	{
-		$this->status = $code;
 		$this->out->clear();
+		$this->status = $code;
 		$this->headers['Content-Type'] = 'text/html; charset=UTF-8';
 
+		ob_start();
 		include(FRAMEWORK_ROOT.'/views/GenericError.php');
+		$content = ob_get_contents();
+		$this->write($content);
+		ob_end_clean();
 
 		/*$this->out->write("
 		<!DOCTYPE HTML>

@@ -7,6 +7,11 @@
 }
 
 /**
+ * A generic bad access exception.
+ */
+class AccessViolationException extends Exception {}
+
+/**
  * Escapes HTML code so that it will be rendered as text, not HTML.
  */
 /*String*/ function escape_html(/*String*/ $s) {
@@ -775,6 +780,3 @@ if ( ! function_exists('with'))
 		return $object;
 	}
 }
-
-
-?>

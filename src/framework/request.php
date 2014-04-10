@@ -1,7 +1,4 @@
 <?php
-/*
-	NOTE: request->ip and request->secure are unreliable for now because if the server is not behind a load balancer they can be spoofed
-*/
 
 class Request
 {	
