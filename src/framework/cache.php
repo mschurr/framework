@@ -176,7 +176,7 @@ abstract class Cache_Driver
 		if($this->section_has($section, $key))
 			return $this->section_get($section, $key);
 			
-		$value = value($value);
+		$value = value($closure);
 		$this->section_put($section, $key, $value, $minutes);
 		return $value;
 	}

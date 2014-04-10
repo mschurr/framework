@@ -65,7 +65,7 @@ function finger($opt) {
 	if(!$h)
 		return array();
 	
-	fputs($h, $query.PHP_EOL);
+	fputs($h, $query."\r\n");
 	stream_set_timeout($h, 3);
 	
 	$response = '';

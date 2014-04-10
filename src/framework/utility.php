@@ -19,6 +19,22 @@ class AccessViolationException extends Exception {}
 }
 
 /**
+ * Returns an array created by retrieving json from a remote url.
+ * Returns null on failure.
+ */
+function json_from_url($url)
+{
+	$response = with(new xHTTPClient())->get($url);
+
+	if($response === null || $response->status != 200)
+		return null;
+
+	$data = from_json($response->body);
+
+	return $data;
+}
+
+/**
  * Converts escaped HTML code back into valid markup.
  */
 /*String*/ function unescape_html(/*String*/ $s) {
