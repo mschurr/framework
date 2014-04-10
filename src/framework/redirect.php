@@ -33,8 +33,13 @@ class Redirect
 			self::$redirect = $url;
 			return $url;
 		}
+
+		$url = forward_static_call_array(
+			array('URL', 'to'), 
+			func_get_args()
+		);
 		
-		$redirect = new Redirect(URL::to($url));
+		$redirect = new Redirect($url);
 		self::$redirect = $redirect;
 		return $redirect;
 	}

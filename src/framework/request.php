@@ -114,7 +114,7 @@ class Request
 		}
 		elseif($k == 'file' || $k == 'files') {
 			if(!$this->_file instanceof RegistryObject) {
-				$files = array();
+				/*$files = array();
 				if(len($_FILES) > 0) {
 					
 					foreach($_FILES as $name => $info) {
@@ -125,7 +125,8 @@ class Request
 				}
 				$this->_file = new RegistryObject($files);
 				
-				unset($files);
+				unset($files);*/
+				$this->_file = new RegistryObject(File::uploadedFiles());
 			}
 			return $this->_file;
 		}

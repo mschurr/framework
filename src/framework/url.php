@@ -170,8 +170,12 @@ class URL
 			), array_slice(func_get_args(), 1)));
 		}
 
-		if(is_object($target))
-			throw new URLException("Error: Unable to convert ".get_class($target)." into URL");
+		if(is_object($target)) {
+			if($target instanceof File)
+				throw new URLException("Error: Unable to convert File@".$target->canonicalPath." into URL");
+			else
+				throw new URLException("Error: Unable to convert ".get_class($target)." into URL");
+		}
 		else
 			throw new URLException("Error: Unable to convert '".$target."' into URL");
 	}

@@ -91,6 +91,9 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 				if($info['error'] !== UPLOAD_ERR_OK)
 					continue;
 
+				if($info['size'] === 0)
+					continue;
+
 				// Otherwise, create a new File object and pass the information.
 				$file = new File($info['tmp_name'], $info);
 
@@ -619,8 +622,12 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 */
 	public /*bool*/ function getIsWritable() /*throws FileException*/
 	{
-		if(is_null($this->_properties['isWritable']))
-			$this->_properties['isWritable'] = is_writable($this->path);
+		if(is_null($this->_properties['isWritable'])) {
+			if($this->exists)
+				$this->_properties['isWritable'] = is_writable($this->path);
+			else
+				$this->_properties['isWritable'] = $this->parent->isWritable;
+		}
 
 		return $this->_properties['isWritable'];
 	}
@@ -692,9 +699,9 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			$this->_properties['uploaded'] = true;
 			$this->_properties['temporary'] = true;
 			$this->_properties['uploadedName'] = $uploadInfo['name'];
-			$this->_properties['uploadedMime'] = $uploadInfo['mime'];
+			$this->_properties['uploadedMime'] = $uploadInfo['type'];
 			$this->_properties['uploadedExtension'] = pathinfo($uploadInfo['name'], PATHINFO_EXTENSION);
-		
+
 			if(!ctype_alnum($this->_properties['uploadedExtension']))
 				$this->_properties['uploadedExtension'] = 'bin';
 		}
@@ -974,9 +981,9 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		if(!$newFile->isWritable)
 			throw new FileNotWritableException;
 
-		if(!$newFile->directory->exists) {
+		if(!$newFile->parent->exists) {
 			if($createDestination === true) {
-				$newFile->directory->createDirectory(true);
+				$newFile->parent->createDirectory(true);
 			} else {
 				throw new FileOperationFailedException;
 			}
@@ -988,6 +995,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			if($result !== true)
 				throw new FileOperationFailedException;
 
+			$this->_properties['path'] = $path;
 			$this->invalidateCache();
 			return;
 		}
@@ -997,6 +1005,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		if($result !== true)
 			throw new FileOperationFailedException;
 
+		$this->_properties['path'] = $path;
 		$this->invalidateCache();
 	}
 

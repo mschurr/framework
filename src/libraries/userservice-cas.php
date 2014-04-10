@@ -12,6 +12,9 @@
  *         3) phpCAS does not clear the login information that is cached in $_SESSION when you explicitly call logout().... what?
  *              --> I put in a workaround for this in User_Service_Provider_cas.
  *
+ *         4) This system **probably** does not work securely and/or properly if you are running behind a load balancer.
+ *            phpCAS does not respect the X-Forwarded-Proto header which may result in ssl links being generated as http over port 443.
+ *
  *         Recommend re-implementing phpCAS from scratch in a more sensible way that is integrated into the framework.
  *         If I have time later, I'll come back and do that. For now, it works.
  *         
