@@ -236,10 +236,10 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		if(!$this->isFile)
 			throw new FileOperationInvalidException;
 
-		if(is_null($this->_properties['extension']))
-			$this->_properties['extension'] = pathinfo($this->path, PATHINFO_BASENAME);
+		if(is_null($this->_properties['fileName']))
+			$this->_properties['fileName'] = pathinfo($this->path, PATHINFO_BASENAME);
 
-		return $this->_properties['extension'];
+		return $this->_properties['fileName'];
 	}
 
 	/**

@@ -563,7 +563,7 @@ class Route
 		}
 		
 		// The controller returned a File; pass it to the user.
-		if($value instanceof File) {
+		if($value instanceof File || $value instanceof Attachment) {
 			$response->out->pass($value);
 			return;
 		}

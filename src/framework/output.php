@@ -40,6 +40,8 @@ class Output
 			$file = File::open($file_path);
 		elseif($file_path instanceof File)
 			$file = $file_path;
+		elseif($file_path instanceof Attachment)
+			$file = $file_path->file;
 		else
 			throw new Exception("The provided parameter does not represent a file.");
 		
@@ -52,7 +54,7 @@ class Output
 				
 		// Calculate and send the headers.
 		$response->headers['Cache-Control'] = 'public, max-age=3600, must-revalidate';
-		//$response->headers['Content-Disposition'] = 'inline; filename="'.$file->name.'"'; // also: attachment
+		
 		$response->headers['Etag'] = md5($file->lastModified);
 		$response->headers['Last-Modified'] = $file->lastModified;
 		$response->headers['Expires'] = gmdate("D, d M Y H:i:s", $file->lastModified).' GMT';
@@ -78,6 +80,11 @@ class Output
 			$response->headers['Content-Length'] = 0;
 			return;	
 		}
+
+		if($file_path instanceof Attachment)
+			$response->headers['Content-Disposition'] = 'attachment; filename="'.$file->name.'"';
+		else
+			$response->headers['Content-Disposition'] = 'inline; filename="'.$file->name.'"';
 		
 		$response->status = 200;
 		$response->headers['Content-Type'] = $file->mime;

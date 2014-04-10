@@ -63,6 +63,23 @@ function json_from_url($url)
 	return null;
 }
 
+/*
+ * Represents a file attachment to be returned from controllers.
+ */
+class Attachment {
+	public /*File*/ $file = null;
+	public function __construct(File $file) {
+		$this->file = $file;
+	}
+}
+
+/**
+ * Convenience method to create a file attachment.
+ */
+/*Attachment*/ function Attach(File $file) {
+	return new Attachment($file);
+}
+
 /**
  * Creates a list of SQL fields as a string for use in a query template based off of the keys in an array.
  *
@@ -125,6 +142,32 @@ function json_from_url($url)
 	}
 	
 	return $id;
+}
+
+/**
+ * Invokes the "new" operator with a vector of arguments. There is no way to
+ * call_user_func_array() on a class constructor, so you can instead use this
+ * function:
+ *
+ *   $obj = newv($class_name, $argv);
+ *
+ * That is, these two statements are equivalent:
+ *
+ *   $pancake = new Pancake('Blueberry', 'Maple Syrup', true);
+ *   $pancake = newv('Pancake', array('Blueberry', 'Maple Syrup', true));
+ *
+ * @param  string  The name of a class.
+ * @param  list    Array of arguments to pass to its constructor.
+ * @return obj     A new object of the specified class, constructed by passing
+ *                 the argument vector to its constructor.
+ */
+function newv($class_name, array $argv) {
+  $reflector = new ReflectionClass($class_name);
+  if ($argv) {
+    return $reflector->newInstanceArgs($argv);
+  } else {
+    return $reflector->newInstance();
+  }
 }
 
 /**
