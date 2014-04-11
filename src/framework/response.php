@@ -127,6 +127,11 @@ class Response
 		return $this->out->write($s);
 	}
 	
+	public function printf(/*...$params*/)
+	{
+		return $this->out->write(call_user_func_array('sprintf', func_get_args()));
+	}
+	
 	public function json($data)
 	{
 		$this->out->clear();

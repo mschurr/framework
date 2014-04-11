@@ -3,6 +3,13 @@
 
 class Group_Service_Provider_db extends Group_Service_Provider
 {	
+	protected /*Database*/ $db;
+
+	public function __construct()
+	{
+		$this->db = App::getDatabase();
+	}
+
 	public /*Group_Provider*/ function load(/*int*/$guid)
 	{
 		$group = new Group_Provider_db($guid);
@@ -67,9 +74,11 @@ class Group_Provider_db extends Group_Provider
 	protected $id;
 	protected $name;
 	protected $valid = false;
+	protected $db;
 	
 	public /*void*/ function __construct(/*int*/$id)
 	{
+		$this->db = App::getDatabase();
 		$this->id = $id;
 		
 		$statement = $this->db->prepare("SELECT * FROM `groups` WHERE `groupid` = ?;");	

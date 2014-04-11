@@ -13,6 +13,12 @@ class Output
 	
 	public function __construct()
 	{
+		
+	}
+
+	public function __destruct()
+	{
+
 	}
 	
 	public function __get($s) {
