@@ -52,6 +52,7 @@ ini_set('session.name', 'x-sessiond');
 
 // Load the framework modules.
 require(FRAMEWORK_ROOT.'/framework/utility.php');
+require(FRAMEWORK_ROOT.'/framework/utilityclasses.php');
 require(FRAMEWORK_ROOT.'/framework/timer.php');
 require(FRAMEWORK_ROOT.'/framework/registry.php');
 require(FRAMEWORK_ROOT.'/framework/framework.php');

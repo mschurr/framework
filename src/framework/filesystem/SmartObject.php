@@ -66,13 +66,14 @@
 //namespace mschurr\FileObject;
 use \RuntimeException;
 use \ArrayAccess;
+use \BadAccessException;
 
 /**
  * An exception representing access to an undefined property.
  */
-class BadAccessException extends RuntimeException
+/*class BadAccessException extends RuntimeException
 {
-}
+}*/
 
 /**
  * A container for holding smart object properties.

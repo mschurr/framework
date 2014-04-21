@@ -187,6 +187,7 @@ class URL
 	protected $target;
 	protected $type;
 	protected $parameters = array();
+	protected $getparameters = array();
 
 	public function __construct($type, $target, $parameters=array())
 	{
@@ -205,9 +206,38 @@ class URL
 		}
 	}
 
+	/**
+	 * Attaches GET parameters to the URL.
+	 */
+	public function with(array $array)
+	{
+		foreach($array as $k => $v)
+			$this->getparameters[urlencode($k)] = urlencode($v);
+		return $this;
+	}
+
 	public function __toString()
 	{
-		return $this->target;
+		if(sizeof($this->getparameters) > 0) {
+			$s = $this->target;
+			$marker = strpos($this->target, "?") !== false;
+
+
+			foreach($this->getparameters as $k => $v) {
+				if($marker) {
+					$s .= '&'.$k.'='.$v;
+				} else {
+					$marker = true;
+					$s .= '?'.$k.'='.$v;
+				}
+			}
+
+
+			return $s;
+		}
+		else {
+			return $this->target;
+		}
 	}
 
 	public function isInternal()

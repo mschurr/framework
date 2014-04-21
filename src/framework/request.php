@@ -65,6 +65,7 @@ class Request
 	protected $_segment;
 	protected $_timestamp;
 	protected $_ip;
+	protected $_auth;
 	
 	public function __isset($k)
 	{
@@ -185,6 +186,8 @@ class Request
 		elseif($k == 'session') {
 			return App::getSession();
 		}
+		elseif($k == 'auth')
+			return App::getSession()->auth;
 		elseif($k == 'connection' || $k == 'conn') {
 			if(!$this->_connection instanceof Connection)
 				$this->_connection = new Connection();
@@ -196,7 +199,7 @@ class Request
 			return $this->_client;
 		}
 		else {
-			return null;
+			throw new Exception("Access to undefined property: ".$k);
 		}
 	}
 	

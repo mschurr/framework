@@ -55,7 +55,7 @@ class CSRF
 		
 		if(self::driver() == 'cookies') {
 			if(Cookies::has($key) && Cookies::get($key)->value === $value) {
-				self::reset($name);
+				//self::reset($name);
 				return true;
 			}
 		}
@@ -63,12 +63,12 @@ class CSRF
 			$session =& App::getSession();
 			
 			if($session->has($key) && $session[$key] === $value) {
-				self::reset($name);
+				//self::reset($name);
 				return true;
 			}
 		}
 		
-		self::reset($name);
+		//self::reset($name);
 		return false;
 	}
 	
