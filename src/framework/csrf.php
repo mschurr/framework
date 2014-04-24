@@ -14,7 +14,7 @@ class CSRF
 		throw new Exception("CSRF Attack Intercepted");
 	}
 	
-	public static function make($name, $ignore=true)
+	public static function make($name='default', $ignore=true)
 	{
 		$id = self::_generateID();
 		$key = '_csrf_'.md5($name);
@@ -44,13 +44,18 @@ class CSRF
 		return $id;
 	}
 	
-	public static function reset($name)
+	public static function reset($name='default')
 	{
 		return self::make($name, false);
 	}
 	
-	public static function check($name, $value)
+	public static function check($name, $value = null)
 	{
+		if($value === null) {
+			$value = $name;
+			$name = 'default';
+		}
+
 		$key = '_csrf_'.md5($name);
 		
 		if(self::driver() == 'cookies') {

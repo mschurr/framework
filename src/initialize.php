@@ -13,6 +13,14 @@ function included() {
 	return true;
 }
 
+/**
+ * Returns whether or not running a CLI application.
+ */
+/*bool*/ function is_cli_application()
+{
+	return php_sapi_name() === 'cli';
+}
+
 // This framework only supports PHP versions >= 5.3.0.
 if (version_compare(phpversion(), '5.3.0', '<') == true) {
 	die('You must install PHP >= 5.3.0 in order to use this framework.');
@@ -29,8 +37,15 @@ date_default_timezone_set('UTC');
 define('EOL', PHP_EOL);
 
 // Load the error handling module.
-require(FRAMEWORK_ROOT.'/framework/errors.php');
-ErrorManager::engageDevelopmentHandler();
+if(!is_cli_application()) {
+	require(FRAMEWORK_ROOT.'/framework/errors.php');
+	ErrorManager::engageDevelopmentHandler();
+} else {
+	error_reporting(E_ALL);
+	ini_set('error_log', FILE_ROOT.'/webapp.log');
+	ini_set('log_errors', true);
+	ini_set('display_errors', true);
+}
 
 // Set PHP configuration values to optimize framework performance.
 ini_set('expose_php',false);
@@ -93,16 +108,26 @@ if(!file_exists(FILE_ROOT.'/config.php'))
 
 require(FILE_ROOT.'/config.php');
 
-App::init();
 
-// Determine whether or not errors should be suppressed.
-if(Config::get('app.development', true) === false) {
-	ErrorManager::disengageDevelopmentHandler();
-	ErrorManager::engageProductionHandler();
+if(is_cli_application()) {
+	if(!file_exists(FILE_ROOT.'/cliapp.php'))
+		throw new Exception("CLI file ./cliapp.php does not exist.");
+
+	require(FRAMEWORK_ROOT.'/framework/cli.php');
+	require(FILE_ROOT.'/cliapp.php');
+	CLIApplication::run();
+} else {
+	App::init();
+
+	// Determine whether or not errors should be suppressed.
+	if(Config::get('app.development', true) === false) {
+		ErrorManager::disengageDevelopmentHandler();
+		ErrorManager::engageProductionHandler();
+	}
+
+	require(FILE_ROOT.'/webapp.php');
+	App::run();
 }
 
-require(FILE_ROOT.'/webapp.php');
-
 // Run the user's application.
-App::run();
 Config::_save();

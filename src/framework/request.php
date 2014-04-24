@@ -33,7 +33,7 @@ class Request
 		foreach($this->headers as $k => $v) {
 			$request .= str_replace("_","-",$k).": ".$v.PHP_EOL;
 		}
-		
+			// can read raw from php://input
 			foreach($this->post as $k => $v) {
 				if(is_array($v))
 					$request .= $k.'='.print_r($v,true).EOL;
