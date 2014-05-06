@@ -16,6 +16,18 @@ class CLIApplication
 	protected /*array<string:mixed>*/ $routes;
 
 	/**
+	 * Displays the usage error message.
+	 */
+	protected /*void*/ function clierror()
+	{
+		printf("Usage: php ".$argv[0]." <command> <...args>\r\n");
+		printf("\r\nRecognized Commands:\r\n");
+		foreach($this->routes as $cmd => $targ)
+			printf("    ".$cmd."\r\n");
+		printf("\r\n");
+	}
+
+	/**
 	 * Insantiates the object.
 	 */
 	protected function __construct()
@@ -40,19 +52,19 @@ class CLIApplication
 		global $argv, $argc;
 
 		if($argc < 1) {
-			printf("Usage: php cli <command> <...args>\r\n");
+			$this->clierror();
 			return -1;
 		}
 
 		if($argc < 2) {
-			printf("Usage: php ".$argv[0]." <command> <...args>\r\n");
+			$this->clierror();
 			return -1;
 		}
 
 		$command = $argv[1];
 
 		if(!isset($this->routes[$command])) {
-			printf("Unrecognized command '".$command."'. \r\n");
+			$this->clierror();
 			return -1;
 		}
 
@@ -78,7 +90,7 @@ class CLIApplication
 			return $target(array_slice($argv, 1));
 		}
 
-		printf("Unrecognized command target for '".$command."'. \r\n");
+		$this->clierror();
 		return -1;
 	}
 }

@@ -1,10 +1,10 @@
 {
 	"name" : "mschurr/framework",
-	"description" : "",
+	"description" : "A PHP framework.",
 	"keywords" : [],
 	"license" : "MIT",
 	"type" : "library",
-	"homepage" : "",
+	"homepage" : "https://github.com/mschurr/framework",
 	"authors" : [
 		{
 				"name" : "Matthew Schurr",
