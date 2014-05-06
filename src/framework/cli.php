@@ -20,6 +20,7 @@ class CLIApplication
 	 */
 	protected /*void*/ function clierror()
 	{
+		global $argv;
 		printf("Usage: php ".$argv[0]." <command> <...args>\r\n");
 		printf("\r\nRecognized Commands:\r\n");
 		foreach($this->routes as $cmd => $targ)
