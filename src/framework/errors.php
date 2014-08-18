@@ -53,14 +53,20 @@ class ErrorManager
 
 	public static function productionHandleException(Exception $e)
 	{
+		if($e instanceof InvalidParameterException) {
+			$code = 400;
+		} else {
+			$code = 500;
+		}
+
 		try {
 			$response = new Response();
-			Route::doRouteError(new Request(), $response, 500);
+			Route::doRouteError(new Request(), $response, $code);
 			$response->send();
 			die();
 		}
 		catch(Exception $e) {
-			echo '500 Internal Server Error';
+			echo $code.' Internal Server Error';
 			die();
 		}
 	}

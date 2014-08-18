@@ -772,7 +772,8 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Creates the file (or directory) if it does not exist.
+	 * Creates the file if it does not exist, using the optionally provided initial content.
+	 * If $createParentDirectory is set, the parent folder will also be created recursively.
 	 */
 	public /*void*/ function create(/*binary*/$initialContent=null, /*bool*/$createParentDirectory=false) /*throws FileException*/
 	{
@@ -837,7 +838,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Deletes all of the contents of the directory and the directory itself.
+	 * Deletes all of the contents of the directory and (optionally) the directory itself.
 	 * This function is named differently from delete() to prevent accidental calls.
 	 */
 	public /*void*/ function deleteDirectory(/*bool*/$preserveDirectory=false) /*throws FileException*/
@@ -947,7 +948,8 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 *
+	 * Creates the path represented by this file as a directory.
+	 * The creation will occur recursively is $createParentDirectory is set.
 	 */
 	public /*void*/ function createDirectory(/*bool*/$createParentDirectory=false) /*throws FileException*/
 	{
@@ -1039,7 +1041,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 * If this object represents a directory, the copy is recursive (contents are copied).
 	 * If the destination directory does not exist and $createDestination is false, an exception is thrown.
 	 * If the destination directory does not exist and $createDestination is true, the directory is created and copy occurs normally.
-	 * If a file already exists at that path, an exception is thrown.
+	 * If a file already exists at the path to be created, an exception is thrown.
 	 */
 	public /*void*/ function copyTo(/*String*/$path, /*bool*/$createDestination=false) /*throws FileException*/
 	{
@@ -1060,7 +1062,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Locks the file to prevent writes from other sources.
+	 * Locks the file to prevent writes from other threads.
 	 * The lock may be manually released using release(), or the lock will be 
 	 * auto-released when the object is deallocated.
 	 */
@@ -1070,7 +1072,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Releases a lock set on the file (if applicable).
+	 * Releases any locks on the file acquired by this thread.
 	 */
 	public /*void*/ function release() /*throws FileException*/
 	{
@@ -1078,11 +1080,11 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	}
 
 	/**
-	 * Destroys any resources created by the object.
+	 * Destroys any internal resources.
 	 */
 	public /*void*/ function __destruct()
 	{
-		// CHECK lock release
+		// TODO: Ensure any acquired locks are released.
 	}
 
 	/**
@@ -1134,7 +1136,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 * Searchs for a regular expression pattern in file contents of descendants of the current directory.
 	 * In order to work, this object must represent a directory.
 	 */
-	public /*array<File>*/ function searchInFiles(/*String*/$pattern, $recursive=true)
+	public /*array<File>*/ function searchInFiles(/*String*/$pattern, /*bool*/$recursive=true)
 	{
 		if(!$this->exists)
 			throw new FileDoesNotExistException;

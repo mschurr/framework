@@ -559,6 +559,21 @@ class DatabaseChunkIterator implements Iterator, ArrayAccess, Countable
 	}
 
 	/**
+	 * Returns an array of all items stored in a column within the result set.
+	 * Use with caution; may consume large amounts of memory.
+	 */
+	public /*array*/ function toArrayOfColumn(/*string*/ $column)
+	{
+		$data = array();
+
+		foreach($this as $row) {
+			$data[] = $row[$column];
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Magic: Controls access to undefined properties.
 	 */
 	public /*mixed*/ function __get(/*scalar*/ $key)

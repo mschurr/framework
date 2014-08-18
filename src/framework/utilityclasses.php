@@ -12,6 +12,16 @@ class NotImplementedException extends Exception {}
 class BadAccessException extends Exception {}
 
 /**
+ * Provides Exceptions for various invalid accesses.
+ */
+class InvalidParameterException extends Exception {}
+class InvalidGetParameterException extends InvalidParameterException {}
+class InvalidPostParameterException extends InvalidParameterException {}
+class InvalidFileParameterException extends InvalidParameterException {}
+class WrongRequestTypeException extends Exception {}
+class ImmutableObjectException extends Exception {}
+
+/**
  * Provides an implementation of an array in which bad read accesses will not cause an error, but instead return a default value.
  */
 class DefaultArrayMap implements Countable, ArrayAccess, IteratorAggregate
