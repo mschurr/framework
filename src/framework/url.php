@@ -83,7 +83,7 @@ class URL
 	{
 		if(!is_cli_application()) {
 		self::$domain = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR'];
-		self::$base = (isset($_SERVER['https']) && $_SERVER['https'] !== 'off' && $_SERVER['https'] !== '0' ? 'https' : 'http');
+		self::$base = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' && $_SERVER['HTTPS'] !== '0' ? 'https' : 'http');
 		self::$base .= '://'.(isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR']);
 		self::$base .= ($_SERVER['SERVER_PORT'] != '80' && $_SERVER['SERVER_PORT'] != '443' ? ':'.$_SERVER['SERVER_PORT'] : '');
 		}

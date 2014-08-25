@@ -40,7 +40,7 @@ class Request
 		elseif(str_startswith($this->_path, "/index.php"))
 			$this->_path = substr($this->_path, strlen("/index.php"));
 
-		$this->_secure = (isset($this->server['https']) && $this->server['https'] !== 'off' && $_SERVER['https'] !== '0');
+		$this->_secure = (isset($this->server['HTTPS']) && $this->server['HTTPS'] !== 'off' && $_SERVER['HTTPS'] !== '0');
 		$this->_secure = $this->_secure || (Config::get('http.loadbalanced',false) && isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https');
 		$this->_ip = (Config::get('http.loadbalanced',false) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
 		$this->_domain = (isset($this->server['SERVER_NAME']) ? $this->server['SERVER_NAME'] : $this->server['SERVER_ADDR']);
