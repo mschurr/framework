@@ -4,7 +4,7 @@
  * Encapsulates a raw HTTP Request.
  */
 class Request
-{	
+{
 	protected $_headers;
 	protected $_get;
 	protected $_post;
@@ -22,17 +22,17 @@ class Request
 	protected $_timestamp;
 	protected $_ip;
 	protected $_auth;
-	
+
 	/**
 	 * Instantiates a new Request object.
 	 */
 	public function __construct()
-	{	
+	{
 		$this->_method = (isset($this->server['REQUEST_METHOD'])) ? $this->server['REQUEST_METHOD'] : 'GET';
 		$this->_uri    = $this->server['REQUEST_URI'];
-		
+
 		$this->_path   = '/'.trim( (strpos($this->server['REQUEST_URI'],"?") === false ? $this->server['REQUEST_URI'] : substr($this->server['REQUEST_URI'], 0, strrpos($this->server['REQUEST_URI'],"?")))  ,'/\\');
-		
+
 		if($this->_path == '/index.php')
 			$this->_path = '/';
 		elseif($this->_path == '/index.html')
@@ -40,13 +40,13 @@ class Request
 		elseif(str_startswith($this->_path, "/index.php"))
 			$this->_path = substr($this->_path, strlen("/index.php"));
 
-		$this->_secure = (isset($this->server['https']) && $this->server['https'] == 'on');
+		$this->_secure = (isset($this->server['https']) && $this->server['https'] !== 'off' && $_SERVER['https'] !== '0');
 		$this->_secure = $this->_secure || (Config::get('http.loadbalanced',false) && isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https');
 		$this->_ip = (Config::get('http.loadbalanced',false) && isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
 		$this->_domain = (isset($this->server['SERVER_NAME']) ? $this->server['SERVER_NAME'] : $this->server['SERVER_ADDR']);
 		$this->_timestamp = time();
 	}
-	
+
 	/**
 	 * Returns whether or not this request matches a particular pattern.
 	 * Patterns are equivalent to those used by Route commands.
@@ -55,7 +55,7 @@ class Request
 	{
 		return is_array(Route::is($pattern));
 	}
-	
+
 	/**
 	 * Returns the raw HTTP request.
 	 */
@@ -73,13 +73,13 @@ class Request
 					$request .= $k.'='.urlencode($v).''.EOL;
 			}
 			foreach($this->files as $k => $v) {
-				$request .= $k.'=(File)';	
+				$request .= $k.'=(File)';
 			}
 			$request = substr($request,0,-1).PHP_EOL;
-				
+
 		return($request);
 	}
-	
+
 	/**
 	 * Returns whether or not a request property is set.
 	 */
@@ -125,7 +125,7 @@ class Request
 			return true;
 		return false;
 	}
-	
+
 	/**
 	 * Oversees access to internal properties from external scope.
 	 * Enables support for lazy instantiation of object properties.
@@ -174,21 +174,21 @@ class Request
 							foreach($array as $k => $v)
 								if($k === 'something-with-a-dash')
 									echo $v;
-							
+
 						Really PHP?
 					*/
 					$data = array();
-		
+
 					foreach(getallheaders() as $k => $v) {
-						$data[str_replace("-","_",$k)] = $v;	
+						$data[str_replace("-","_",$k)] = $v;
 					}
-					
+
 					$this->_headers = new RequestDataWrapper($data);
 				}
 				else {
 					// Provide emulated support for getallheaders() if PHP < 5.5.7
 					$data = array();
-					foreach($_SERVER as $k => $v) { 
+					foreach($_SERVER as $k => $v) {
 						if(substr($k, 0, 5) == 'HTTP_') {
 							$k = strtolower(substr($k, 5));
 							$segs = explode("_", $k);
@@ -240,7 +240,7 @@ class Request
 			throw new BadAccessException($k);
 		}
 	}
-	
+
 	/**
 	 * Handles calls to undefined functions or private functions from external scope.
 	 * Forwards method calls to properties to their __invoke() method.
@@ -262,13 +262,13 @@ class RequestDataWrapper implements IteratorAggregate, ArrayAccess, Countable
 	const GetType = 0;
 	const PostType = 1;
 	const FileType = 2;
-	
+
 	public function __construct(array $data, $type = null)
 	{
 		$this->data = $data;
 		$this->type = $type;
 	}
-	
+
 	public function offsetGet($k) {
 		$k = str_replace("-","_",$k);
 		if(isset($this->data[$k]))
@@ -282,7 +282,7 @@ class RequestDataWrapper implements IteratorAggregate, ArrayAccess, Countable
 		else
 			throw new BadAccessException($k);
 	}
-	
+
 	public function __get($k)
 	{
 		if(isset($this->data[$k]))
@@ -306,29 +306,29 @@ class RequestDataWrapper implements IteratorAggregate, ArrayAccess, Countable
 	{
 		return new ArrayIterator($this->data);
 	}
-	
+
 	public function __toString()
 	{
 		$string = '';
 		foreach($this->data as $k => $v)
 			$string .= '&'.urlencode($k).'='.urlencode($v);
-			
+
 		if(substr($string, 0, 1) == '&')
 			$string = substr($string, 1);
-			
+
 		return $string;
 	}
-	
+
 	public function __isset($k)
 	{
 		return isset($this->data[$k]);
 	}
-	
+
 	public function __unset($k)
 	{
 		throw new ImmutableObjectException;
 	}
-	
+
 	public function __invoke()
 	{
 		$args = func_get_args();
@@ -338,41 +338,41 @@ class RequestDataWrapper implements IteratorAggregate, ArrayAccess, Countable
 
 		throw new BadMethodCallException;
 	}
-	
+
 	public function has($k)
 	{
 		return $this->__isset($k);
 	}
-	
+
 	public function get($k)
 	{
 		return $this->__get($k);
 	}
-	
+
 	public function __set($k, $v)
 	{
 		throw new ImmutableObjectException;
 	}
-	
+
 	// Array Access
 	public function offsetSet($offset, $value) {
 		throw new ImmutableObjectException;
 	}
-	
+
 	public function offsetExists($k) {
 		$k = str_replace("-","_",$k);
 		return isset($this->data[$k]);
 	}
-	
+
 	public function offsetUnset($offset) {
 		throw new ImmutableObjectException;
-	}	
-	
-	public function dump() {
-		return print_r($this->data, true);	
 	}
-	
+
+	public function dump() {
+		return print_r($this->data, true);
+	}
+
 	public function toArray() {
-		return $this->data;	
+		return $this->data;
 	}
 }

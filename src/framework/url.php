@@ -5,7 +5,7 @@
 	#############################################################
 
 	This library can be used to generate URLs dynamically. In this way, you can
-	create URLs to controllers and (if you change the route to the controller), 
+	create URLs to controllers and (if you change the route to the controller),
 	all of the URLs will update, too.
 
 	-----------------------------------------------
@@ -20,7 +20,7 @@
 		e.g. URL::to('css/master.css')
 
 	URL::route(name, ...parameters)
-	
+
 		Returns a URL to a Route by its name. If the route has URL variables, they should be specified following the name.
 
 		e.g. Route::get('/profile/{userid}', 'ProfileController', array('name' => 'UserProfile'));
@@ -35,7 +35,7 @@
 			Redirect 		Returns the URL that the Redirect points to.
 			StorageFile		Returns a URL to a StorageFile; if the file does not exist, an exception is thrown.
 			File 			Returns a URL to a File; the file must exist within the static directory or an exception is thrown.
-			BladeView 		Returns a URL to the active controller; accepts URL parameters. 
+			BladeView 		Returns a URL to the active controller; accepts URL parameters.
 							e.g. {{{ URL::to($this) }}} in a Blade View.
 			BladeLayout 	Returns a URL to the active controller; accepts URL parameters.
 							e.g. {{{ URL::to($this) }}} in a Blade Layout.
@@ -83,7 +83,7 @@ class URL
 	{
 		if(!is_cli_application()) {
 		self::$domain = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR'];
-		self::$base = (isset($_SERVER['https']) && $_SERVER['https'] == 'on' ? 'https' : 'http');
+		self::$base = (isset($_SERVER['https']) && $_SERVER['https'] !== 'off' && $_SERVER['https'] !== '0' ? 'https' : 'http');
 		self::$base .= '://'.(isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR']);
 		self::$base .= ($_SERVER['SERVER_PORT'] != '80' && $_SERVER['SERVER_PORT'] != '443' ? ':'.$_SERVER['SERVER_PORT'] : '');
 		}
@@ -204,7 +204,7 @@ class URL
 			}
 			catch(Exception $e) {
 				throw new URLException($e->getMessage());
-			}		
+			}
 		}
 	}
 
