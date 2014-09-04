@@ -57,7 +57,7 @@ function json_from_url($url)
  */
 /*array*/ function from_json(/*String*/ $string) {
 	$native = json_decode($string, true);
-	
+
 	if(json_last_error() === JSON_ERROR_NONE)
 		return $native;
 	return null;
@@ -96,6 +96,25 @@ class Attachment {
 	return $keys;
 }
 
+
+/**
+ * Creates a list of SQL placeholders as a string for use in an update query template.
+ * e.g. sql_keys(array('name' => 'Matt', 'age' => 18)) --> "`name` = :name, `age` = :age"
+ */
+/*string*/ function sql_update(/*array<string:mixed>*/ $array) {
+	$s = '';
+
+	foreach ($array as $field => $value) {
+		$s .= '`'.$field.'` = :'.$field.', ';
+	}
+
+	if ($s !== '') {
+		$s = substr($s, 0, -2);
+	}
+
+	return $s;
+}
+
 /**
  * Creates a list of SQL placeholders as a string for use in a query template based off of the keys in an array.
  *
@@ -112,7 +131,7 @@ class Attachment {
 	return $values;
 }
 
-/** 
+/**
  * Returns a new array map created by prepending ":" to each of the keys in the old map (associated values are preserved).
  *
  * e.g. sql_parameters(array('name' => 'Matt', 'age' => 18)) --> array(':name' => 'Matt', ':age' => 18)
@@ -133,14 +152,14 @@ class Attachment {
 /*string*/ function str_random(/*int*/ $length, /*string*/ $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_') {
 	// Seed the random number generator.
 	mt_srand(microtime(true) * 1000000);
-	
+
 	// Create a unique session identifier.
 	$id = "";
-	
+
 	while(strlen($id) < $length) {
 		$id .= substr($chars, mt_rand(0, strlen($chars)-1), 1);
 	}
-	
+
 	return $id;
 }
 
@@ -425,7 +444,7 @@ if ( ! function_exists('array_get'))
 	function array_get($array, $key, $default = null)
 	{
 		if (is_null($key)) return $array;
-		
+
 		if (isset($array[$key])) return $array[$key];
 
 		foreach (explode('.', $key) as $segment)
@@ -789,7 +808,7 @@ if ( ! function_exists('object_get'))
 	function object_get($object, $key, $default = null)
 	{
 		if (is_null($key)) return $object;
-		
+
 		foreach (explode('.', $key) as $segment)
 		{
 			if ( ! is_object($object) or ! isset($object->{$segment}))
@@ -820,7 +839,7 @@ if ( ! function_exists('value'))
 			return $value->__value();
 		return $value;
 	}
-	
+
 	function valueOf($value) {
 		return value($value);
 	}
