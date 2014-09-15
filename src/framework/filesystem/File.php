@@ -113,13 +113,13 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	 * Defines all of the properties accessible on File objects.
 	 */
 	public /*array<String>*/ $properties = array(
-		'formattedSize', 'children', 'descendants', 'temporary', 
+		'formattedSize', 'children', 'descendants', 'temporary',
 		'isDirectory', 'isFile', 'isReadable', 'isWritable',
 		'isLink', 'target', 'md5', 'sha1', 'isImage', 'uploaded',
 		'uploadedName', 'uploadedExtension', 'uploadedMime',
 		'lastAccessed', 'lastModified', 'hex', 'exists', 'empty',
 		'inode', 'mime', 'size', 'path', 'extension', 'childFiles',
-		'childDirectories', 'descendantDirectories', 'files', 
+		'childDirectories', 'descendantDirectories', 'files',
 		'descendantFiles', 'isWriteable', 'lines', 'canonicalPath',
 		'subdirectories', 'fileName', 'name', 'ext', 'content',
 		'parent', 'serial'
@@ -202,7 +202,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		$this->__construct($serial);
 	}
-	
+
 	/**
 	 * ALIASES
 	 */
@@ -210,22 +210,22 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		return $this->fileName;
 	}
-	
+
 	public /*void*/ function setName(/*String*/ $value)
 	{
 		$this->fileName = $value;
 	}
-	
+
 	public /*String*/ function getExt()
 	{
 		return $this->extension;
 	}
-	
+
 	public /*void*/ function setExt(/*String*/ $value)
 	{
 		$this->extension = $ext;
 	}
-	
+
 	/**
 	 *
 	 */
@@ -248,7 +248,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	protected /*void*/ function updateCanonicalPath()
 	{
 		if(pathIsRelative($this->path)) {
-			$path = evaluateRelativePath(getcwd(), $this->path);
+			$path = evaluateRelativePath(__getcwd__(), $this->path);
 			$this->_properties['canonicalPath'] = $path;
 			return;
 		}
@@ -534,7 +534,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		if(is_null($this->_properties['children']))
 			$this->_properties['children'] = $this->children(null);
-	
+
 		return $this->_properties['children'];
 	}
 
@@ -545,7 +545,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		if(is_null($this->_properties['descendants']))
 			$this->_properties['descendants'] = $this->descendants(null);
-	
+
 		return $this->_properties['descendants'];
 	}
 
@@ -556,7 +556,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		if(is_null($this->_properties['lines']))
 			$this->_properties['lines'] = new FileLineIterator($this);
-	
+
 		return $this->_properties['lines'];
 	}
 
@@ -791,7 +791,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 			else
 				throw new FileDoesNotExistException;
 		}
-		
+
 		$this->put($initialContent, false);
 	}
 
@@ -867,7 +867,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 
 	/**
 	 * Deletes this file (or non-empty directory).
-	 * If this object represents a non-empty directory or does not exist, an exception is thrown. 
+	 * If this object represents a non-empty directory or does not exist, an exception is thrown.
 	 */
 	public /*void*/ function delete() /*throws FileException*/
 	{
@@ -919,7 +919,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	{
 		return new FileChunkIterator($this, $bytes);
 	}
-	
+
 	/**
 	 * Returns an Iterator over the file in chunks of $bytes bytes.
 	 */
@@ -1035,7 +1035,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 	// -------------------------------------------------------------------------------
 	// The functions below are not yet implemented.
 	// -------------------------------------------------------------------------------
-	
+
 	/**
 	 * Copies the file (or directory) to the provided destination path.
 	 * If this object represents a directory, the copy is recursive (contents are copied).
@@ -1063,7 +1063,7 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 
 	/**
 	 * Locks the file to prevent writes from other threads.
-	 * The lock may be manually released using release(), or the lock will be 
+	 * The lock may be manually released using release(), or the lock will be
 	 * auto-released when the object is deallocated.
 	 */
 	public /*void*/ function lock() /*throws FileException*/

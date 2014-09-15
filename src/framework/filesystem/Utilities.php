@@ -11,6 +11,12 @@ function __directory__() {
 	return substr($path, 0, strrpos($path, "/"));
 }
 
+function __getcwd__() {
+    $path = getcwd();
+    $path = str_replace("\\", "/", $path);
+    return $path;
+}
+
 function evaluatePath($path) {
     if(isAbsolutePath($path))
         return $path;
@@ -34,10 +40,10 @@ function evaluateRelativePath($base, $rel_path) {
 	// Ensure Base Ends With Slash
 	if(substr($base,-1,1) != '/')
 		$base = $base.'/';
-	
+
 	// Create Path
 	$path = $base.$rel_path;
-	
+
 	// Replace '//' or '/./' or '/foo/../' with '/'
 	$re = array('#(/\.?/)#', '#/(?!\.\.)[^/]+/\.\./#');
 	for($n=1; $n>0; $path=preg_replace($re, '/', $path, -1, $n)) {}
@@ -105,6 +111,8 @@ function makePathRelative($endPath, $startPath) {
 function pathIsRelative($path) {
 	if(strpos($path, ":/") !== false)
 		return false;
+    if(strpos($path, ":\\") !== false)
+        return false;
 	if(substr($path, 0, 1) == '/')
 		return false;
 	return true;
