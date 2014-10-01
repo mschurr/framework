@@ -11,6 +11,15 @@
  */
 class AccessViolationException extends Exception {}
 
+
+/**
+ * Runs the provided closure immediately.
+ */
+/*void*/ function scope(Closure $closure) {
+	$closure();
+}
+
+
 /**
  * Escapes HTML code so that it will be rendered as text, not HTML.
  */
