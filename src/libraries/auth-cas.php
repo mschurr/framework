@@ -14,7 +14,7 @@ class Auth_Driver_cas extends Auth_Driver_db
 
 	public /*bool*/ function check($password)
 	{
-		throw new Exception("The authentication driver does not support ::check(password).");
+		throw new AuthException(AuthExceptionType::NOT_SUPPORTED);
 	}
 
 	protected /*bool*/ function throttleByAccount($username)

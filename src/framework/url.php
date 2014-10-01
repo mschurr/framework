@@ -209,6 +209,18 @@ class URL
 	}
 
 	/**
+	 * Returns the base URL.
+	 */
+	public /*URL*/ function getBaseUrl() {
+		$i = strpos($this->target, "?");
+
+		if ($i === FALSE)
+			return new URL($this->type, $this->target, $this->parameters);
+
+		return new URL($this->type, substr($this->target, 0, $i), $this->parameters);
+	}
+
+	/**
 	 * Attaches GET parameters to the URL.
 	 */
 	public function with(array $array)

@@ -1,25 +1,10 @@
 <?php
-/**
- * NOTICE: The people who wrote the phpCAS implementation (a dependency of the driver) did not think things through very well.
- *
- *         1) The library is not programmed for distributed systems. If you have more than a single application node, you're out of luck.
- *              --> Possible Workaround #1: Have your load balancer enforce session stickiness
- *              --> Possible Workaround #2: Implement SessionHandlerInterface as a wrapper around the framework Session class.
- *
- *         2) phpCAS writes to stdout in Exception constructors... what?
- *              --> It's probably possible to work around this by wrapping the CAS calls in an output buffer.
- *
- *         3) phpCAS does not clear the login information that is cached in $_SESSION when you explicitly call logout().... what?
- *              --> I put in a workaround for this in User_Service_Provider_cas.
- *
- *         4) This system **probably** does not work securely and/or properly if you are running behind a load balancer.
- *            phpCAS does not respect the X-Forwarded-Proto header which may result in ssl links being generated as http over port 443.
- *
- *         Recommend re-implementing phpCAS from scratch in a more sensible way that is integrated into the framework.
- *         If I have time later, I'll come back and do that. For now, it works.
- *         
- */
-require_once(FRAMEWORK_ROOT."/external/phpCAS/CAS.php");
+require_once(FRAMEWORK_ROOT."/plugins/CAS.php");
+
+use mschurr\framework\plugins\CAS\CASConfig;
+use mschurr\framework\plugins\CAS\CASUser;
+use mschurr\framework\plugins\CAS\CASAuthenticationException;
+use mschurr\framework\plugins\CAS\CASAuthenticator;
 
 class User_Service_Provider_cas extends User_Service_Provider
 {
@@ -33,38 +18,47 @@ class User_Service_Provider_cas extends User_Service_Provider
 		$this->db =& App::getDatabase();
 	}
 
+	protected /*CASAuthenticator*/ function getAuthenticator() {
+		$error = function() {
+			throw new Exception("You have not properly configured the server for CAS authentication.");
+		};
+
+		$config = new CASConfig();
+		$config->host = Config::get('auth.cas.host', $error);
+		$config->path = Config::get('auth.cas.path', $error);
+
+		$authenticator = new CASAuthenticator($config);
+		return $authenticator;
+	}
+
 	/**
 	 * Checks the provided login credentials; returns a user if successful or null on failure.
 	 */
 	public /*User_Provider*/ function login(/*String*/$username, /*String*/$password)
 	{
-		$error = function(){ throw new Exception("You have not properly configured the server for CAS authentication."); };
-		list($host, $port, $context, $cert) = array(
-			Config::get('auth.cas.host', $error),
-			(int) Config::get('auth.cas.port', $error),
-			Config::get('auth.cas.path', $error),
-			Config::get('auth.cas.cert', $error)
-		);
+		$authenticator = $this->getAuthenticator();
+		$request = App::getRequest();
+		$response = App::getResponse();
+		$destination = isset($request->get['destination']) ? $request->get['destination'] : URL::to('/');
 
-		phpCAS::client(CAS_VERSION_2_0, $host, $port, $context);
-		phpCAS::setCasServerCACert($cert);
+    try {
+      $casUser = $authenticator->startAuthentication($request, $response, $destination);
+      if ($casUser) {
+      	$user = $this->loadByName($casUser->username);
 
-		if(phpCAS::isAuthenticated()/* && phpCAS::renewAuthentication()*/) {
-			$user = $this->loadByName(phpCAS::getUser());
+      	// If we have not yet seen this user, we need to make a database record.
+      	if($user !== null) {
+					return $user;
+      	}
 
-			// If we have not yet seen this user, we need to make a database record.
-			if($user !== null)
-				return $user;
+				$stmt = $this->db->prepare("INSERT INTO `users` (`username`) VALUES (?);");
+				$res = $stmt->execute($casUser->username);
 
-			$stmt = $this->db->prepare("INSERT INTO `users` (`username`) VALUES (?);");
-			$res = $stmt->execute(phpCAS::getUser());
-			
-			return $this->load($res->insertId);
-		}
-		else {
-			phpCAS::forceAuthentication();
-			return null;
-		}
+				return $this->load($res->insertId);
+      }
+    } catch (CASAuthenticationException $e) {}
+
+    return null;
 	}
 
 	/**
@@ -72,28 +66,11 @@ class User_Service_Provider_cas extends User_Service_Provider
 	 */
 	public /*void*/ function logout(/*User_Provider*/ $user)
 	{
-		$error = function(){ throw new Exception("You have not properly configured the server for CAS authentication."); };
-		
-		list($host, $port, $context, $cert) = array(
-			Config::get('auth.cas.host', $error),
-			(int) Config::get('auth.cas.port', $error),
-			Config::get('auth.cas.path', $error),
-			Config::get('auth.cas.cert', $error)
-		);
-
-		phpCAS::client(CAS_VERSION_2_0, $host, $port, $context);
-		phpCAS::setCasServerCACert($cert);
-
-		if(phpCAS::isAuthenticated() && phpCAS::getUser() == $user->username) {
-			if (session_id() !== "") {
-				// This is REALLY hacky... destroy the built in session that phpCAS is using to cache authentication
-				//   which (for some reason) does not get reset by the library when you explicitly call the logout function. What?
-				session_unset();
-                session_destroy();
-            }
-			phpCAS::logoutWithRedirectService( (string)URL::current() );
-			die();
-		}
+		$authenticator = $this->getAuthenticator();
+		$request = App::getRequest();
+		$response = App::getResponse();
+		$destination = isset($request->get['destination']) ? $request->get['destination'] : URL::to('/');
+    $authenticator->endAuthentication($response, $destination);
 	}
 
 	/**
@@ -116,13 +93,13 @@ class User_Service_Provider_cas extends User_Service_Provider
 	{
 		if(str_contains($name, "%"))
 			return null;
-			
+
 		$statement = $this->db->prepare("SELECT `userid` FROM `users` WHERE `username` LIKE ? LIMIT 1;");
 		$query = $statement->execute($name);
-		
+
 		if(len($query) == 0)
 			return null;
-			
+
 		return $this->load($query['userid']);
 	}
 
@@ -131,7 +108,7 @@ class User_Service_Provider_cas extends User_Service_Provider
 	 */
 	public /*void*/ function userDidLogin(/*User_Provider*/$user)
 	{
-		return;	
+		return;
 	}
 
 	/**
@@ -158,7 +135,7 @@ class User_Service_Provider_cas extends User_Service_Provider
 	{
 		throw new UserServiceException("This driver does not support ::create.");
 	}
-	
+
 	/**
 	 * Deletes the provided user.
 	 */
@@ -187,7 +164,7 @@ class User_Provider_cas extends User_Provider_db
 	{
 		throw new Exception("This driver does not support ->setPassword.");
 	}
-	
+
 	public /*bool*/ function checkPassword(/*String*/$password)
 	{
 		throw new Exception("This driver does not support ->checkPassword.");
