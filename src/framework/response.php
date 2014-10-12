@@ -10,48 +10,48 @@ class Response
 	public $status = 200;
 	public $autoflush = false;
 	public $startedWriting = false;
-	
+
 	public function __construct()
 	{
 		$this->out = new Output();
 	}
-	
+
 	public function autoflush($opt = true)
 	{
 		$this->autoflush = $opt;
 	}
-		
+
 	public function enableCaching($http=true, $content=true, $session_specific=false)
 	{
 		// Enables HTTP Caching, indicating the page's content is "static" in a sense. Can be combined with compression.
 		throw new Exception("Not implemented.");
 	}
-	
+
 	public function enableCompression()
 	{
 		// Enables HTTP Compression, saving server-side bandwidth at the cost of CPU cycles.
 		throw new Exception("Not implemented.");
 	}
-	
+
 	public function send()
 	{
 		if(!$this->startedWriting) {
 			if(!headers_sent()) {
 				header('HTTP/1.1 '.$this->status.' '.$this->status_text[$this->status], true);
-				
+
 				foreach($this->headers as $k => $v) {
 					header($k.':'. $v, true);
 				}
 			}
-			
+
 			Cookies::writePendingToBrowser();
-			
+
 			$this->startedWriting = true;
 		}
-		
+
 		$this->out->send();
 	}
-	
+
 	public function error($code, $message = false, $critical = false)
 	{
 		$this->out->clear();
@@ -76,13 +76,13 @@ class Response
 			</body>
 		</html>
 		");*/
-		
+
 		if($critical === true) {
 			$this->send();
 			die();
 		}
 	}
-	
+
 	public function __toString()
 	{
 		$request = $_SERVER['SERVER_PROTOCOL']." ".$this->status." ".$this->status_text[$this->status].EOL;
@@ -92,57 +92,60 @@ class Response
 		$request .= $this->out->get();
 		return($request);
 	}
-	
+
 	public function addCookie($obj)
 	{
 		if($obj instanceof Cookie)
 			Cookies::registerPending($obj);
 	}
-	
+
 	public function pass($path, $name=null, $extra_headers=array())
 	{
 		throw new Exception("File passing is not implemented.");
 	}
-	
+
 	public function dump()
 	{
 		ob_start();
 		call_user_func_array('var_dump', func_get_args());
-		$r = ob_get_contents();				
+		$r = ob_get_contents();
 		ob_end_clean();
-		
+
 		$r = str_replace(' ', '&nbsp;', $r);
 		$r = nl2br($r);
 		$r = '<span style="font-family: Monospace;">'.$r.'</span>';
 		$this->write($r);
 	}
-	
+
 	public function clear()
 	{
 		return $this->out->clear();
 	}
-	
+
 	public function write($s)
 	{
 		return $this->out->write($s);
 	}
-	
+
 	public function printf(/*...$params*/)
 	{
 		return $this->out->write(call_user_func_array('sprintf', func_get_args()));
 	}
-	
-	public function json($data)
+
+	public function json($data, $prefix=false)
 	{
 		$this->out->clear();
 		$this->headers['Content-Type'] = 'application/json';
-		
+
 		if(is_array($data))
 			$data = to_json($data);
-			
+
+		if ($prefix)
+			$this->out->write("')]}\n");
+
 		$this->out->write($data);
 	}
-	
+
 	public function with($obj)
 	{
 		if($obj instanceof BladeView) {
@@ -156,7 +159,7 @@ class Response
 		}
 		return $this;
 	}
-	
+
 	protected $status_text = array(
 		100 => 'Continue',
 		101 => 'Switching Protocols',
@@ -199,9 +202,9 @@ class Response
 		504 => 'Gateway Timeout',
 		505 => 'HTTP Version Not Supported'
 	);
-	
+
 	protected $_cookie = null;
-	
+
 	public function __get($s)
 	{
 		if($s == 'document')
@@ -214,7 +217,7 @@ class Response
 		}
 		throw new RuntimeException("Access to undefined property: ".$s);
 	}
-	
+
 	public function __isset($s)
 	{
 		if($s == 'cookie' || $s == 'cookies' || $s == 'document')

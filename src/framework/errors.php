@@ -17,9 +17,12 @@ class ErrorManager
 		static::$run = new Run;
 		$handler = new PrettyPageHandler;
 
-		$handler->addDataTable('Framework Data', array(
-
-		));
+		/*$handler->addDataTable('Foundation Routing', []); // Active Route, Controller, Variables
+		$handler->addDataTable('Foundation Session', []);
+		$handler->addDataTable('Foundation Request', []);
+		$handler->addDataTable('Foundation Response', []);
+		$handler->addDataTable('Foundation Cookies', []);
+		$handler->addDataTable('Foundation User', []);*/
 
 		static::$run->pushHandler($handler);
 		static::$run->register();

@@ -7,6 +7,8 @@
  */
 class Auth_Driver_db extends Auth_Driver
 {
+	const AUTH_TOKEN_NAME = 'authd';
+
 	protected $user;
 	protected $db;
 	protected $request;
@@ -132,7 +134,7 @@ class Auth_Driver_db extends Auth_Driver
 			return;
 
 		$statement = $this->db->prepare("DELETE FROM `auth_tokens` WHERE `userid` = ? AND `token_hash` != ?;");
-		$token = isset($this->request->cookies['_auth_token']) ? hash('sha512',$this->request->cookies['_auth_token']->value) : '';
+		$token = isset($this->request->cookies[static::AUTH_TOKEN_NAME]) ? hash('sha512',$this->request->cookies[static::AUTH_TOKEN_NAME]->value) : '';
 		$query = $statement->execute(array($user->id, $token));
 
 		$statement = $this->db->prepare("DELETE FROM `auth_sessions` WHERE `userid` = ? AND `token_hash` != ?;");
@@ -163,11 +165,11 @@ class Auth_Driver_db extends Auth_Driver
 			return;
 
 		// Invalidate the persistent token in the database and the persistent token cookie.
-		if(isset($this->request->cookies['_auth_token']) && $deletePersistent)
+		if(isset($this->request->cookies[static::AUTH_TOKEN_NAME]) && $deletePersistent)
 		{
 			$statement = $this->db->prepare("DELETE FROM `auth_tokens` WHERE `userid` = ? AND `token_hash` = ?;");
-			$statement->execute(array($this->user->id(), hash('sha512', $this->request->cookies['_auth_token']->value)));
-			Cookies::delete('_auth_token');
+			$statement->execute(array($this->user->id(), hash('sha512', $this->request->cookies[static::AUTH_TOKEN_NAME]->value)));
+			Cookies::delete(static::AUTH_TOKEN_NAME);
 		}
 
 		// Invalidate the session token in the database.
@@ -233,13 +235,13 @@ class Auth_Driver_db extends Auth_Driver
 		// If the login is from a token, invalidate the old token.
 		if($fromToken) {
 			$statement = $this->db->prepare("DELETE FROM `auth_tokens` WHERE `userid` = ? AND `token_hash` = ?;");
-			$statement->execute(array($user->id(), hash('sha512',$this->request->cookies['_auth_token']->value)));
+			$statement->execute(array($user->id(), hash('sha512',$this->request->cookies[static::AUTH_TOKEN_NAME]->value)));
 		}
 
 		// Create and set the persistent token.
 		if($persistent) {
 			$token = $this->generateToken();
-			$cookie = new Cookie('_auth_token', $token);
+			$cookie = new Cookie(static::AUTH_TOKEN_NAME, $token);
 			$this->response->cookies->add($cookie);
 
 			$statement = $this->db->prepare("INSERT INTO `auth_tokens` (`userid`, `token_hash`, `expires`) VALUES (?, ?, ?);");
@@ -415,7 +417,7 @@ class Auth_Driver_db extends Auth_Driver
 	protected function validateToken()
 	{
 		// If the user is not logged in, check for a persistent login token.
-		if(!$this->loggedIn() && isset($this->request->cookie['_auth_token'])) {
+		if(!$this->loggedIn() && isset($this->request->cookie[static::AUTH_TOKEN_NAME])) {
 			/// Throttle By IP
 			$statement = $this->db->prepare("SELECT COUNT(*) AS `count`, MAX(`timestamp`) AS `last` FROM `auth_attempts` WHERE `ipaddress` = ? AND `timestamp` >= ? AND `successful` = 0;");
 			$query = $statement->execute(array($this->request->ip, time()-1800));
@@ -427,14 +429,14 @@ class Auth_Driver_db extends Auth_Driver
 
 			// Check that the token exists and has not expired. If so, log the user in.
 			$statement = $this->db->prepare("SELECT * FROM `auth_tokens` WHERE `token_hash` = ? AND `expires` > ?;");
-			$query = $statement->execute(array(hash('sha512', $this->request->cookie['_auth_token']->value), time()));
+			$query = $statement->execute(array(hash('sha512', $this->request->cookie[static::AUTH_TOKEN_NAME]->value), time()));
 
 			if(len($query) != 1) {
 				// Log the failed attempt to prevent brute forcing.
 				$this->registerLoginAttempt(null, 0);
 
 				// Invalidate the cookie.
-				Cookies::delete('_auth_token');
+				Cookies::delete(static::AUTH_TOKEN_NAME);
 				return;
 			}
 
