@@ -51,7 +51,16 @@ class User_Service_Provider_cas extends User_Service_Provider
 					return $user;
       	}
 
-				$stmt = $this->db->prepare("INSERT INTO `users` (`username`) VALUES (?);");
+				$stmt = $this->db->prepare("INSERT INTO `users` (
+					`username`,
+					`email`,
+					`banned`,
+					`password_cost`,
+					`password_salt`,
+					`password_hash`,
+					`properties`
+				) VALUES (?, '', 0, 0, '', '', '{}');");
+
 				$res = $stmt->execute($casUser->username);
 
 				return $this->load($res->insertId);

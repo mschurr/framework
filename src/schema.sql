@@ -40,7 +40,7 @@ CREATE TABLE `users` (
   `password_cost` int(64) UNSIGNED NOT NULL,
   `password_salt` varchar(64) NOT NULL,
   `password_hash` varchar(128) NOT NULL,
-  `properties` text NOT NULL DEFAULT '',
+  `properties` text NOT NULL,
   PRIMARY KEY  (`userid`)
 );
 
