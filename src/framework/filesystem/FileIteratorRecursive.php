@@ -1,11 +1,5 @@
 <?php
 
-use \Closure;
-use \Iterator;
-use \Countable;
-use \SplQueue;
-use \RuntimeException;
-
 class FileIteratorRecursive extends FileIteratorGeneric
 {
 	// #Iterator
