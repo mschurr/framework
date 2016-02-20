@@ -1,8 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
-use \RuntimeException;
-
 class FileException extends RuntimeException
 {
 	// A generic file exception.
@@ -38,7 +35,7 @@ class FileOperationFailedException extends FileException
 {
 	// A file operation failed due to some unexpected reason.
 }
-	
+
 class FileMemoryInsufficientException extends FileException
 {
 	// There is not enough space in memory (PHP) to perform an operation.

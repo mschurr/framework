@@ -1,11 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
-use \Iterator;
-use \ArrayAccess;
-use \Countable;
-use \InvalidArgumentException;
-
 /**
  * Provides an class enabling iteration over a file in chunks of size $bytes.
  * Allows access to any given chunk via ArrayAccess in O(1) time.
@@ -49,17 +43,17 @@ class FileChunkIterator implements Iterator, ArrayAccess, Countable
 			throw new InvalidArgumentException;
 
 		$h = fopen($this->file->path, 'r');
-		
+
 		if(fseek($h, $key * $this->bytes, SEEK_SET) === -1)
 			return null;
-		
+
 		if(feof($h))
 			return null;
-			
+
 		$data = fread($h, $this->bytes);
-		
+
 		fclose($h);
-		
+
 		return $data;
 	}
 
@@ -82,44 +76,44 @@ class FileChunkIterator implements Iterator, ArrayAccess, Countable
 	// #Iterator
 	protected $_handle;
 	protected $_key;
-	
+
 	public /*mixed*/ function current()
 	{
 		return fread($this->_handle, $this->bytes);
 	}
-	
+
 	public /*scalar*/ function key()
 	{
 		return $this->_key;
 	}
-	
+
 	public /*void*/ function rewind()
 	{
 		if($this->_handle) {
 			fclose($this->_handle);
 		}
-		
+
 		$this->_handle = fopen($this->file->path, 'r');
 		$this->_key = 0;
 	}
-	
+
 	public /*void*/ function next()
 	{
 		$this->_key++;
 	}
-	
+
 	public /*boolean*/ function valid()
 	{
 		return !feof($this->_handle);
 	}
-	
+
 	public /*void*/ function __destruct()
 	{
 		if($this->_handle) {
 			fclose($this->_handle);
 		}
 	}
-	
+
 
 	// Other Functions
 	public /*array<binary>*/ function &toArray()

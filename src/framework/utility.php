@@ -54,9 +54,12 @@ function json_from_url($url)
  * Converts a PHP array into JSON.
  * Returns null on failure.
  */
-/*String*/ function to_json(/*array*/ $array) {
+/*String*/ function to_json(/*array*/ $array, $addXssiPrefix=false) {
 	$json = json_encode($array);
 	if($json === false) return null;
+
+	if ($addXssiPrefix)
+		return "')]}\n".$json;
 	return $json;
 }
 

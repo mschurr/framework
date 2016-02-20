@@ -1,6 +1,8 @@
 <?php
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
+use Whoops\Handler\JsonResponseHandler;
+//use Whoops\Handler\PlainTextHandler;
 use Exception as BaseException;
 
 error_reporting(E_ALL);
@@ -24,7 +26,14 @@ class ErrorManager
 		$handler->addDataTable('Foundation Cookies', []);
 		$handler->addDataTable('Foundation User', []);*/
 
+		$jsonHandler = new JsonResponseHandler();
+		$jsonHandler->onlyForAjaxRequests(true);
+
+		//$cli = new PlainTextHandler();
+
 		static::$run->pushHandler($handler);
+		static::$run->pushHandler($jsonHandler);
+		//static::$run->pushHandler($cli);
 		static::$run->register();
 	}
 

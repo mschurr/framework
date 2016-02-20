@@ -31,7 +31,7 @@
  *          // Pass through the properties this class should have.
  * 			super::__construct(array(
  * 				'name', 'age', 'occupation', 'children', 'birthdate'
- * 			));	
+ * 			));
  *
  *          // Intitialize properties like you normally would.
  *          $this->occupation = 'Programmer';
@@ -63,10 +63,6 @@
  *
  */
 
-//namespace mschurr\FileObject;
-use \RuntimeException;
-use \ArrayAccess;
-use \BadAccessException;
 
 /**
  * An exception representing access to an undefined property.

@@ -1,9 +1,4 @@
 <?php
-//namespace mschurr\FileObject;
-use \Closure;
-use \Iterator;
-use \Countable;
-
 
 abstract class FileIteratorGeneric implements Iterator, Countable
 {
@@ -24,7 +19,7 @@ abstract class FileIteratorGeneric implements Iterator, Countable
 
 		// File objects are not immutable, so we should instantiate a copy of the object.
 		$this->file = new File($file->canonicalPath);
-		
+
 		// Store the filter.
 		$this->filter =& $filter;
 	}

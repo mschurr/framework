@@ -1,8 +1,4 @@
 <?php
-use \Countable;
-use \ArrayAccess;
-use \IteratorAggregate;
-use \ArrayIterator;
 
 /**
  * Provides an Exception for errors in the DefaultArrayMap classes.
@@ -122,7 +118,7 @@ class DefaultArrayMap implements Countable, ArrayAccess, IteratorAggregate
 	{
 		return new ImmutableDefaultArrayMap($this->copyOf($this->_data));
 	}
-	
+
 	/**
 	 * Returns a new, mutable copy of the object.
 	 */

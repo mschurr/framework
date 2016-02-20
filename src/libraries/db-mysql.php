@@ -76,14 +76,15 @@ class DB_Driver_mysql extends DB_Driver
 
 		try {
 			$result = $this->link->query($query);
-			$insertId = $this->link->lastInsertId();
+			if ($result !== false)
+				$insertId = $this->link->lastInsertId();
 		}
 		catch (PDOException $e) {
 			return new DB_Result($this, 0, 0, $query, false, array(), 0, 0, $e->getMessage(), []);
 		}
 
 		if($result === false) {
-			return new DB_Result($this, 0, 0, $query, false, array(), 0, 0, implode(' | ',$this->link->errorInfo()), []);
+			return new DB_Result($this, 0, 0, $query, false, array(), 0, 0, implode(' | ', $this->link->errorInfo()), []);
 		}
 
 

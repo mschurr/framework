@@ -1,11 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
-use \Iterator;
-use \ArrayAccess;
-use \Countable;
-use \InvalidArgumentException;
-
 class FileLineIterator implements Iterator, ArrayAccess, Countable
 {
 	protected /*File*/ $file;
@@ -156,7 +150,7 @@ class FileLineIterator implements Iterator, ArrayAccess, Countable
 			//echo 'Attempting to create '.$indexes.' indexes (every '.$indexBytes.' bytes)';
 
 			$h = fopen($this->file->path, 'r');
-			
+
 			while(!feof($h)) {
 				$content = fgets($h, 4096);
 				$this->_count += 1;
@@ -165,55 +159,55 @@ class FileLineIterator implements Iterator, ArrayAccess, Countable
 					$last = ftell($h);
 					$this->_index[$this->_count] = $last;
 					$this->_lines[] = $this->_count;
-				}	
+				}
 			}
-			
+
 			//var_dump($this->_index);
 			fclose($h);
 		}
-		
+
 		return $this->_count;
 	}
 
 	// # Iterator
 	protected $_handle;
 	protected $_key;
-	
+
 	public /*mixed*/ function current()
 	{
 		return fgets($this->_handle, 4096);
 	}
-	
+
 	public /*scalar*/ function key()
 	{
 		return $this->_key;
 	}
-	
+
 	public /*void*/ function rewind()
 	{
 		if($this->_handle) {
 			fclose($this->_handle);
-			$this->_handle = null;	
+			$this->_handle = null;
 		}
-		
+
 		$this->_handle = fopen($this->file->path, 'r');
 		$this->_key = 0;
 	}
-	
+
 	public /*void*/ function next()
 	{
 		$this->_key++;
 	}
-	
+
 	public /*boolean*/ function valid()
 	{
 		return !feof($this->_handle);
 	}
-	
+
 	public /*void*/ function __destruct()
 	{
 		if($this->_handle) {
-			fclose($this->_handle);	
+			fclose($this->_handle);
 		}
 	}
 

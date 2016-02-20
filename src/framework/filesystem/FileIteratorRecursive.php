@@ -1,6 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
 use \Closure;
 use \Iterator;
 use \Countable;
@@ -10,7 +9,7 @@ use \RuntimeException;
 class FileIteratorRecursive extends FileIteratorGeneric
 {
 	// #Iterator
-	
+
 	protected /*array*/ $iterators;
 	protected /*FileIterator*/ $currentIterator;
 	protected /*File*/ $_current;

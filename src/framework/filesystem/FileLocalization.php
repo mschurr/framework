@@ -1,8 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
-use \InvalidArgumentException;
-
 /**
  * Provides an interface for localizing error messages.
  */

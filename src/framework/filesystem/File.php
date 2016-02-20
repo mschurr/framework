@@ -1,12 +1,5 @@
 <?php
 
-//namespace mschurr\FileObject;
-use \Countable;
-use \IteratorAggregate;
-use \Serializable;
-use \InvalidArgumentException;
-use \Closure;
-
 /**
  * A class that allows efficient, intuitive manipulation of the file system.
  */
@@ -54,7 +47,8 @@ class File extends SmartObject implements IteratorAggregate, Countable, Serializ
 		'xslt' => 'application/xslt+xml',
 		'py' => 'application/x-python',
 		'php' => 'text/plain',
-		'log' => 'text/plain'
+		'log' => 'text/plain',
+		'json' => 'application/json'
 	);
 
 	/**

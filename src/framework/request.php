@@ -61,10 +61,11 @@ class Request
 	 */
 	public function __toString()
 	{
-		$request = $this->server['SERVER_PROTOCOL']." ".$this->method." ".$this->server['REQUEST_URI'].PHP_EOL;
+		$request = $this->method." ".$this->server['REQUEST_URI']." ".$this->server['SERVER_PROTOCOL'].PHP_EOL;
 		foreach($this->headers as $k => $v) {
 			$request .= str_replace("_","-",$k).": ".$v.PHP_EOL;
 		}
+		$request .= PHP_EOL;
 			// can read raw from php://input
 			foreach($this->post as $k => $v) {
 				if(is_array($v))
@@ -78,6 +79,44 @@ class Request
 			$request = substr($request,0,-1).PHP_EOL;
 
 		return($request);
+	}
+
+	public function toPrettyString() {
+		// Request Line
+		$request = $this->method." ".$this->server['REQUEST_URI']." ".$this->server['SERVER_PROTOCOL'].PHP_EOL;
+
+		// POST Data
+		$json = null;
+
+		if (count($this->post) > 0) {
+			$json = to_json($_POST);
+		}
+
+		// Headers
+		foreach($this->headers as $k => $v) {
+			if ($json !== null && $k == 'Content_Length') {
+				$request .= 'Content-Length: '.strlen($json).PHP_EOL;
+				continue;
+			}
+
+			if ($json !== null && $k == 'Content_Type') {
+				$request .= 'Content-Type: application/json'.PHP_EOL;
+				continue;
+			}
+
+			$request .= str_replace("_","-", $k).": ".$v.PHP_EOL;
+		}
+		$request .= PHP_EOL;
+
+		if (count($this->post) > 0) {
+			$request .= $json.PHP_EOL;
+		}
+
+		if (count($this->files) > 0) {
+			$request .= to_json($_FILES);
+		}
+
+		return $request;
 	}
 
 	/**
