@@ -163,7 +163,7 @@ class Attachment {
  */
 /*string*/ function str_random(/*int*/ $length, /*string*/ $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_') {
 	// Seed the random number generator.
-	mt_srand(microtime(true) * 1000000);
+	mt_srand((int)(microtime(true) * 1000000));
 
 	// Create a unique session identifier.
 	$id = "";
