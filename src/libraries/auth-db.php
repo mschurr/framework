@@ -211,7 +211,7 @@ class Auth_Driver_db extends Auth_Driver
 	protected function generateToken()
 	{
 		// Seed the random number generator.
-		mt_srand(microtime(true) * 1000000);
+		mt_srand((int)(microtime(true) * 1000000));
 
 		// Create a unique session identifier.
 		$length = 100 + mt_rand(25,50);
